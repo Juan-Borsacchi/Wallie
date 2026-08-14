@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		6C463B52302F8F7C002071D1 /* Wallie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Wallie.app; path = "/Users/vitorssza/Documents/Wallie/build/Debug-iphoneos/Wallie.app"; sourceTree = "<absolute>"; };
+		265CAF75302F96A4001FC611 /* Wallie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wallie.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				6C463B54302F8F7C002071D1 /* Wallie */,
+				265CAF75302F96A4001FC611 /* Wallie.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -58,7 +59,7 @@
 			packageProductDependencies = (
 			);
 			productName = Wallie;
-			productReference = 6C463B52302F8F7C002071D1 /* Wallie.app */;
+			productReference = 265CAF75302F96A4001FC611 /* Wallie.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
