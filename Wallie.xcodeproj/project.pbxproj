@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		6C463B52302F8F7C002071D1 /* Wallie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Wallie.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C463B52302F8F7C002071D1 /* Wallie.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Wallie.app; path = "/Users/vitorssza/Documents/Wallie/build/Debug-iphoneos/Wallie.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,16 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				6C463B54302F8F7C002071D1 /* Wallie */,
-				6C463B53302F8F7C002071D1 /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		6C463B53302F8F7C002071D1 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				6C463B52302F8F7C002071D1 /* Wallie.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -95,7 +86,7 @@
 			mainGroup = 6C463B49302F8F7C002071D1;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 6C463B53302F8F7C002071D1 /* Products */;
+			productRefGroup = 6C463B49302F8F7C002071D1;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
