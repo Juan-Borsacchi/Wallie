@@ -70,6 +70,7 @@ struct LastImageAlbum: View {
     }
 }
 
+
 struct AlbumGroup: View {
     let titleAlbum: String
     
@@ -86,6 +87,7 @@ struct AlbumGroup: View {
                 LastImageAlbum(imageLastAlbum: "outono", amountImages: "+ 3")
             }
         }
+        .padding(.bottom, 20)
     }
 }
 
