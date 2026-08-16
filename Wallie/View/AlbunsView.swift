@@ -19,7 +19,7 @@ struct AlbunsView: View {
                     HStack {
                         Title(title: "Álbuns", subtitle: "Colecione mémorias")
                         Spacer()
-                        ButtonAdd(displaySheet: $displaySheet)
+                        AddButton(displaySheet: $displaySheet)
                     }
                     .padding(.bottom, 27)
                     

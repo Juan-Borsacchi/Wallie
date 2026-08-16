@@ -21,8 +21,8 @@ struct CreateAlbumView: View {
                 albumName: $albumName,
                 albumDate: $albumDate,
                 includeDate: $includeDate,
-                selectedCategory: $selectedCategory
-            )
+                selectedCategory: $selectedCategory)
+            
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolBarCreateSheetAlbum(
@@ -34,7 +34,9 @@ struct CreateAlbumView: View {
                     }
                 )
             }
+            
         }
+        
     }
 }
 

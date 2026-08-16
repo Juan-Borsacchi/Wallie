@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ButtonAdd: View {
+struct AddButton: View {
     @Binding var displaySheet: Bool
     
     var body: some View {
