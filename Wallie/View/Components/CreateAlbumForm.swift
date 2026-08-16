@@ -14,12 +14,16 @@ struct CreateAlbumForm: View {
     @Binding var includeDate: Bool
     @Binding var selectedCategory: String
     
+//    @FocusState private var isNameFocused: Bool
+    
     let categories = ["Nenhuma", "Amigos", "Viagem", "Trabalho", "Outros"]
     
     var body: some View {
         Form {
             Section {
                 TextField("Nome do álbum", text: $albumName)
+//                    .focused($isNameFocused)
+//                    .autocorrectionDisabled(true)
             }
             
             Section(header: Text("Preferências")) {
@@ -42,5 +46,11 @@ struct CreateAlbumForm: View {
                 .pickerStyle(.menu)
             }
         }
+        
+//        .onAppear {
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+//                        isNameFocused = true
+//                    }
+//                }
     }
 }

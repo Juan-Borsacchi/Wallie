@@ -7,13 +7,9 @@
 
 import SwiftUI
 
-struct Post: Identifiable {
-    let id = UUID()
-    let color: Color
-    let height: CGFloat
-}
-
-struct MasonryGridView: View {
+struct SelectedAlbumView: View {
+    
+    let album: formAlbum
     
     let posts: [Post] = [
         Post(color: .red, height: 200),
@@ -38,9 +34,21 @@ struct MasonryGridView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading) {
-                Title(title: "Nome do Album", subtitle: "")
-            }                
+            VStack (alignment: .leading) {
+                Title(title: album.name, subtitle: "")
+                HStack {
+                   if let catergory = album.category {
+                        TagCategory(nameCategory: catergory)
+                    }
+                    
+                    if let date = album.date {
+                        TagDate(dateSelected: date)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            
                 HStack(alignment: .top, spacing: 16) {
                     VStack(spacing: 16) {
                         ForEach(leftColumn) { post in
@@ -70,5 +78,5 @@ struct ImageCard: View {
 }
 
 #Preview {
-    MasonryGridView()
+    SelectedAlbumView(album: formAlbum(name: "Viagem pro Chile", date: Date(), category: "Viagem"))
 }

@@ -49,11 +49,17 @@ struct CreateMomentForm: View {
 }
     
 #Preview {
+    @Previewable @State var newTitle = ""
+    @Previewable @State var description = ""
+    @Previewable @State var includeDate = false
+    @Previewable @State var momentData = Date()
+    @Previewable @State var moveToAlbum = "Nenhum"
+    
     CreateMomentForm(
-        newTitle: .constant(""),
-        description: .constant(""),
-        includeDate: .constant(false),
-        momentData: .constant(Date()),
-        moveToAlbum: .constant("Nenhum")
+        newTitle: $newTitle,
+        description: $description,
+        includeDate: $includeDate,
+        momentData: $momentData,
+        moveToAlbum: $moveToAlbum
     )
 }
