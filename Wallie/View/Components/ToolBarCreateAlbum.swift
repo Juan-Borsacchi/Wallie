@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ToolBarCreateSheetAlbum: ToolbarContent {
-    
+
     var cancelAction: () -> Void
     var confirmAction: () -> Void
     
@@ -17,17 +17,19 @@ struct ToolBarCreateSheetAlbum: ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             Button(action: cancelAction) {
                 Image(systemName: "xmark")
-                    .foregroundColor(.red)
             }
+        }
+        
+        ToolbarItem(placement: .principal) {
+            Text("Criar Album")
+                .font(.headline)
         }
         
         ToolbarItem(placement: .confirmationAction) {
             Button(action: confirmAction) {
                 Image(systemName: "checkmark")
-                    .foregroundColor(.green)
             }
-        }
-        
+        }        
         
     }
 }

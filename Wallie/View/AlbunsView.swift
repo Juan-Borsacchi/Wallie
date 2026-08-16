@@ -32,10 +32,9 @@ struct AlbunsView: View {
             .sheet(isPresented: $displaySheet) {
                 CreateAlbumView()
                     .presentationDragIndicator(.visible)
-                    .presentationDetents([.medium])
+                    .presentationDetents([.large])
             }
         }
-        
     }
 }
 
