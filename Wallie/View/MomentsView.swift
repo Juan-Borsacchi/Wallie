@@ -12,24 +12,34 @@ struct MomentsView : View {
     
     var body: some View {
         NavigationStack {
-            VStack (alignment: .center) {
+            
+            ZStack {
+                Image("BackgroundMoments")
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
+                
+                VStack (alignment: .center) {
                     HStack {
                         Title(title: "Momentos", subtitle: "")
-                        Spacer()
-                        AddButton(displaySheet: $displaySheet)
+                            .foregroundStyle(Color.white)
                     }
                     .padding(.bottom, 50)
                     
                     Image("skineve")
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 92, height: 140)
+                        .frame(width: 220, height: 350)
+                        .cornerRadius(20)
+                    
+                    AddMoment(displaySheet: $displaySheet)
                 }
                 .padding(16)
                 .sheet(isPresented: $displaySheet) {
                     CreateMomentView()
                         .presentationDragIndicator(.visible)
                         .presentationDetents([.large])
+                }
             }
         }
     }
