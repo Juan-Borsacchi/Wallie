@@ -8,10 +8,10 @@
 import SwiftUI
 import CoreData
 
-extension Album: Identifiable {
-    var experiencesArray: [Experience] {
+extension Album {
+    var experiencesArray: [Xperience] {
         
-    let experiencesSet = experiences as? Set<Experience> ?? []
+    let experiencesSet = xperiences as? Set<Xperience> ?? []
         
     return experiencesSet.sorted {
         ($0.timestamp ?? Date()) < ($1.timestamp ?? Date())
@@ -19,7 +19,7 @@ extension Album: Identifiable {
     }
 }
 
-extension Experience {
+extension Xperience {
     var uiImage: UIImage? {
         
         guard let data = self.photos else { return nil }

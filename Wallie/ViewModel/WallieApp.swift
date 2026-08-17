@@ -15,7 +15,7 @@ struct WallieApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MomentsView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }

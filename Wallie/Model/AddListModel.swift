@@ -26,8 +26,15 @@ enum AddListModel: String, CaseIterable, Identifiable {
     }
 }
 
+enum AddItemContent {
+    case mood(String)
+    case image(UIImage)
+    case audio(URL)
+}
+
 struct AddItem: Identifiable {
     let id = UUID()
     let type: AddListModel
-    var conteudo: String = ""
+    var content: AddItemContent?
+    var caption: String = ""
 }
