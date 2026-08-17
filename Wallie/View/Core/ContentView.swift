@@ -14,7 +14,7 @@ struct ContentView: View {
     var body: some View {
         
         TabView {
-            MomentsView()
+            MomentsRootView()
                 .tabItem {
                     Label("Momentos", systemImage: "photo.fill.on.rectangle.fill")
                 }
