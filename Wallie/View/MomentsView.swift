@@ -10,6 +10,9 @@ import SwiftUI
 struct MomentsView : View {
     @State private var displaySheet = false
     
+    @Environment(\.managedObjectContext) var viewContext
+    @Environment(WallieViewModel.self) var viewModel
+    
     var body: some View {
         NavigationStack {
             
@@ -26,17 +29,16 @@ struct MomentsView : View {
                     }
                     .padding(.bottom, 50)
                     
-                    Image("skineve")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 220, height: 350)
-                        .cornerRadius(20)
+                    //!!!!
+                    //ADICIONAR O CARROSEL OU LIVRO AQUI!!!!!!!!!!
+                    //!!!!
                     
                     AddMoment(displaySheet: $displaySheet)
                 }
                 .padding(16)
                 .sheet(isPresented: $displaySheet) {
                     CreateMomentView()
+                        .environment(\.managedObjectContext, viewContext)
                         .presentationDragIndicator(.visible)
                         .presentationDetents([.large])
                 }
@@ -47,4 +49,7 @@ struct MomentsView : View {
 
 #Preview {
     MomentsView()
+        .environment(WallieViewModel())
+        // Para o core data no futuro:
+        //.environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 }

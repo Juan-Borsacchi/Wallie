@@ -8,6 +8,10 @@
 import SwiftUI
 
 struct AlbunsView: View {
+    
+    @Environment(\.managedObjectContext) var viewContext
+    @Environment(WallieViewModel.self) var viewModel
+    
     @State private var displaySheet = false
     @State private var albums: [formAlbum] = []
     
@@ -49,4 +53,5 @@ struct AlbunsView: View {
 
 #Preview {
     AlbunsView()
+        .environment(WallieViewModel())
 }

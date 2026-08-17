@@ -10,6 +10,5 @@ import Observation
 
 @Observable
 class WallieViewModel {
-    
     var displaySheet = false
 }

@@ -22,7 +22,7 @@
 //import PhotosUI
 //
 //// MARK: - Avaliação de qualidade (emoji)
-//
+
 //enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
 //    
 //    case pessimo, ruim, bom, otimo, excelente

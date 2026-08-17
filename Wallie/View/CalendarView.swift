@@ -1,5 +1,5 @@
 //
-//  MosaicoView.swift
+//  Untitled.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 17/08/26.
@@ -7,23 +7,17 @@
 
 import SwiftUI
 
-struct MosaicoView: View {
+struct CalendarView: View {
     
     @Environment(\.managedObjectContext) var viewContext
     @Environment(WallieViewModel.self) var viewModel
-    var body: some View {
-        
-        VStack (alignment: .center) {
-            HStack {
-                Title(title: "Mosaico", subtitle: "tem que fazer")
-            }
-            .padding(.bottom, 50)
-        }
-    }
-        
-}
     
+    var body: some View {
+        Text("Calendario")
+    }
+}
+
 #Preview {
-    MosaicoView()
+    CalendarView()
         .environment(WallieViewModel())
 }
