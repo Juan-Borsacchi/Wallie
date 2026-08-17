@@ -4,7 +4,7 @@
 //
 //  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
 //
-/*
+
 
 import SwiftUI
 import CoreData
@@ -20,4 +20,4 @@ struct WallieApp: App {
         }
     }
 }
-*/
+
