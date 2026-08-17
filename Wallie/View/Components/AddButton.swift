@@ -24,3 +24,15 @@ struct AddButton: View {
         }
     }
 }
+
+#Preview {
+    struct PreviewWrapper: View {
+        @State private var showSheet = false
+        
+        var body: some View {
+            AddButton(displaySheet: $showSheet)
+        }
+    }
+    
+    return PreviewWrapper()
+}

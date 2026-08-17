@@ -30,7 +30,7 @@ struct ViewCameraGalery: View {
                 HStack(spacing: 12) {
                     
                     //Botao da camera (Camera.swift)
-                    Camera()
+                    PickerPhotoCamera()
                         .onTapGesture {
                             showCamera = true
                         }
@@ -39,7 +39,7 @@ struct ViewCameraGalery: View {
                     ForEach(photoManager.recentImages) { itemFoto in
                         
                         //(Galery.swift)
-                        Galery(
+                        PickerPhotoGalery(
                             fotoRecebida: itemFoto.image,
                             isSelected: idFotoSelecionada == itemFoto.id
                         )
@@ -61,7 +61,7 @@ struct ViewCameraGalery: View {
                         ForEach(0..<3, id: \.self) { index in
                             let idSkineve = "skineve_\(index)"
                             
-                            Galery(
+                            PickerPhotoGalery(
                                 fotoRecebida: nil,
                                 isSelected: idFotoSelecionada == idSkineve
                             )

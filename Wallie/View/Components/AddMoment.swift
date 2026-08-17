@@ -27,3 +27,15 @@ struct AddMoment: View {
         .padding(.vertical, 50)
     }
 }
+
+#Preview {
+    struct PreviewWrapper: View {
+        @State private var showSheet = false
+        
+        var body: some View {
+            AddMoment(displaySheet: $showSheet)
+        }
+    }
+    
+    return PreviewWrapper()
+}

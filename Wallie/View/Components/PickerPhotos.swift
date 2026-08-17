@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Camera: View {
+struct PickerPhotoCamera: View {
     var body: some View {
         VStack {
             Image(systemName: "camera")
@@ -20,7 +20,7 @@ struct Camera: View {
     }
 }
 
-struct Galery: View {
+struct PickerPhotoGalery: View {
     var fotoRecebida: UIImage? = nil
     var isSelected: Bool = false
     
@@ -57,10 +57,10 @@ struct Galery: View {
 }
 
 #Preview {
-    Galery(isSelected: true)
+    PickerPhotoGalery(isSelected: true)
 }
 
 #Preview {
-    Camera()
+    PickerPhotoCamera()
 }
 
