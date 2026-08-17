@@ -10,6 +10,8 @@ import SwiftUI
 struct CreateAlbumView: View {
     
     @Environment(\.dismiss) var dismiss
+    @Environment(\.managedObjectContext) var viewContext
+
     
     var onSave: (formAlbum) -> Void
     

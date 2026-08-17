@@ -10,6 +10,8 @@ import SwiftUI
 struct CreateMomentView: View {
     
     @Environment(\.dismiss) var dismiss
+    @Environment(\.managedObjectContext) var viewContext
+
     
     @State private var newTitle: String = ""
     @State private var description: String = ""
