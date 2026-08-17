@@ -12,7 +12,7 @@ struct MosaicoView: View {
         
         VStack (alignment: .center) {
             HStack {
-                Title(title: "Mosaico", subtitle: "")
+                Title(title: "Mosaico", subtitle: "tem que fazer")
             }
             .padding(.bottom, 50)
         }
