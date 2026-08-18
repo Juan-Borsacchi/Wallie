@@ -385,7 +385,6 @@ private struct ColorBackgroundPickerSheet: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     AddExperienceView(editing: .mock) { _ in }
 }

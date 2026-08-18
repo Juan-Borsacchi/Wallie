@@ -193,11 +193,9 @@ struct MomentCarousel: View {
 #Preview("Stack") {
     MomentCardStack(items: [.mock, .placeholder])
         .padding(.top, 40)
-        .background(MomentosPalette.sky)
 }
 
 #Preview("Carousel") {
     MomentCarousel(items: [.mock, .placeholder])
         .padding(.top, 40)
-        .background(MomentosPalette.sky)
 }
