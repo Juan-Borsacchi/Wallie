@@ -13,7 +13,7 @@ enum AddListModel: String, CaseIterable, Identifiable {
     case camera
     case audio
     
-    var id: Self {self}
+    var id: Self { self }
     
     var icon: String {
         switch self {
@@ -21,14 +21,13 @@ enum AddListModel: String, CaseIterable, Identifiable {
         case .photo: "photo"
         case .camera: "camera"
         case .audio: "waveform"
-        
         }
     }
 }
 
 enum AddItemContent {
     case mood(String)
-    case image(UIImage)
+    case images([UIImage])
     case audio(URL)
 }
 
