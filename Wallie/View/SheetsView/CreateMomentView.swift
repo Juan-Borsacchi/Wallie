@@ -34,22 +34,33 @@ struct CreateMomentView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 0) {
+                ScrollViewReader { proxy in
+                    VStack(spacing: 0) {
 
-                    ViewCameraGalery(imagemFinal: $selectedImage)
-                        .frame(height: selectedImage == nil ? 180 : 380)
-                        .padding(.top)
+                        ViewCameraGalery(imagemFinal: $selectedImage)
+                            .frame(height: selectedImage == nil ? 180 : 380)
+                            .padding(.top)
 
-                    CreateMomentForm(
-                        newTitle: $newTitle,
-                        description: $description,
-                        includeDate: $includeDate,
-                        momentData: $momentData,
-                        moveToAlbum: $moveToAlbum
-                    )
+                        CreateMomentForm(
+                            newTitle: $newTitle,
+                            description: $description,
+                            includeDate: $includeDate,
+                            momentData: $momentData,
+                            moveToAlbum: $moveToAlbum
+                        )
+                        .frame(minHeight: 350)
+                        Divider()
 
-                    DynamicItemsSection(itens: $itensExtras)
-                        .padding(.top, 8)
+                        DynamicItemsSection(itens: $itensExtras)
+                            .padding(.top, 8)
+                    }
+                    .onChange(of: itensExtras.count) { _, _ in
+                        if let ultimoItem = itensExtras.last {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                proxy.scrollTo(ultimoItem.id, anchor: .bottom)
+                            }
+                        }
+                    }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

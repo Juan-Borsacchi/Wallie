@@ -8,33 +8,113 @@
 import SwiftUI
 
 struct MoodPickerRow: View {
-    @Binding var selectedMood: String
+    @Binding var selectedQuality: QualityRating?
+    @Binding var selectedEmotion: EmotionTag?
 
-    private let humores = ["😄", "🙂", "😐", "😔", "😢", "😡", "🥳", "😴"]
+    private let columns = Array(repeating: GridItem(.flexible()), count: 4)
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(humores, id: \.self) { humor in
-                    Text(humor)
-                        .font(.system(size: 28))
-                        .padding(8)
-                        .background(
-                            Circle()
-                                .fill(selectedMood == humor ? Color.accentColor.opacity(0.15) : .clear)
-                        )
-                        .overlay(
-                            Circle()
-                                .strokeBorder(selectedMood == humor ? Color.accentColor : .clear, lineWidth: 2)
-                        )
-                        .onTapGesture {
+        VStack(alignment: .leading, spacing: 22) {
+            // MARK: - Pergunta 1: Como foi?
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Como foi?")
+                    .font(.subheadline.weight(.semibold))
+
+                HStack(spacing: 8) {
+                    ForEach(QualityRating.allCases) { rating in
+                        let isSelected = selectedQuality == rating
+
+                        Button {
                             withAnimation(.easeInOut(duration: 0.15)) {
-                                selectedMood = humor
+                                selectedQuality = isSelected ? nil : rating
                             }
+                        } label: {
+                            VStack(spacing: 5) {
+                                Text(rating.emoji)
+                                    .font(.title3)
+
+                                Text(rating.label)
+                                    .font(.caption2.weight(.medium))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 9)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(isSelected ? Color.accentColor.opacity(0.18) : Color(.systemGray6))
+                            )
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(isSelected ? Color.accentColor.opacity(0.65) : Color.clear, lineWidth: 1.5)
+                            }
+                            .foregroundStyle(isSelected ? Color.accentColor : .primary)
                         }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
-            .padding(.vertical, 4)
+
+            // MARK: - Pergunta 2: Como se sentiu?
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Como se sentiu?")
+                    .font(.subheadline.weight(.semibold))
+
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(EmotionTag.allCases) { tag in
+                        let isSelected = selectedEmotion == tag
+
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                selectedEmotion = isSelected ? nil : tag
+                            }
+                        } label: {
+                            VStack(spacing: 4) {
+                                Text(tag.emoji)
+                                    .font(.title3)
+
+                                Text(tag.label)
+                                    .font(.caption2.weight(.medium))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.75)
+
+                                if isSelected {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.caption2)
+                                }
+                            }
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(isSelected ? Color.accentColor.opacity(0.18) : Color(.systemGray6))
+                            )
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(isSelected ? Color.accentColor.opacity(0.65) : Color.clear, lineWidth: 1.5)
+                            }
+                            .foregroundStyle(isSelected ? Color.accentColor : .primary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
         }
     }
+}
+
+// MARK: - Preview
+#Preview {
+    struct PreviewWrapper: View {
+        @State private var quality: QualityRating? = nil
+        @State private var emotion: EmotionTag? = nil
+
+        var body: some View {
+            MoodPickerRow(selectedQuality: $quality, selectedEmotion: $emotion)
+                .padding()
+                .background(Color(.systemGroupedBackground))
+        }
+    }
+
+    return PreviewWrapper()
 }

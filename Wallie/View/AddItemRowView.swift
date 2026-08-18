@@ -9,13 +9,21 @@ import SwiftUI
 import AVFoundation
 import PhotosUI
 
+enum ActiveSheet: Identifiable {
+    case audioRecorder
+    case photoPicker
+
+    var id: Int {
+        hashValue
+    }
+}
+
 // MARK: - AddItemRowView
 struct AddItemRowView: View {
     @Binding var item: AddItem
     var onRemove: () -> Void
-
-    @State private var showAudioRecorder = false
-    @State private var showPhotoPicker = false
+    
+    @State private var activeSheet: ActiveSheet?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -28,37 +36,41 @@ struct AddItemRowView: View {
 
                 Button(role: .destructive, action: onRemove) {
                     Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 22))
                         .foregroundStyle(.secondary)
+                        .padding(8)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+
             }
 
             componente
         }
         .padding(.vertical, 6)
         .onAppear {
+            // Abre diretamente a sheet correta sem disparos duplicados
             if item.type == .audio && audioBinding.wrappedValue == nil {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    showAudioRecorder = true
-                }
-            }
-            if item.type == .photo && imagesBinding.wrappedValue.isEmpty {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    showPhotoPicker = true
-                }
+                activeSheet = .audioRecorder
+            } else if item.type == .photo && imagesBinding.wrappedValue.isEmpty {
+                activeSheet = .photoPicker
             }
         }
-        .sheet(isPresented: $showAudioRecorder) {
-            AudioRecorderSheetView(audioURL: audioBinding)
-                .presentationDetents([.height(350)])
-                .presentationCornerRadius(30)
-                .presentationDragIndicator(.visible)
-        }
-        .sheet(isPresented: $showPhotoPicker) {
-            PhotoPickerSheetView(selectedImages: imagesBinding)
-                .presentationDetents([.height(350), .medium])
-                .presentationCornerRadius(30)
-                .presentationDragIndicator(.visible)
+        // Unificação em uma única modificadora .sheet(item:)
+        .sheet(item: $activeSheet) { sheetType in
+            switch sheetType {
+            case .audioRecorder:
+                AudioRecorderSheetView(audioURL: audioBinding)
+                    .presentationDetents([.height(350)])
+                    .presentationCornerRadius(30)
+                    .presentationDragIndicator(.visible)
+
+            case .photoPicker:
+                PhotoPickerSheetView(selectedImages: imagesBinding)
+                    .presentationDetents([.height(350), .medium])
+                    .presentationCornerRadius(30)
+                    .presentationDragIndicator(.visible)
+            }
         }
     }
 
@@ -66,7 +78,7 @@ struct AddItemRowView: View {
     private var componente: some View {
         switch item.type {
         case .mood:
-            MoodPickerRow(selectedMood: moodBinding)
+            MoodPickerRow(selectedQuality: qualityBinding, selectedEmotion: emotionBinding)
 
         case .photo:
             let images = imagesBinding.wrappedValue
@@ -97,7 +109,7 @@ struct AddItemRowView: View {
                     }
                 }
             } else {
-                Button(action: { showPhotoPicker = true }) {
+                Button(action: { activeSheet = .photoPicker }) {
                     HStack {
                         Image(systemName: "photo.on.rectangle.angled")
                         Text("Escolher Fotos")
@@ -120,7 +132,7 @@ struct AddItemRowView: View {
                     item.content = nil
                 }
             } else {
-                Button(action: { showAudioRecorder = true }) {
+                Button(action: { activeSheet = .audioRecorder }) {
                     HStack {
                         Image(systemName: "mic.fill")
                         Text("Gravar Áudio")
@@ -137,15 +149,37 @@ struct AddItemRowView: View {
     }
 
     // MARK: - Bindings
-    private var moodBinding: Binding<String> {
-        Binding(
-            get: {
-                if case .mood(let valor) = item.content { return valor }
-                return ""
-            },
-            set: { item.content = .mood($0) }
-        )
-    }
+        private var qualityBinding: Binding<QualityRating?> {
+            Binding(
+                get: {
+                    if case let .mood(quality, _) = item.content { return quality }
+                    return nil
+                },
+                set: { newValue in
+                    if case let .mood(_, emotion) = item.content {
+                        item.content = .mood(quality: newValue, emotion: emotion)
+                    } else {
+                        item.content = .mood(quality: newValue, emotion: nil)
+                    }
+                }
+            )
+        }
+
+        private var emotionBinding: Binding<EmotionTag?> {
+            Binding(
+                get: {
+                    if case let .mood(_, emotion) = item.content { return emotion }
+                    return nil
+                },
+                set: { newValue in
+                    if case let .mood(quality, _) = item.content {
+                        item.content = .mood(quality: quality, emotion: newValue)
+                    } else {
+                        item.content = .mood(quality: nil, emotion: newValue)
+                    }
+                }
+            )
+        }
 
     private var imagesBinding: Binding<[UIImage]> {
         Binding(
@@ -236,27 +270,25 @@ struct PhotoPickerSheetView: View {
 }
 
 
+
 // MARK: - AudioWaveformView
 struct AudioWaveformView: View {
     var samples: [CGFloat]
-    var barColor: Color = .indigo
+    var barColor: Color = Color.indigo
+    var barSpacing: CGFloat = 3
 
     var body: some View {
-        HStack(spacing: 3) {
+        HStack(spacing: barSpacing) {
             ForEach(0..<samples.count, id: \.self) { index in
                 Capsule()
                     .fill(barColor)
-                    .frame(height: max(3, samples[index] * 32))
+                    .frame(height: max(4, samples[index] * 40)) // Altura dinâmica com valor mínimo
             }
         }
-        .frame(height: 35)
+        .frame(height: 50)
     }
 }
 
-import SwiftUI
-import AVFoundation
-
-// MARK: - Gravador de Áudio em Tempo Real (Sheet)
 struct AudioRecorderSheetView: View {
     @Binding var audioURL: URL?
     @Environment(\.dismiss) private var dismiss
@@ -325,16 +357,17 @@ struct AudioRecorderSheetView: View {
     private func startRecordingProcess() {
         let session = AVAudioSession.sharedInstance()
         do {
-            try session.setCategory(.playAndRecord, mode: .default)
+            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
             try session.setActive(true)
 
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("recording_\(Date().timeIntervalSince1970).m4a")
             let settings: [String: Any] = [
                 AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-                AVSampleRateKey: 12000,
+                AVSampleRateKey: 44100.0,                 
                 AVNumberOfChannelsKey: 1,
                 AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
             ]
+
 
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
             audioRecorder?.isMeteringEnabled = true
@@ -350,8 +383,7 @@ struct AudioRecorderSheetView: View {
                 recorder.updateMeters()
                 
                 elapsedTime = recorder.currentTime
-                
-                // Converte os decibéis do microfone em altura das barras (0.0 a 1.0)
+
                 let power = recorder.averagePower(forChannel: 0)
                 let normalized = max(0.1, CGFloat((power + 60) / 60))
                 
@@ -448,10 +480,6 @@ struct AudioPlayerCardView: View {
             isPlaying = false
         } else {
             do {
-                let session = AVAudioSession.sharedInstance()
-                try session.setCategory(.playback, mode: .default, options: [.defaultToSpeaker])
-                try session.setActive(true)
-
                 if audioPlayer == nil {
                     audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
                 }

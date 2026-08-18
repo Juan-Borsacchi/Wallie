@@ -53,7 +53,7 @@ struct ItemRowView: View {
                 .padding()
                 .background(Color.accentColor.opacity(0.15))
                 .clipShape(RoundedRectangle(cornerRadius: 16))
-
+                
             case .images(let images):
                 if images.count == 1, let singleImage = images.first {
                     // Exibe uma foto única grande
@@ -77,18 +77,16 @@ struct ItemRowView: View {
                         }
                     }
                 }
-            case .mood(let mood):
-                HStack {
-                    Text(mood)
-                        .font(.title)
-                    Text("Humor registrado")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
 
+ case .mood(let quality, let emotion):
+     HStack(spacing: 8) {
+         if let quality = quality {
+             Text("\(quality.emoji) \(quality.label)")
+         }
+         if let emotion = emotion {
+             Text("\(emotion.emoji) \(emotion.label)")
+         }
+     }
             case .none:
                 EmptyView()
             }

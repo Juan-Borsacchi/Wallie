@@ -26,7 +26,7 @@ enum AddListModel: String, CaseIterable, Identifiable {
 }
 
 enum AddItemContent {
-    case mood(String)
+    case mood(quality: QualityRating?, emotion: EmotionTag?)
     case images([UIImage])
     case audio(URL)
 }
