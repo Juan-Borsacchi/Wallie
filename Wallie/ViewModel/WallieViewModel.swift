@@ -10,5 +10,19 @@ import Observation
 
 @Observable
 class WallieViewModel {
-    var displaySheet = false
+        var experiences: [Experience] = []
+        var allGallery: [ItemGalery] = []
+    
+    var displaySheet: Bool = false
+    
+    func addNewExperience(_ experience: Experience) {
+        experiences.insert(experience, at: 0)
+        
+        for imageData in experience.images {
+            if let uiImage = UIImage(data: imageData) {
+                let newItem = ItemGalery(id: UUID().uuidString, title: experience.title, image: uiImage)
+                allGallery.insert(newItem, at: 0)
+            }
+        }
+    }
 }
