@@ -9,18 +9,20 @@ import SwiftUI
 import CoreData
 
 struct ContentView: View {
-    @Environment(WallieViewModel.self) var viewModel
+    @Environment(WallieViewModel.self) var viewmodel
  
     var body: some View {
+        
+        @Bindable var bindableViewmodel = viewmodel
         
         TabView {
             MomentsRootView()
                 .tabItem {
                     Label("Momentos", systemImage: "photo.fill.on.rectangle.fill")
                 }
-            MosaicoView()
+            MemoriesView()
                 .tabItem {
-                    Label("Mosaico", systemImage: "square.grid.3x3.square")
+                    Label("Memórias", systemImage: "square.grid.3x3.square")
                 }
             AlbunsView()
                 .tabItem {
@@ -32,13 +34,12 @@ struct ContentView: View {
                     Label("Calendário", systemImage: "calendar")
                 }
         }
-        .tint(.green)
-        .sheet(isPresented: Bindable(viewModel).displaySheet) {
-            Text("sada")
+        .tint(.verdeProjeto)
+        .sheet(isPresented: $bindableViewmodel.displaySheet) {
+            Text("Teste")
             
         }
     }
-    
 }
 
 #Preview {

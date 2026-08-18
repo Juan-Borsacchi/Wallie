@@ -1,17 +1,15 @@
 import SwiftUI
 
 struct MomentsRootView: View {
-    @State private var experiences: [Experience] = []
-    
     var body: some View {
         NavigationStack {
-            MomentosHomeView(experiences: $experiences)
+            MomentosHomeView()
         }
     }
 }
 
 struct MomentosHomeView: View {
-    @Binding var experiences: [Experience]
+    @Environment(WallieViewModel.self) var viewmodel
     
     enum DisplayMode {
         case stack, carousel
@@ -24,124 +22,107 @@ struct MomentosHomeView: View {
     @State private var isShowingDetail = false
     @State private var isShowingAllExperiences = false
     
-    private var displayItems: [Experience] {
-        experiences.isEmpty ? [Experience.placeholder] : experiences
-    }
-    
     var body: some View {
         VStack(spacing: 0) {
             header.padding(.horizontal, 20).padding(.top, 8)
             Spacer()
             
-            Text("Capture e veja suas experiências")
-                .font(.headline)
-                .foregroundStyle(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
-                .padding(.bottom, 24)
-            
             Group {
-                switch displayMode {
-                case .stack:
-                    MomentCardStack(
-                        items: displayItems,
-                        onFocusChange: { focusedExperience = $0 },
-                        onTapFocused: handleTap
-                    )
-                case .carousel:
-                    MomentCarousel(
-                        items: displayItems,
-                        onFocusChange: { focusedExperience = $0 },
-                        onTapFocused: handleTap
-                    )
+                if viewmodel.experiences.isEmpty {
+                    FirtMomentCard()
+                        .onTapGesture {
+                            isShowingAddExperience = true
+                        }
+                } else {
+                    switch displayMode {
+                    case .stack:
+                        MomentCardStack(
+                            items: viewmodel.experiences,
+                            onFocusChange: { focusedExperience = $0 },
+                            onTapFocused: handleTap
+                        )
+                    case .carousel:
+                        MomentCarousel(
+                            items: viewmodel.experiences,
+                            onFocusChange: { focusedExperience = $0 },
+                            onTapFocused: handleTap
+                        )
+                    }
                 }
             }
             
-            captionView.padding(.top, 16)
+            if !viewmodel.experiences.isEmpty {
+                captionView.padding(.top, 16)
+            }
             Spacer()
             addButton.padding(.bottom, 30)
         }
-        .background(MomentosPalette.sky.ignoresSafeArea())
+        .background {
+            Image("BackgroundMoments")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+        }
+        .toolbar(.hidden, for: .navigationBar)
         .navigationDestination(isPresented: $isShowingDetail) {
-            if let experience = experiences.first(where: { $0.id == selectedExperienceID }) {
+            if let experience = viewmodel.experiences.first(where: { $0.id == selectedExperienceID }) {
                 ExperienceDetailScreen(experience: experience) { updated in
-                    if let index = experiences.firstIndex(where: { $0.id == updated.id }) {
-                        experiences[index] = updated
+                    if let index = viewmodel.experiences.firstIndex(where: { $0.id == updated.id }) {
+                        viewmodel.experiences[index] = updated
                     }
                 }
             }
         }
         .navigationDestination(isPresented: $isShowingAllExperiences) {
-            ExperiencesReadingScreen(experiences: $experiences)
+            ExperiencesReadingScreen(experiences: Bindable(viewmodel).experiences)
         }
         .sheet(isPresented: $isShowingAddExperience) {
             AddExperienceView { newExperience in
-                experiences.insert(newExperience, at: 0)
+                viewmodel.addNewExperience(newExperience)
             }
         }
     }
     
     private func handleTap(_ experience: Experience) {
-        if experience.isPlaceholder {
-            isShowingAddExperience = true
-        } else {
-            selectedExperienceID = experience.id
-            isShowingDetail = true
-        }
+        selectedExperienceID = experience.id
+        isShowingDetail = true
     }
     
     private var header: some View {
         HStack {
-            Text("Momentos")
-                .font(.custom("Georgia", size: 30))
+            Title(title: "Momentos", subtitle: "")
                 .foregroundStyle(.white)
             Spacer()
-            Button {
-                withAnimation(.easeInOut) {
-                    displayMode = displayMode == .stack ? .carousel : .stack
+            
+            if !viewmodel.experiences.isEmpty {
+                Button {
+                    withAnimation(.easeInOut) {
+                        displayMode = displayMode == .stack ? .carousel : .stack
+                    }
+                } label: {
+                    Image(systemName: displayMode == .stack ? "rectangle.grid.1x2" : "square.stack")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(.ultraThinMaterial)
+                        .background(Color.blue)
+                        .clipShape(Circle())
                 }
-            } label: {
-                Image(systemName: displayMode == .stack ? "rectangle.grid.1x2" : "square.stack")
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 38, height: 38)
-                    .background(Circle().fill(.white.opacity(0.25)))
             }
         }
     }
     
     @ViewBuilder
     private var captionView: some View {
-        if let experience = focusedExperience, !experience.isPlaceholder {
+        if let experience = focusedExperience {
             VStack(spacing: 6) {
                 Text(experience.title.isEmpty ? "Sem título" : experience.title)
                     .font(.title3.bold())
                     .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.2), radius: 2, x: 2, y: 2)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .padding(.top, 40)
-                
-                HStack(spacing: 12) {
-                    if experience.includeDate {
-                        Label(experience.date.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
-                    }
-                    if experience.album != "Nenhum" {
-                        Label(experience.album, systemImage: "square.stack")
-                    }
-                }
-                .font(.caption)
-                .foregroundStyle(.white)
-                
-                HStack(spacing: 16) {
-                    if let quality = experience.quality {
-                        Text("\(quality.emoji) \(quality.label)")
-                    }
-                    if let emotion = experience.emotion {
-                        Text("\(emotion.emoji) \(emotion.label)")
-                    }
-                }
-                .font(.caption.weight(.medium))
-                .foregroundStyle(.white.opacity(0.9))
+                    .padding(.top, 60)
             }
             .padding(.horizontal, 30)
         }
@@ -152,16 +133,18 @@ struct MomentosHomeView: View {
             isShowingAddExperience = true
         } label: {
             Label("Adicionar experiência", systemImage: "plus.circle.fill")
-                .font(.subheadline.weight(.semibold))
+                .font(.headline)
                 .foregroundStyle(.white)
-                .padding(.horizontal, 22)
-                .padding(.vertical, 14)
-                .background(Capsule(style: .continuous).fill(MomentosPalette.pillGradient))
-                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                .padding(8)
         }
+        .buttonStyle(.glassProminent)
+        .tint(.verdeProjeto)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 30)
     }
 }
 
 #Preview {
     MomentsRootView()
+        .environment(WallieViewModel())
 }
