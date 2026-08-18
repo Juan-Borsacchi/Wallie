@@ -13,13 +13,13 @@ import CoreData
 struct WallieApp: App {
     let persistenceController = PersistenceController.shared
     
-    @State private var viewModel = WallieViewModel()
+    @State private var viewmodel = WallieViewModel()
 
     var body: some Scene {
         WindowGroup {
-            CreateMomentView()
+            ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environment(viewModel)
+                .environment(viewmodel)
         }
     }
 }
