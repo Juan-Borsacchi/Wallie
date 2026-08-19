@@ -198,19 +198,17 @@ struct ExperienceDetailScreen: View {
         VStack {
             HStack {
                 Button(action: dismiss) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 22, weight: .semibold))
-                        .buttonStyle(.glass)
-                        .tint(.white)
-                        .frame(width: 44, height: 44)
-                        .background(.azulProjeto, in: Circle())
+                    Image(systemName: "chevron.left")
+                        .font(.title3)
+                        .frame(width: 20, height: 30)
                 }
-                Spacer()
+                .buttonStyle(.glass)
+                Spacer(minLength: 0)
+
             }
-            Spacer()
+            Spacer(minLength: 0)
         }
-        .padding(20)
-        .padding(.top, 40)
+        .padding(16)
         .compositingGroup()
         .opacity(interactiveOpacity)
     }

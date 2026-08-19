@@ -20,7 +20,7 @@ class WallieViewModel {
         
         for imageData in experience.images {
             if let uiImage = UIImage(data: imageData) {
-                let newItem = ItemGalery(id: UUID().uuidString, title: experience.title, image: uiImage)
+                let newItem = ItemGalery(id: UUID().uuidString, title: experience.title, image: uiImage, experienceID: experience.id)
                 allGallery.insert(newItem, at: 0)
             }
         }

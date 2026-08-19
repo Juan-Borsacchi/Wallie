@@ -26,7 +26,6 @@ struct formAlbum: Identifiable, Hashable {
     var category: String?
 }
 
-// MARK: - Avaliação de qualidade
 enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
     case pessimo, ruim, bom, otimo, excelente
     
@@ -184,6 +183,7 @@ struct ItemGalery: Identifiable, PhotoProtocol {
     var id: String = UUID().uuidString
     var title: String
     var image: UIImage?
+    var experienceID: UUID
 }
 
 struct PinGalleryItem: Identifiable, PhotoProtocol {
@@ -211,11 +211,13 @@ extension ItemGalery {
     }
 }
 
+var sampleExperienceID = UUID()
 var sampleItems: [ItemGalery] = {
     (1...7).map { i in
         ItemGalery(
             title: "Title \(i)",
-            image: UIImage(named: "foto\(i)")
+            image: UIImage(named: "foto\(i)"),
+            experienceID: sampleExperienceID
         )
     }
 }()
