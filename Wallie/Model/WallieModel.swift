@@ -30,7 +30,6 @@ enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
     case pessimo, ruim, bom, otimo, excelente
     
     var id: String { rawValue }
-    
     var label: String {
         switch self {
         case .pessimo:   return "Péssimo"
@@ -41,13 +40,13 @@ enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
         }
     }
     
-    var emoji: String {
+    var imageName: String {
         switch self {
-        case .pessimo:   return "😖"
-        case .ruim:      return "🙁"
-        case .bom:       return "🙂"
-        case .otimo:     return "😄"
-        case .excelente: return "🤩"
+        case .pessimo:   return "ZPessimo"
+        case .ruim:      return "ZRuim"
+        case .bom:       return "ZBom"
+        case .otimo:     return "ZOtimo"
+        case .excelente: return "ZExcelente"
         }
     }
 }
@@ -56,7 +55,6 @@ enum EmotionTag: String, CaseIterable, Identifiable, Codable, Hashable {
     case triste, feliz, angustiado, raiva, ansioso, calmo, surpreso, cansado
     
     var id: String { rawValue }
-    
     var label: String {
         switch self {
         case .triste:     return "Triste"
@@ -70,16 +68,16 @@ enum EmotionTag: String, CaseIterable, Identifiable, Codable, Hashable {
         }
     }
     
-    var emoji: String {
+    var imageName: String {
         switch self {
-        case .triste:     return "😢"
-        case .feliz:      return "😀"
-        case .angustiado: return "😩"
-        case .raiva:      return "😡"
-        case .ansioso:    return "😰"
-        case .calmo:      return "😌"
-        case .surpreso:   return "😮"
-        case .cansado:    return "🥱"
+        case .triste:     return "ETriste"
+        case .feliz:      return "EFeliz"
+        case .angustiado: return "EAngustiado"
+        case .raiva:      return "ERaiva"
+        case .ansioso:    return "EAnsioso"
+        case .calmo:      return "ECalmo"
+        case .surpreso:   return "ESurpreso"
+        case .cansado:    return "ECansado"
         }
     }
 }

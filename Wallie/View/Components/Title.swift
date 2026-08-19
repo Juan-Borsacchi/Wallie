@@ -46,6 +46,19 @@ struct MemoriesTitles: View {
 }
 
 
+struct AlertMemories: View {
+    var body: some View {
+        
+        VStack (alignment:  .center) {
+            Text("Adicione uma nova experiência para começar a explorar suas memórias.")
+                .font(.custom("Manrope-Regular", size: 17))
+                .multilineTextAlignment(.center)
+            Spacer()
+        }
+        .frame(width: 350, height: 100)
+    }
+    
+}
 
 #Preview {
     MemoriesTitles(title: "Título", subtitle: "Subtitulo")

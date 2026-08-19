@@ -18,7 +18,7 @@ struct CreateAlbumForm: View {
     
     var body: some View {
         Form {
-            Section {
+            Section(header: Text("Título")) {
                 TextField("Nome do álbum", text: $albumName)
             }
             
