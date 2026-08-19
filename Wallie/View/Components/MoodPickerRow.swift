@@ -10,29 +10,31 @@ import SwiftUI
 struct MoodPickerRow: View {
     @Binding var selectedQuality: QualityRating?
     @Binding var selectedEmotion: EmotionTag?
-
+    
     private let columns = Array(repeating: GridItem(.flexible()), count: 4)
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            // MARK: - Pergunta 1: Como foi?
+            
             VStack(alignment: .leading, spacing: 12) {
                 Text("Como foi?")
                     .font(.subheadline.weight(.semibold))
-
+                
                 HStack(spacing: 8) {
                     ForEach(QualityRating.allCases) { rating in
                         let isSelected = selectedQuality == rating
-
+                        
                         Button {
                             withAnimation(.easeInOut(duration: 0.15)) {
                                 selectedQuality = isSelected ? nil : rating
                             }
                         } label: {
                             VStack(spacing: 5) {
-                                Text(rating.emoji)
-                                    .font(.title3)
-
+                                Image(rating.imageName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30, height: 30)
+                                
                                 Text(rating.label)
                                     .font(.caption2.weight(.medium))
                                     .lineLimit(1)
@@ -54,30 +56,31 @@ struct MoodPickerRow: View {
                     }
                 }
             }
-
-            // MARK: - Pergunta 2: Como se sentiu?
+            
             VStack(alignment: .leading, spacing: 12) {
                 Text("Como se sentiu?")
                     .font(.subheadline.weight(.semibold))
-
+                
                 LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(EmotionTag.allCases) { tag in
                         let isSelected = selectedEmotion == tag
-
+                        
                         Button {
                             withAnimation(.easeInOut(duration: 0.15)) {
                                 selectedEmotion = isSelected ? nil : tag
                             }
                         } label: {
                             VStack(spacing: 4) {
-                                Text(tag.emoji)
-                                    .font(.title3)
-
+                                Image(tag.imageName)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30, height: 30)
+                                
                                 Text(tag.label)
                                     .font(.caption2.weight(.medium))
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.75)
-
+                                
                                 if isSelected {
                                     Image(systemName: "checkmark.circle.fill")
                                         .font(.caption2)
@@ -103,18 +106,17 @@ struct MoodPickerRow: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     struct PreviewWrapper: View {
         @State private var quality: QualityRating? = nil
         @State private var emotion: EmotionTag? = nil
-
+        
         var body: some View {
             MoodPickerRow(selectedQuality: $quality, selectedEmotion: $emotion)
                 .padding()
                 .background(Color(.systemGroupedBackground))
         }
     }
-
+    
     return PreviewWrapper()
 }

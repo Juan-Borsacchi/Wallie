@@ -10,7 +10,7 @@ import SwiftUI
 struct AlbunsView: View {
     
     @Environment(\.managedObjectContext) var viewContext
-    @Environment(WallieViewModel.self) var viewModel
+    @Environment(WallieViewModel.self) var viewmodel
     
     @State private var displaySheet = false
     @State private var albums: [formAlbum] = []
@@ -32,25 +32,46 @@ struct AlbunsView: View {
                     
                     ForEach(albums) { album in
                         NavigationLink(value: album) {
-                            EmptyAlbum(emptyAlbumTitle: album.name)
+                            
+                            let allAlbumImages = getImagesForAlbum(albumName: album.name)
+                            if allAlbumImages.isEmpty {
+                                EmptyAlbum(emptyAlbumTitle: album.name)
+                                
+                            } else {
+                                AlbumGroup(
+                                    titleAlbum: album.name,
+                                    images: Array(allAlbumImages.prefix(4)),
+                                    totalCount: allAlbumImages.count)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(16)
             }
-            .navigationDestination(for: formAlbum.self) { album in
-                SelectedAlbumView(album: album)
-            }
-            .sheet(isPresented: $displaySheet) {
-                CreateAlbumView(onSave: { newAlbum in
-                    albums.append(newAlbum)
-                })
-                .presentationDragIndicator(.visible)
-                .presentationDetents([.large])
-            }
+            .padding(16)
+        }
+        .navigationDestination(for: formAlbum.self) { album in
+            SelectedAlbumView(album: album)
+        }
+        .sheet(isPresented: $displaySheet) {
+            CreateAlbumView(onSave: { newAlbum in
+                albums.append(newAlbum)
+            })
+            .presentationDragIndicator(.visible)
+            .presentationDetents([.large])
         }
     }
+}
+
+private func getImagesForAlbum(albumName: String) -> [UIImage] {
+    let albumExperienceIDs = viewmodel.experiences
+        .filter { $0.album == albumName }
+        .map { $0.id }
+    
+    return viewmodel.allGallery
+        .filter { albumExperienceIDs.contains($0.experienceID) }
+        .compactMap { $0.image }
+    
+}
 }
 
 #Preview {

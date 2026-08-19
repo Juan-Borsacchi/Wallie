@@ -12,28 +12,27 @@ import PhotosUI
 enum ActiveSheet: Identifiable {
     case audioRecorder
     case photoPicker
-
+    
     var id: Int {
         hashValue
     }
 }
 
-// MARK: - AddItemRowView
 struct AddItemRowView: View {
     @Binding var item: AddItem
     var onRemove: () -> Void
     
     @State private var activeSheet: ActiveSheet?
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: item.type.icon)
                     .foregroundStyle(.secondary)
                     .frame(width: 24)
-
+                
                 Spacer()
-
+                
                 Button(role: .destructive, action: onRemove) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 22))
@@ -42,21 +41,19 @@ struct AddItemRowView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-
+                
             }
-
+            
             componente
         }
         .padding(.vertical, 6)
         .onAppear {
-            // Abre diretamente a sheet correta sem disparos duplicados
             if item.type == .audio && audioBinding.wrappedValue == nil {
                 activeSheet = .audioRecorder
             } else if item.type == .photo && imagesBinding.wrappedValue.isEmpty {
                 activeSheet = .photoPicker
             }
         }
-        // Unificação em uma única modificadora .sheet(item:)
         .sheet(item: $activeSheet) { sheetType in
             switch sheetType {
             case .audioRecorder:
@@ -64,7 +61,7 @@ struct AddItemRowView: View {
                     .presentationDetents([.height(350)])
                     .presentationCornerRadius(30)
                     .presentationDragIndicator(.visible)
-
+                
             case .photoPicker:
                 PhotoPickerSheetView(selectedImages: imagesBinding)
                     .presentationDetents([.height(350), .medium])
@@ -73,13 +70,13 @@ struct AddItemRowView: View {
             }
         }
     }
-
+    
     @ViewBuilder
     private var componente: some View {
         switch item.type {
         case .mood:
             MoodPickerRow(selectedQuality: qualityBinding, selectedEmotion: emotionBinding)
-
+            
         case .photo:
             let images = imagesBinding.wrappedValue
             if !images.isEmpty {
@@ -93,7 +90,7 @@ struct AddItemRowView: View {
                                     .frame(width: 110, height: 110)
                                     .cornerRadius(12)
                                     .clipped()
-
+                                
                                 Button {
                                     var current = imagesBinding.wrappedValue
                                     current.remove(at: index)
@@ -122,10 +119,10 @@ struct AddItemRowView: View {
                 }
                 .buttonStyle(.plain)
             }
-
+            
         case .camera:
             CameraCaptureRow(image: singleImageBinding)
-
+            
         case .audio:
             if let audioURL = audioBinding.wrappedValue {
                 AudioPlayerCardView(audioURL: audioURL) {
@@ -147,40 +144,39 @@ struct AddItemRowView: View {
             }
         }
     }
-
-    // MARK: - Bindings
-        private var qualityBinding: Binding<QualityRating?> {
-            Binding(
-                get: {
-                    if case let .mood(quality, _) = item.content { return quality }
-                    return nil
-                },
-                set: { newValue in
-                    if case let .mood(_, emotion) = item.content {
-                        item.content = .mood(quality: newValue, emotion: emotion)
-                    } else {
-                        item.content = .mood(quality: newValue, emotion: nil)
-                    }
+    
+    private var qualityBinding: Binding<QualityRating?> {
+        Binding(
+            get: {
+                if case let .mood(quality, _) = item.content { return quality }
+                return nil
+            },
+            set: { newValue in
+                if case let .mood(_, emotion) = item.content {
+                    item.content = .mood(quality: newValue, emotion: emotion)
+                } else {
+                    item.content = .mood(quality: newValue, emotion: nil)
                 }
-            )
-        }
-
-        private var emotionBinding: Binding<EmotionTag?> {
-            Binding(
-                get: {
-                    if case let .mood(_, emotion) = item.content { return emotion }
-                    return nil
-                },
-                set: { newValue in
-                    if case let .mood(quality, _) = item.content {
-                        item.content = .mood(quality: quality, emotion: newValue)
-                    } else {
-                        item.content = .mood(quality: nil, emotion: newValue)
-                    }
+            }
+        )
+    }
+    
+    private var emotionBinding: Binding<EmotionTag?> {
+        Binding(
+            get: {
+                if case let .mood(_, emotion) = item.content { return emotion }
+                return nil
+            },
+            set: { newValue in
+                if case let .mood(quality, _) = item.content {
+                    item.content = .mood(quality: quality, emotion: newValue)
+                } else {
+                    item.content = .mood(quality: nil, emotion: newValue)
                 }
-            )
-        }
-
+            }
+        )
+    }
+    
     private var imagesBinding: Binding<[UIImage]> {
         Binding(
             get: {
@@ -192,7 +188,7 @@ struct AddItemRowView: View {
             }
         )
     }
-
+    
     private var singleImageBinding: Binding<UIImage?> {
         Binding(
             get: {
@@ -204,7 +200,7 @@ struct AddItemRowView: View {
             }
         )
     }
-
+    
     private var audioBinding: Binding<URL?> {
         Binding(
             get: {
@@ -218,18 +214,17 @@ struct AddItemRowView: View {
     }
 }
 
-// MARK: - PhotoPickerSheetView
 struct PhotoPickerSheetView: View {
     @Binding var selectedImages: [UIImage]
     @Environment(\.dismiss) private var dismiss
     @State private var selectedItems: [PhotosPickerItem] = []
-
+    
     var body: some View {
         VStack(spacing: 20) {
             Text("Selecione suas Fotos")
                 .font(.headline)
                 .padding(.top, 20)
-
+            
             PhotosPicker(
                 selection: $selectedItems,
                 maxSelectionCount: 10,
@@ -247,7 +242,7 @@ struct PhotoPickerSheetView: View {
                 .background(Color.indigo.opacity(0.1), in: RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal)
             }
-
+            
             Spacer()
         }
         .onChange(of: selectedItems) { _, newItems in
@@ -271,12 +266,11 @@ struct PhotoPickerSheetView: View {
 
 
 
-// MARK: - AudioWaveformView
 struct AudioWaveformView: View {
     var samples: [CGFloat]
     var barColor: Color = Color.indigo
     var barSpacing: CGFloat = 3
-
+    
     var body: some View {
         HStack(spacing: barSpacing) {
             ForEach(0..<samples.count, id: \.self) { index in
@@ -292,24 +286,23 @@ struct AudioWaveformView: View {
 struct AudioRecorderSheetView: View {
     @Binding var audioURL: URL?
     @Environment(\.dismiss) private var dismiss
-
+    
     @State private var isRecording = false
     @State private var elapsedTime: TimeInterval = 0
     @State private var liveSamples: [CGFloat] = Array(repeating: 0.1, count: 30)
     
     @State private var audioRecorder: AVAudioRecorder?
     @State private var timer: Timer?
-
+    
     var body: some View {
         VStack {
-            // Cronômetro formatado
             Text(formattedTime(elapsedTime))
                 .font(.system(size: 16, weight: .medium, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .padding(.top, 24)
-
+            
             Spacer()
-
+            
             if isRecording {
                 AudioWaveformView(samples: liveSamples, barColor: .indigo)
                     .padding(.horizontal, 24)
@@ -318,10 +311,9 @@ struct AudioRecorderSheetView: View {
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(.secondary)
             }
-
+            
             Spacer()
-
-            // Botão de Gravar / Parar
+            
             Button {
                 toggleRecording()
             } label: {
@@ -329,7 +321,7 @@ struct AudioRecorderSheetView: View {
                     Circle()
                         .stroke(Color.primary.opacity(0.15), lineWidth: 4)
                         .frame(width: 75, height: 75)
-
+                    
                     Circle()
                         .fill(Color.red)
                         .frame(width: isRecording ? 35 : 62, height: isRecording ? 35 : 62)
@@ -344,7 +336,7 @@ struct AudioRecorderSheetView: View {
             stopRecordingProcess()
         }
     }
-
+    
     private func toggleRecording() {
         if isRecording {
             stopRecordingProcess()
@@ -353,37 +345,37 @@ struct AudioRecorderSheetView: View {
             startRecordingProcess()
         }
     }
-
+    
     private func startRecordingProcess() {
         let session = AVAudioSession.sharedInstance()
         do {
             try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
             try session.setActive(true)
-
+            
             let url = FileManager.default.temporaryDirectory.appendingPathComponent("recording_\(Date().timeIntervalSince1970).m4a")
             let settings: [String: Any] = [
                 AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
-                AVSampleRateKey: 44100.0,                 
+                AVSampleRateKey: 44100.0,
                 AVNumberOfChannelsKey: 1,
                 AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
             ]
-
-
+            
+            
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
             audioRecorder?.isMeteringEnabled = true
             audioRecorder?.record()
-
+            
             audioURL = url
             elapsedTime = 0
             withAnimation { isRecording = true }
-
+            
             // Timer para atualizar tempo e capturar o volume do microfone
             timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
                 guard let recorder = audioRecorder, recorder.isRecording else { return }
                 recorder.updateMeters()
                 
                 elapsedTime = recorder.currentTime
-
+                
                 let power = recorder.averagePower(forChannel: 0)
                 let normalized = max(0.1, CGFloat((power + 60) / 60))
                 
@@ -396,14 +388,14 @@ struct AudioRecorderSheetView: View {
             print("Erro ao iniciar gravação: \(error)")
         }
     }
-
+    
     private func stopRecordingProcess() {
         audioRecorder?.stop()
         timer?.invalidate()
         timer = nil
         isRecording = false
     }
-
+    
     private func formattedTime(_ time: TimeInterval) -> String {
         let minutes = Int(time) / 60
         let seconds = Int(time) % 60
@@ -411,18 +403,17 @@ struct AudioRecorderSheetView: View {
     }
 }
 
-// MARK: - Card do Áudio com Funcionalidade de Play/Pause
 struct AudioPlayerCardView: View {
     let audioURL: URL
     var onDelete: () -> Void
-
+    
     @State private var audioPlayer: AVAudioPlayer?
     @State private var isPlaying = false
     @State private var sampleAmplitudes: [CGFloat] = [
         0.2, 0.4, 0.7, 0.5, 0.3, 0.8, 1.0, 0.6, 0.4, 0.2,
         0.5, 0.9, 0.7, 0.3, 0.6, 0.8, 0.4, 0.2, 0.5, 0.7
     ]
-
+    
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 10) {
@@ -434,17 +425,17 @@ struct AudioPlayerCardView: View {
                         .padding(8)
                         .background(Circle().fill(Color.indigo))
                 }
-
+                
                 Text(formattedDuration)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-
+                
                 Image(systemName: "quote.bubble")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-
+                
                 Spacer()
-
+                
                 Button(action: {
                     stopAudio()
                     onDelete()
@@ -454,7 +445,7 @@ struct AudioPlayerCardView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-
+            
             AudioWaveformView(samples: sampleAmplitudes, barColor: .indigo)
         }
         .padding()
@@ -466,14 +457,14 @@ struct AudioPlayerCardView: View {
             stopAudio()
         }
     }
-
+    
     private var formattedDuration: String {
         let duration = audioPlayer?.duration ?? 0
         let minutes = Int(duration) / 60
         let seconds = Int(duration) % 60
         return String(format: "%d:%02d", minutes, seconds)
     }
-
+    
     private func togglePlay() {
         if isPlaying {
             audioPlayer?.pause()
@@ -490,7 +481,7 @@ struct AudioPlayerCardView: View {
             }
         }
     }
-
+    
     private func stopAudio() {
         audioPlayer?.stop()
         isPlaying = false

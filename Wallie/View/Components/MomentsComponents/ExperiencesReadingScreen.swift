@@ -86,10 +86,10 @@ struct ExperienceCard: View {
                         Label(experience.album, systemImage: "square.stack")
                     }
                     if let quality = experience.quality {
-                        Text(quality.emoji)
+                        Text(quality.imageName)
                     }
                     if let emotion = experience.emotion {
-                        Text(emotion.emoji)
+                        Text(emotion.imageName)
                     }
                 }
                 .font(.caption)

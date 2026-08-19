@@ -134,10 +134,10 @@ struct ExperienceDetailScreen: View {
             if experience.quality != nil || experience.emotion != nil {
                 HStack(spacing: 12) {
                     if let quality = experience.quality {
-                        detailTag(title: "Como foi?", value: "\(quality.emoji) \(quality.label)")
+                        detailTag(title: "Como foi?", value: "\(quality.imageName) \(quality.label)")
                     }
                     if let emotion = experience.emotion {
-                        detailTag(title: "Como se sentiu?", value: "\(emotion.emoji) \(emotion.label)")
+                        detailTag(title: "Como se sentiu?", value: "\(emotion.imageName) \(emotion.label)")
                     }
                 }
             }
