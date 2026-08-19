@@ -28,31 +28,39 @@ struct MemoriesView: View {
                     )
                 }
                 .padding(16)
-                MemoriesTitles(title: "A curto prazo", subtitle: "Explore as fotos mais recentes")
-                Divider()
-                MemoriesTitles(title: "A longo prazo", subtitle: "Todas as fotos")
                 
-                MasonryGridView(
-                    columnsCount: 2,
-                    data: viewmodel.allGallery,
-                    heightProvider: { $0.calculatedHeight }
-                ) { item in
-                    ImageView(item, isExpanded: false)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            if let experienceOpen = viewmodel.experiences.first(where: { exp in
-                                return exp.id == item.experienceID
-                            }) {
-                                self.selectedMoments = experienceOpen
-                                self.isShowingDetail = true
+                if viewmodel.allGallery.isEmpty {
+                    Spacer()
+                    AlertMemories()
+                    Spacer()
+                    
+                } else {
+                    MemoriesTitles(title: "A curto prazo", subtitle: "Explore as fotos mais recentes")
+                    Divider()
+                    MemoriesTitles(title: "A longo prazo", subtitle: "Todas as fotos")
+                    
+                    MasonryGridView(
+                        columnsCount: 2,
+                        data: viewmodel.allGallery,
+                        heightProvider: { $0.calculatedHeight }
+                    ) { item in
+                        ImageView(item, isExpanded: false)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if let experienceOpen = viewmodel.experiences.first(where: { exp in
+                                    return exp.id == item.experienceID
+                                }) {
+                                    self.selectedMoments = experienceOpen
+                                    self.isShowingDetail = true
+                                }
                             }
-                        }
-                } detail: { item, isExpanded, dragOffset, dismiss in
-                    EmptyView()
-                } overlay: { item, isExpanded, dragOffset, dismiss in
-                    EmptyView()
+                    } detail: { item, isExpanded, dragOffset, dismiss in
+                        EmptyView()
+                    } overlay: { item, isExpanded, dragOffset, dismiss in
+                        EmptyView()
+                    }
+                    .safeAreaPadding(16)
                 }
-                .safeAreaPadding(16)
             }
             .sheet(isPresented: $isShowingAddExperience) {
                 AddExperienceView { newExperience in
