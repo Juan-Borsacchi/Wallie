@@ -23,8 +23,11 @@ struct ExperienceDetailScreen: View {
     @State private var selectedImageIndex = 0
     @State private var config: PhotoHeroEffectConfig<ExperiencePhoto> = .init()
     
-    // Timer para alternar as fotos de fundo a cada 5 segundos
-    @State private var timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    // Progresso do timer (0.0 a 1.0) para a barra de progresso
+    @State private var progress: Double = 0.0
+    // Timer executando a cada 0.05s para animação fluida da barra
+    @State private var progressTimer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
+    private let displayDuration: Double = 5.0 // Tempo em segundos por foto
     
     // Controle das páginas deslizantes quando há humor e áudio
     @State private var selectedTab = 0
@@ -67,9 +70,20 @@ struct ExperienceDetailScreen: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Foto de fundo ocupando 100% da tela
+            // Foto de fundo ocupando 100% da tela com suporte a Arrastar (Swipe)
             fullScreenBackgroundPhoto
                 .ignoresSafeArea()
+            
+            // Indicadores de progresso estilo Stories no topo
+            if allPhotos.count > 1 {
+                VStack {
+                    storyProgressBar
+                        .padding(.top, 50)
+                        .padding(.horizontal, 16)
+                    Spacer()
+                }
+                .ignoresSafeArea()
+            }
             
             // Layout com VStack: o Spacer empurra o Card obrigatoriamente para a base
             VStack {
@@ -110,14 +124,53 @@ struct ExperienceDetailScreen: View {
                 selectedImageIndex = index
             }
         }
-        .onReceive(timer) { _ in
-            guard !allPhotos.isEmpty else { return }
-            withAnimation(.easeInOut(duration: 0.8)) {
-                selectedImageIndex = (selectedImageIndex + 1) % allPhotos.count
+        .onReceive(progressTimer) { _ in
+            guard !allPhotos.isEmpty, !config.showFullScreenCover else { return }
+            
+            let step = 0.05 / displayDuration
+            if progress + step >= 1.0 {
+                progress = 0.0
+                withAnimation(.easeInOut) {
+                    selectedImageIndex = (selectedImageIndex + 1) % allPhotos.count
+                }
+            } else {
+                progress += step
             }
+        }
+        .onChange(of: selectedImageIndex) { _, _ in
+            progress = 0.0
         }
         .onDisappear {
             audioPlayer?.pause()
+        }
+    }
+
+    // MARK: - Barra de Progresso Estilo Stories
+    private var storyProgressBar: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<allPhotos.count, id: \.self) { index in
+                GeometryReader { proxy in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(Color.white.opacity(0.35))
+                        
+                        Capsule()
+                            .fill(Color.white)
+                            .frame(width: barWidth(for: index, totalWidth: proxy.size.width))
+                    }
+                }
+                .frame(height: 3)
+            }
+        }
+    }
+
+    private func barWidth(for index: Int, totalWidth: CGFloat) -> CGFloat {
+        if index < selectedImageIndex {
+            return totalWidth
+        } else if index == selectedImageIndex {
+            return totalWidth * CGFloat(progress)
+        } else {
+            return 0
         }
     }
 
@@ -155,30 +208,28 @@ struct ExperienceDetailScreen: View {
         .padding(.bottom, 16)
     }
 
-    // MARK: - Foto em Tela Cheia no Fundo
+    // MARK: - Foto em Tela Cheia no Fundo (Navegação por Arrastar + Clique para Abrir)
     private var fullScreenBackgroundPhoto: some View {
         GeometryReader { proxy in
-            let currentPhoto = allPhotos.indices.contains(selectedImageIndex) ? allPhotos[selectedImageIndex] : allPhotos.first
-            
-            if let photo = currentPhoto {
-                Image(uiImage: photo.image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: proxy.size.width, height: proxy.size.height)
-                    .clipped()
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if !allPhotos.isEmpty {
-                            withAnimation(.easeInOut) {
-                                selectedImageIndex = (selectedImageIndex + 1) % allPhotos.count
+            if !allPhotos.isEmpty {
+                TabView(selection: $selectedImageIndex) {
+                    ForEach(Array(allPhotos.enumerated()), id: \.offset) { index, photo in
+                        Image(uiImage: photo.image)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: proxy.size.width, height: proxy.size.height)
+                            .clipped()
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                // Clique simples para expandir a foto
+                                config.selectedItem = photo
+                                config.sourceLocation = proxy.frame(in: .global)
+                                withoutAnimation { config.showFullScreenCover = true }
                             }
-                        }
+                            .tag(index)
                     }
-                    .onLongPressGesture {
-                        config.selectedItem = photo
-                        config.sourceLocation = proxy.frame(in: .global)
-                        withoutAnimation { config.showFullScreenCover = true }
-                    }
+                }
+                .tabViewStyle(.page(indexDisplayMode: .never))
             } else {
                 Color(.systemGray4)
             }
@@ -248,14 +299,14 @@ struct ExperienceDetailScreen: View {
         .padding(.bottom, 16)
     }
 
-    // MARK: - Tags de Humor
+    // MARK: - Tags de Humor (Emoji corrigido para renderizar adequadamente)
     private var moodTagsView: some View {
         HStack(spacing: 12) {
             if let quality = experience.quality {
-                detailTag(title: "Como foi?", value: "\(quality.imageName) \(quality.label)")
+                detailTag(title: "Como foi?", imageName: quality.imageName, label: quality.label)
             }
             if let emotion = experience.emotion {
-                detailTag(title: "Como se sentiu?", value: "\(emotion.imageName) \(emotion.label)")
+                detailTag(title: "Como se sentiu?", imageName: emotion.imageName, label: emotion.label)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -317,16 +368,25 @@ struct ExperienceDetailScreen: View {
         }
     }
 
-    private func detailTag(title: String, value: String) -> some View {
+    // MARK: - Componente das Tags com Emoji e Texto separados
+    private func detailTag(title: String, imageName: String, label: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(.caption.weight(.medium))
                 .foregroundStyle(.white.opacity(0.75))
-            Text(value)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
+            
+            HStack(spacing: 6) {
+                Image(imageName) // Carrega a imagem do diretório Assets
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                
+                Text(label)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
