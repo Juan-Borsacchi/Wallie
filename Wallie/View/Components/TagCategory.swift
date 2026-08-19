@@ -20,7 +20,7 @@ struct TagCategory: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 32)
-        .background(Color.blue)
+        .background(.azulProjeto)
         .cornerRadius(20)
     }
 }

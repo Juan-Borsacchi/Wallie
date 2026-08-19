@@ -4,6 +4,7 @@
 //
 //  Created by Tais Akemi Kawaguti on 14/08/26.
 //
+
 import SwiftUI
 
 struct MemoriesView: View {
@@ -12,15 +13,19 @@ struct MemoriesView: View {
     
     @State private var isShowingAddExperience = false
     
+    @State private var selectedMoments: Experience?
+    @State private var isShowingDetail = false
+    
     var body: some View {
         NavigationStack  {
-            
             VStack(spacing: 0) {
                 ToolBarSelectedAlbum(
                     onSearching: { print("Pesquisar") },
                     onAdd: { isShowingAddExperience = true }
                 )
                 
+                MemoriesTitles(title: "A curto prazo", subtitle: "Explore as fotos mais recentes")
+                Divider()
                 MemoriesTitles(title: "A longo prazo", subtitle: "Todas as fotos")
                 
                 MasonryGridView(
@@ -29,28 +34,34 @@ struct MemoriesView: View {
                     heightProvider: { $0.calculatedHeight }
                 ) { item in
                     ImageView(item, isExpanded: false)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if let experienceOpen = viewmodel.experiences.first(where: { exp in
+                                return exp.id == item.experienceID
+                            }) {
+                                self.selectedMoments = experienceOpen
+                                self.isShowingDetail = true
+                            }
+                        }
                 } detail: { item, isExpanded, dragOffset, dismiss in
-                    VStack {
-                        if isExpanded { Spacer(minLength: 50) }
-                        
-                        ImageView(item, isExpanded: isExpanded)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        
-                        if isExpanded { Spacer(minLength: 50) }
-                    }
-                } overlay: { selectedItem, isExpanded, dragOffset, dismiss in
-                    if #available(iOS 26.0, *) {
-                        OverlayActionView(dragOffset: dragOffset, dismiss: dismiss)
-                    }
+                    EmptyView()
+                } overlay: { item, isExpanded, dragOffset, dismiss in
+                    EmptyView()
                 }
-                .onSelectionChanged { item in
-                    if let item { print(item) }
-                }
-                .safeAreaPadding(15)
+                .safeAreaPadding(16)
             }
             .sheet(isPresented: $isShowingAddExperience) {
                 AddExperienceView { newExperience in
                     viewmodel.addNewExperience(newExperience)
+                }
+            }
+            .navigationDestination(isPresented: $isShowingDetail) {
+                if let experience = selectedMoments {
+                    ExperienceDetailScreen(experience: experience, onSave: { updated in
+                        if let index = viewmodel.experiences.firstIndex(where: { $0.id == updated.id }) {
+                            viewmodel.experiences[index] = updated
+                        }
+                    })
                 }
             }
         }
@@ -88,44 +99,10 @@ extension MemoriesView {
                 }
                 .buttonStyle(.glass)
                 Spacer(minLength: 0)
-                
-                Button {} label: {
-                    Image(systemName: "ellipsis")
-                        .font(.title3)
-                        .frame(width: 20, height: 30)
-                }
-                .buttonStyle(.glass)
             }
-            
             Spacer(minLength: 0)
-            
-            HStack {
-                Button {} label: {
-                    Image(systemName: "square.and.arrow.up.fill")
-                        .font(.title3)
-                        .frame(width: 20, height: 30)
-                }
-                .buttonStyle(.glass)
-                
-                HStack(spacing: 15) {
-                    ActionButton(icon: "suit.heart")
-                    ActionButton(icon: "info.circle")
-                    ActionButton(icon: "slider.horizontal.3")
-                }
-            }
-            .foregroundStyle(Color.primary)
-            .padding(.horizontal, 10)
-            .glassEffect(.regular.interactive(), in: .capsule)
-            .frame(maxWidth: .infinity)
-            
-            Button {} label: {
-                Image(systemName: "square.and.arrow.up.fill")
-                    .font(.title3)
-                    .frame(width: 20, height: 30)
-            }
-            .buttonStyle(.glass)
         }
-        .padding(15)
+        .padding(16)
         .compositingGroup()
         .opacity(interactiveOpacity)
     }
