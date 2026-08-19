@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Camada_1" data-name="Camada 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 113.39 113.39">
+<svg id="Camada_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 78.58 78.58">
+  <!-- Generator: Adobe Illustrator 30.7.0, SVG Export Plug-In . SVG Version: 2.1.4 Build 83)  -->
   <defs>
     <style>
-      .cls-1 {
+      .st0 {
         fill: #ffd21f;
       }
 
-      .cls-2 {
+      .st1 {
         fill: #403408;
       }
     </style>
   </defs>
-  <circle class="cls-1" cx="56.69" cy="56.69" r="39.29"/>
+  <circle class="st0" cx="39.29" cy="39.29" r="39.29"/>
   <g>
-    <ellipse class="cls-2" cx="41.8" cy="49.76" rx="5.66" ry="5.99"/>
-    <ellipse class="cls-2" cx="71.59" cy="49.76" rx="5.66" ry="5.99"/>
+    <ellipse class="st1" cx="24.4" cy="32.36" rx="5.66" ry="5.99"/>
+    <ellipse class="st1" cx="54.19" cy="32.36" rx="5.66" ry="5.99"/>
   </g>
-  <rect class="cls-2" x="35.65" y="67.9" width="42.08" height="5.64" rx="2.82" ry="2.82"/>
+  <path class="st1" d="M21.07,50.5h36.44c1.56,0,2.82,1.26,2.82,2.82h0c0,1.56-1.26,2.82-2.82,2.82H21.07c-1.56,0-2.82-1.26-2.82-2.82h0c0-1.56,1.26-2.82,2.82-2.82Z"/>
 </svg>
