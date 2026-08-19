@@ -1,3 +1,8 @@
+//
+// MomentsHomeView.swift
+// Wallie
+//
+
 import SwiftUI
 
 struct MomentsRootView: View {
@@ -10,23 +15,27 @@ struct MomentsRootView: View {
 
 struct MomentosHomeView: View {
     @Environment(WallieViewModel.self) var viewmodel
-    
+
+    // MARK: - Modo de exibição
+
+    /// Adicionado `.book`, que usa a InteractiveBookView (BookView)
+    /// implementada com a MomentCardFace já existente.
     enum DisplayMode {
-        case stack, carousel
+        case stack, carousel, book
     }
-    
+
     @State private var displayMode: DisplayMode = .carousel
     @State private var focusedExperience: Experience?
     @State private var isShowingAddExperience = false
     @State private var selectedExperienceID: UUID?
     @State private var isShowingDetail = false
     @State private var isShowingAllExperiences = false
-    
+
     var body: some View {
         VStack {
             header
             Spacer()
-            
+
             Group {
                 if viewmodel.experiences.isEmpty {
                     FirstMomentCard()
@@ -47,14 +56,24 @@ struct MomentosHomeView: View {
                             onFocusChange: { focusedExperience = $0 },
                             onTapFocused: handleTap
                         )
+                    case .book:
+                        BookView(
+                            experiences: Bindable(viewmodel).experiences,
+                            onTapExperience: handleTap,
+                            onVisibleExperiencesChange: { visible in
+                                focusedExperience = visible.first
+                            }
+                        )
                     }
                 }
             }
-            
+
             if !viewmodel.experiences.isEmpty {
                 captionView.padding(.top, 16)
             }
+
             Spacer()
+
             addButton.padding(.bottom, 30)
         }
         .background {
@@ -82,22 +101,23 @@ struct MomentosHomeView: View {
             }
         }
     }
-    
+
     private func handleTap(_ experience: Experience) {
         selectedExperienceID = experience.id
         isShowingDetail = true
     }
-    
+
     private var header: some View {
         HStack {
             Title(title: "Momentos", subtitle: "")
                 .foregroundStyle(.white)
+
             Spacer()
-            
+
             if !viewmodel.experiences.isEmpty {
                 Button {
                     withAnimation(.easeInOut) {
-                        displayMode = displayMode == .stack ? .carousel : .stack
+                        cycleDisplayMode()
                     }
                 } label: {
                     Image(systemName: displayMode == .stack ? "book.fill" : "rectangle.fill.on.rectangle.fill")
@@ -112,7 +132,31 @@ struct MomentosHomeView: View {
         }
         .padding(16)
     }
-    
+
+    /// Avança para o próximo modo de exibição: stack -> carousel -> book -> stack.
+    private func cycleDisplayMode() {
+        switch displayMode {
+        case .stack:
+            displayMode = .carousel
+        case .carousel:
+            displayMode = .book
+        case .book:
+            displayMode = .stack
+        }
+    }
+
+    /// Ícone do botão representa o modo para o qual ele vai trocar ao ser tocado.
+    private var displayModeIcon: String {
+        switch displayMode {
+        case .stack:
+            return "rectangle.grid.1x2"
+        case .carousel:
+            return "book.closed"
+        case .book:
+            return "square.stack"
+        }
+    }
+
     @ViewBuilder
     private var captionView: some View {
         if let experience = focusedExperience {
@@ -128,7 +172,7 @@ struct MomentosHomeView: View {
             .padding(.horizontal, 30)
         }
     }
-    
+
     private var addButton: some View {
         Button {
             isShowingAddExperience = true

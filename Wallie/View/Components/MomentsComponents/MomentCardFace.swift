@@ -1,8 +1,8 @@
 //
-//  Momes.swift
-//  Wallie
+// MomentCardFace.swift
+// Wallie
 //
-//  Created by Vitor Silva Souza on 17/08/26.
+// Created by Vitor Silva Souza on 17/08/26.
 //
 
 import SwiftUI
@@ -35,7 +35,7 @@ struct MomentCardFace: View {
                     .strokeBorder(.white.opacity(0.25), lineWidth: 1)
             )
     }
-    
+
     private func ratingBadge(_ quality: QualityRating) -> some View {
         HStack(spacing: 5) {
             Text(quality.imageName)
@@ -62,6 +62,8 @@ struct MomentCardFace: View {
         .background(.black.opacity(0.52), in: Capsule())
     }
 }
+
+// MARK: - Preview
 
 #Preview("Placeholder") {
     MomentCardFace(experience: .placeholder)
