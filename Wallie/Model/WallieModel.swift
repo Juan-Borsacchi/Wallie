@@ -93,10 +93,15 @@ struct Experience: Identifiable {
     var includeDate: Bool
     var date: Date
     var album: String
+    
     var quality: QualityRating?
     var emotion: EmotionTag?
+    
     var accentColor: Color?
     var backgroundGradient: [Color]?
+    
+    var extraItems: [AddItem]
+    
     var isPlaceholder: Bool
     
     init(
@@ -111,7 +116,8 @@ struct Experience: Identifiable {
         emotion: EmotionTag? = nil,
         accentColor: Color? = nil,
         backgroundGradient: [Color]? = nil,
-        isPlaceholder: Bool = false
+        isPlaceholder: Bool = false,
+        extraItems: [AddItem] = []
     ) {
         self.id = id
         self.images = images
@@ -125,9 +131,12 @@ struct Experience: Identifiable {
         self.accentColor = accentColor
         self.backgroundGradient = backgroundGradient
         self.isPlaceholder = isPlaceholder
+        self.extraItems = extraItems
     }
     
-    static let placeholder = Experience(isPlaceholder: true)
+    static let placeholder = Experience(
+        isPlaceholder: true
+    )
     
     static let mock = Experience(
         title: "Viagem Inesquecível",
