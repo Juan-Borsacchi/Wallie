@@ -16,19 +16,23 @@ struct ContentView: View {
         
         TabView {
             MomentsRootView()
+                .tint(nil)
                 .tabItem {
                     Label("Momentos", systemImage: "photo.fill.on.rectangle.fill")
                 }
             MemoriesView()
+                .tint(nil)
                 .tabItem {
                     Label("Memórias", systemImage: "square.grid.3x3.square")
                 }
             AlbunsView()
+                .tint(nil)
                 .tabItem {
                     Label("Álbuns", systemImage: "rectangle.stack")
                 }
             
             CalendarView()
+                .tint(nil)
                 .tabItem {
                     Label("Calendário", systemImage: "calendar")
                 }

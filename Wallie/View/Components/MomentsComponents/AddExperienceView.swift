@@ -103,19 +103,12 @@ struct AddExperienceView: View {
             initialValue: experience?.backgroundGradient
         )
 
-        // Recupera a capa existente
+        // Recupera a capa existente se houver
         if let data = experience?.images.first,
            let image = UIImage(data: data) {
-
-            _coverImage = State(
-                initialValue: image
-            )
-
+            _coverImage = State(initialValue: image)
         } else {
-
-            _coverImage = State(
-                initialValue: nil
-            )
+            _coverImage = State(initialValue: nil)
         }
 
         // Recupera os itens extras
@@ -136,12 +129,12 @@ struct AddExperienceView: View {
 
                     VStack(spacing: 0) {
 
-                        // MARK: Capa
+                        // MARK: Capa (Só exibe a foto quando houver uma selecionada)
 
                         coverSection
                             .id("top")
 
-                        // MARK: Formulário
+                        // MARK: Formulário Principal
 
                         mainForm
 
@@ -197,7 +190,7 @@ struct AddExperienceView: View {
                     }
                 }
 
-                // Título
+                // Título da barra
 
                 ToolbarItem(
                     placement: .principal
@@ -211,7 +204,7 @@ struct AddExperienceView: View {
                     .font(.headline)
                 }
 
-                // Salvar
+                // Botão Salvar
 
                 ToolbarItem(
                     placement: .confirmationAction
@@ -226,7 +219,6 @@ struct AddExperienceView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.verdeProjeto)
-                    .disabled(coverImage == nil)
                 }
 
                 // MARK: Toolbar inferior
@@ -279,6 +271,27 @@ struct AddExperienceView: View {
                 }
             }
 
+            // MARK: - PhotosPicker da capa
+
+            .photosPicker(
+                isPresented: $showCoverPhotoPicker,
+                selection: $selectedCoverPhotoItems,
+                maxSelectionCount: 1,
+                matching: .images
+            )
+
+            // MARK: - Camera da capa
+
+            .sheet(
+                isPresented: $showCoverCamera
+            ) {
+
+                CameraPickerView(
+                    selectedImage: $capturedCoverImage
+                )
+                .ignoresSafeArea()
+            }
+
             // MARK: - PhotosPicker da toolbar
 
             .photosPicker(
@@ -300,26 +313,40 @@ struct AddExperienceView: View {
                 .ignoresSafeArea()
             }
 
-            // MARK: - Camera da capa
+            // MARK: - Foto escolhida para capa
 
-            .sheet(
-                isPresented: $showCoverCamera
-            ) {
+            .onChange(
+                of: selectedCoverPhotoItems
+            ) { _, newItems in
 
-                CameraPickerView(
-                    selectedImage: $capturedCoverImage
+                guard !newItems.isEmpty else {
+                    return
+                }
+
+                carregarCapa(
+                    newItems
                 )
-                .ignoresSafeArea()
             }
 
-            // MARK: - PhotosPicker da capa
+            // MARK: - Foto tirada para capa
 
-            .photosPicker(
-                isPresented: $showCoverPhotoPicker,
-                selection: $selectedCoverPhotoItems,
-                maxSelectionCount: 1,
-                matching: .images
-            )
+            .onChange(
+                of: capturedCoverImage
+            ) { _, newImage in
+
+                guard let image = newImage else {
+                    return
+                }
+
+                withAnimation(
+                    .easeInOut(duration: 0.25)
+                ) {
+
+                    coverImage = image
+                }
+
+                capturedCoverImage = nil
+            }
 
             // MARK: - Fotos escolhidas na toolbar
 
@@ -358,61 +385,23 @@ struct AddExperienceView: View {
 
                 capturedCameraImage = nil
             }
-
-            // MARK: - Foto escolhida para capa
-
-            .onChange(
-                of: selectedCoverPhotoItems
-            ) { _, newItems in
-
-                guard !newItems.isEmpty else {
-                    return
-                }
-
-                carregarCapa(
-                    newItems
-                )
-            }
-
-            // MARK: - Foto tirada para capa
-
-            .onChange(
-                of: capturedCoverImage
-            ) { _, newImage in
-
-                guard let image = newImage else {
-                    return
-                }
-
-                withAnimation(
-                    .easeInOut(duration: 0.25)
-                ) {
-
-                    coverImage = image
-                }
-
-                capturedCoverImage = nil
-            }
         }
     }
 
     // MARK: - Capa
 
     private var coverSection: some View {
-
         VStack(spacing: 14) {
-
+            // Exibe a foto da capa somente quando uma imagem for inserida
             if let image = coverImage {
-
                 ZStack(alignment: .topTrailing) {
-
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
                         .frame(
                             maxWidth: .infinity,
-                            minHeight: 280,
-                            maxHeight: 380
+                            minHeight: 220,
+                            maxHeight: 320
                         )
                         .clipShape(
                             RoundedRectangle(
@@ -421,7 +410,6 @@ struct AddExperienceView: View {
                             )
                         )
                         .overlay {
-
                             RoundedRectangle(
                                 cornerRadius: 24,
                                 style: .continuous
@@ -433,156 +421,50 @@ struct AddExperienceView: View {
                         }
 
                     Button {
-
                         withAnimation {
-
                             coverImage = nil
                         }
-
                     } label: {
-
-                        Image(
-                            systemName: "xmark.circle.fill"
-                        )
-                        .font(
-                            .system(size: 28)
-                        )
-                        .foregroundStyle(
-                            .white,
-                            .black.opacity(0.55)
-                        )
-                        .padding(10)
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundStyle(
+                                .white,
+                                .black.opacity(0.55)
+                            )
+                            .padding(10)
                     }
                 }
+            }
 
-                HStack(spacing: 12) {
+            // Botões de escolha que aparecem sempre
+            HStack(spacing: 12) {
+                coverGalleryButton(
+                    title: coverImage == nil ? "Acessar Galeria" : "Trocar foto",
+                    icon: "photo"
+                )
 
-                    coverGalleryButton(
-                        title: "Trocar foto",
-                        icon: "photo"
+                Button {
+                    showCoverCamera = true
+                } label: {
+                    Label(
+                        coverImage == nil ? "Tirar foto" : "Tirar outra",
+                        systemImage: coverImage == nil ? "camera.fill" : "camera"
                     )
-
-                    Button {
-
-                        showCoverCamera = true
-
-                    } label: {
-
-                        Label(
-                            "Tirar outra",
-                            systemImage: "camera"
-                        )
-                        .font(
-                            .subheadline.weight(.semibold)
-                        )
-                        .frame(
-                            maxWidth: .infinity
-                        )
-                        .padding(
-                            .vertical,
-                            12
-                        )
-                        .background(
-                            Color(.secondarySystemBackground),
-                            in: RoundedRectangle(
-                                cornerRadius: 14,
-                                style: .continuous
-                            )
-                        )
-                    }
-                    .buttonStyle(.plain)
-                }
-
-            } else {
-
-                VStack(spacing: 18) {
-
-                    ZStack {
-
-                        RoundedRectangle(
-                            cornerRadius: 24,
-                            style: .continuous
-                        )
-                        .fill(
-                            Color(.secondarySystemBackground)
-                        )
-
-                        VStack(spacing: 10) {
-
-                            Image(
-                                systemName:
-                                    "photo.on.rectangle.angled"
-                            )
-                            .font(
-                                .system(size: 42)
-                            )
-                            .foregroundStyle(.secondary)
-
-                            Text(
-                                "Escolha uma capa"
-                            )
-                            .font(.headline)
-
-                            Text(
-                                "Essa será a única foto principal da experiência."
-                            )
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 30)
-                        }
-                    }
-                    .frame(
-                        maxWidth: .infinity,
-                        minHeight: 210
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(coverImage == nil ? .white : .primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        coverImage == nil ? MomentosPalette.accentSoft : Color(.secondarySystemBackground),
+                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                     )
-
-                    HStack(spacing: 12) {
-
-                        coverGalleryButton(
-                            title: "Adicionar Foto",
-                            icon: "photo"
-                        )
-
-                        Button {
-
-                            showCoverCamera = true
-
-                        } label: {
-
-                            Label(
-                                "Tirar foto",
-                                systemImage: "camera.fill"
-                            )
-                            .font(
-                                .subheadline.weight(
-                                    .semibold
-                                )
-                            )
-                            .foregroundStyle(.white)
-                            .frame(
-                                maxWidth: .infinity
-                            )
-                            .padding(
-                                .vertical,
-                                13
-                            )
-                            .background(
-                                MomentosPalette.accentSoft,
-                                in: RoundedRectangle(
-                                    cornerRadius: 14,
-                                    style: .continuous
-                                )
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
                 }
+                .buttonStyle(.plain)
             }
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)
-        .padding(.bottom, 20)
+        .padding(.bottom, 12)
     }
 
     // MARK: - Botão da galeria da capa
@@ -627,23 +509,40 @@ struct AddExperienceView: View {
     // MARK: - Formulário
 
     private var mainForm: some View {
-        VStack(spacing: 14) {
-            TextField("Dê um título para sua experiência...", text: $title)
-                .focused($isInputFocused)
-                .padding(14)
-                .background(
-                    Color(.secondarySystemBackground),
-                    in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                )
+        VStack(alignment: .leading, spacing: 14) {
+            
+            // Campo de Título com Rótulo
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Título")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
 
-            TextField("Escreva uma descrição", text: $description, axis: .vertical)
-                .focused($isInputFocused)
-                .lineLimit(3...8)
-                .padding(14)
-                .background(
-                    Color(.secondarySystemBackground),
-                    in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                )
+                TextField("Dê um título para sua experiência...", text: $title)
+                    .focused($isInputFocused)
+                    .padding(14)
+                    .background(
+                        Color(.secondarySystemBackground),
+                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    )
+            }
+
+            // Campo de Descrição com Rótulo
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Descrição")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+
+                TextField("Escreva uma descrição...", text: $description, axis: .vertical)
+                    .focused($isInputFocused)
+                    .lineLimit(3...8)
+                    .padding(14)
+                    .background(
+                        Color(.secondarySystemBackground),
+                        in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    )
+            }
 
             dateRow
             albumRow
@@ -655,7 +554,7 @@ struct AddExperienceView: View {
                 Spacer()
                 Button {
                     isInputFocused = false
-                }label: {
+                } label: {
                     Image(systemName: "keyboard.chevron.compact.down")
                 }
             }
@@ -792,12 +691,10 @@ struct AddExperienceView: View {
 
             case .photo:
 
-                // Abre a galeria DIRETAMENTE
                 showPhotoPicker = true
 
             case .camera:
 
-                // Abre a câmera DIRETAMENTE
                 showCamera = true
 
             case .audio:
@@ -941,14 +838,11 @@ struct AddExperienceView: View {
 
     private func salvarExperiencia() {
 
-        guard let coverImage else {
-            return
-        }
+        var imagesData: [Data] = []
 
-        guard let coverData = coverImage.jpegData(
-            compressionQuality: 0.9
-        ) else {
-            return
+        if let coverImage,
+           let coverData = coverImage.jpegData(compressionQuality: 0.9) {
+            imagesData.append(coverData)
         }
 
         var quality: QualityRating?
@@ -976,8 +870,7 @@ struct AddExperienceView: View {
 
             id: existingID ?? UUID(),
 
-            // Somente a capa fica em images
-            images: [coverData],
+            images: imagesData,
 
             title: title,
 
