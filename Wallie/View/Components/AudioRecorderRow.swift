@@ -2,14 +2,6 @@
 //  AudioRecorderRow.swift
 //  Wallie
 //
-//  Created by Juan Gabriel Borsacchi Marques on 18/08/26.
-//
-
-
-//
-//  AudioRecorderRow.swift
-//  Wallie
-//
 //  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
 //
 
@@ -23,22 +15,22 @@ struct AudioRecorderRow: View {
     var body: some View {
         HStack(spacing: 16) {
             Button {
-                if gravador.estaGravando {
+                if gravador.isRecording {
                     gravador.stopRecord { url in
                         audioURL = url
                     }
                 } else {
-                    gravador.iniciarGravacao()
+                    gravador.StartRecord()
                 }
             } label: {
-                Image(systemName: gravador.estaGravando ? "stop.circle.fill" : "record.circle")
+                Image(systemName: gravador.isRecording ? "stop.circle.fill" : "record.circle")
                     .font(.system(size: 32))
-                    .foregroundStyle(gravador.estaGravando ? .red : .accentColor)
+                    .foregroundStyle(gravador.isRecording ? .red : .accentColor)
             }
             .buttonStyle(.plain)
 
-            if gravador.estaGravando {
-                Text(gravador.tempoFormatado)
+            if gravador.isRecording {
+                Text(gravador.formatedTime)
                     .font(.subheadline.monospacedDigit())
                     .foregroundStyle(.secondary)
             } else if audioURL != nil {

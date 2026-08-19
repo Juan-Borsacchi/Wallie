@@ -11,18 +11,17 @@ import Combine
 
 @MainActor
 final class AudioRecorder: NSObject, ObservableObject {
-    @Published var estaGravando = false
-    @Published var tempoFormatado = "00:00"
+    @Published var isRecording = false
+    @Published var formatedTime = "00:00"
 
     private var recorder: AVAudioRecorder?
     private var timer: Timer?
-    private var inicioGravacao: Date?
+    private var recordStart: Date?
 
-    func iniciarGravacao() {
-        AVAudioApplication.requestRecordPermission { [weak self] permitido in
-            guard permitido else { return }
+    func StartRecord() {
+        AVAudioApplication.requestRecordPermission { [weak self] permited in
+            guard permited else { return }
             
-            // Garante o isolamento no MainActor ao acessar o self
             Task { @MainActor [weak self] in
                 self?.startwithpermission()
             }
@@ -35,7 +34,7 @@ final class AudioRecorder: NSObject, ObservableObject {
             try sessao.setCategory(.playAndRecord, mode: .default)
             try sessao.setActive(true)
 
-            let arquivo = FileManager.default.temporaryDirectory
+            let archive = FileManager.default.temporaryDirectory
                 .appendingPathComponent(UUID().uuidString)
                 .appendingPathExtension("m4a")
 
@@ -46,12 +45,11 @@ final class AudioRecorder: NSObject, ObservableObject {
                 AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
             ]
 
-            recorder = try AVAudioRecorder(url: arquivo, settings: config)
+            recorder = try AVAudioRecorder(url: archive, settings: config)
             recorder?.record()
-            estaGravando = true
-            inicioGravacao = Date()
+            isRecording = true
+            recordStart = Date()
 
-            // Passando o bloco do Timer para o MainActor de forma segura
             timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
                     self?.timeRefresh()
@@ -65,14 +63,14 @@ final class AudioRecorder: NSObject, ObservableObject {
     func stopRecord(completion: @escaping (URL?) -> Void) {
         recorder?.stop()
         timer?.invalidate()
-        estaGravando = false
-        tempoFormatado = "00:00"
+        isRecording = false
+        formatedTime = "00:00"
         completion(recorder?.url)
     }
 
     private func timeRefresh() {
-        guard let inicio = inicioGravacao else { return }
-        let intervalo = Int(Date().timeIntervalSince(inicio))
-        tempoFormatado = String(format: "%02d:%02d", intervalo / 60, intervalo % 60)
+        guard let start = recordStart else { return }
+        let interval = Int(Date().timeIntervalSince(start))
+        formatedTime = String(format: "%02d:%02d", interval / 60, interval % 60)
     }
 }
