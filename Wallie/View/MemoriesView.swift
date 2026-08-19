@@ -18,12 +18,16 @@ struct MemoriesView: View {
     
     var body: some View {
         NavigationStack  {
-            VStack(spacing: 0) {
-                ToolBarSelectedAlbum(
-                    onSearching: { print("Pesquisar") },
-                    onAdd: { isShowingAddExperience = true }
-                )
-                
+            VStack() {
+                HStack {
+                    ToolBarMemoriesAlbuns(
+                        title: "Memórias",
+                        subtitle: nil,
+                        onSearching: { print("Pesquisar") },
+                        onAdd: { isShowingAddExperience = true }
+                    )
+                }
+                .padding(16)
                 MemoriesTitles(title: "A curto prazo", subtitle: "Explore as fotos mais recentes")
                 Divider()
                 MemoriesTitles(title: "A longo prazo", subtitle: "Todas as fotos")
@@ -107,14 +111,14 @@ extension MemoriesView {
         .opacity(interactiveOpacity)
     }
     
-    @ViewBuilder
-    private func ActionButton(icon: String) -> some View {
-        Button {} label: {
-            Image(systemName: icon)
-                .font(.title3)
-                .padding(10)
-        }
-    }
+    //    @ViewBuilder
+    //    private func ActionButton(icon: String) -> some View {
+    //        Button {} label: {
+    //            Image(systemName: icon)
+    //                .font(.title3)
+    //                .padding(10)
+    //        }
+    //    }
 }
 
 #Preview {

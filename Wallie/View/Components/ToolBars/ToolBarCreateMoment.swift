@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ToolBarCreateMoment: ToolbarContent {
-
     var cancelAction: () -> Void
     var confirmAction: () -> Void
     

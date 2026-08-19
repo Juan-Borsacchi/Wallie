@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ToolBarCreateSheetAlbum: ToolbarContent {
-
     var cancelAction: () -> Void
     var confirmAction: () -> Void
     

@@ -1,0 +1,46 @@
+//
+//  ToolbBarAlbum.swift
+//  Wallie
+//
+//  Created by Vitor Silva Souza on 16/08/26.
+//
+
+import SwiftUI
+
+struct ToolBarMemoriesAlbuns: View {
+    let title: String
+    let subtitle: String?
+    var onSearching: () -> Void
+    var onAdd: () -> Void
+    
+    var body: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.custom("Gupter-Bold", size: 41))
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.custom("Manrope-Regular", size: 15))
+                        .foregroundColor(.secondary)
+                }
+            }
+            Spacer()
+            HStack(spacing: 16) {
+                Button(action: onSearching) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+                }
+                Button(action: onAdd) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(.azulProjeto)
+                        .clipShape(Circle())
+                }
+            }
+        }
+    }
+}
