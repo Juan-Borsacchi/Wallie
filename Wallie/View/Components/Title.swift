@@ -45,8 +45,6 @@ struct MemoriesTitles: View {
     
 }
 
-
-
 #Preview {
     MemoriesTitles(title: "Título", subtitle: "Subtitulo")
 }

@@ -38,7 +38,7 @@ struct MomentCardFace: View {
 
     private func ratingBadge(_ quality: QualityRating) -> some View {
         HStack(spacing: 5) {
-            Text(quality.emoji)
+            Text(quality.imageName)
             Text(quality.label)
                 .lineLimit(1)
         }
@@ -51,7 +51,7 @@ struct MomentCardFace: View {
 
     private func emotionBadge(_ emotion: EmotionTag) -> some View {
         HStack(spacing: 5) {
-            Text(emotion.emoji)
+            Text(emotion.imageName)
             Text(emotion.label)
                 .lineLimit(1)
         }
