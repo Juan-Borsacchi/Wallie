@@ -21,12 +21,14 @@ struct AlbunsView: View {
             ScrollView {
                 VStack (alignment: .leading) {
                     HStack {
-                        
-                        Title(title: "Álbuns", subtitle: "Colecione mémorias")
-                        Spacer()
-                        AddButton(displaySheet: $displaySheet)
+                        ToolBarMemoriesAlbuns(
+                            title: "Álbuns",
+                            subtitle: "Colecione mémorias",
+                            onSearching: { print("Pesquisar") },
+                            onAdd: { displaySheet = true }
+                        )
                     }
-                    .padding(.bottom, 27)
+                    .padding(.bottom, 32)
                     
                     ForEach(albums) { album in
                         NavigationLink(value: album) {
@@ -44,8 +46,8 @@ struct AlbunsView: View {
                 CreateAlbumView(onSave: { newAlbum in
                     albums.append(newAlbum)
                 })
-                    .presentationDragIndicator(.visible)
-                    .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.large])
             }
         }
     }

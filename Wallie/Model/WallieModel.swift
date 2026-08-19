@@ -26,7 +26,6 @@ struct formAlbum: Identifiable, Hashable {
     var category: String?
 }
 
-// MARK: - Avaliação de qualidade
 enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
     case pessimo, ruim, bom, otimo, excelente
     
@@ -53,7 +52,6 @@ enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
     }
 }
 
-// MARK: - Emoção sentida
 enum EmotionTag: String, CaseIterable, Identifiable, Codable, Hashable {
     case triste, feliz, angustiado, raiva, ansioso, calmo, surpreso, cansado
     
@@ -86,7 +84,7 @@ enum EmotionTag: String, CaseIterable, Identifiable, Codable, Hashable {
     }
 }
 
-// MARK: - Modelo de uma experiência
+
 struct Experience: Identifiable {
     let id: UUID
     var images: [Data]
@@ -95,10 +93,15 @@ struct Experience: Identifiable {
     var includeDate: Bool
     var date: Date
     var album: String
+    
     var quality: QualityRating?
     var emotion: EmotionTag?
+    
     var accentColor: Color?
     var backgroundGradient: [Color]?
+    
+    var extraItems: [AddItem]
+    
     var isPlaceholder: Bool
     
     init(
@@ -108,12 +111,13 @@ struct Experience: Identifiable {
         description: String = "",
         includeDate: Bool = false,
         date: Date = Date(),
-        album: String = "Nenhum", // CORREÇÃO: Adicionado o tipo 'String ='
+        album: String = "Nenhum",
         quality: QualityRating? = nil,
         emotion: EmotionTag? = nil,
         accentColor: Color? = nil,
         backgroundGradient: [Color]? = nil,
-        isPlaceholder: Bool = false
+        isPlaceholder: Bool = false,
+        extraItems: [AddItem] = []
     ) {
         self.id = id
         self.images = images
@@ -127,11 +131,13 @@ struct Experience: Identifiable {
         self.accentColor = accentColor
         self.backgroundGradient = backgroundGradient
         self.isPlaceholder = isPlaceholder
+        self.extraItems = extraItems
     }
     
-    static let placeholder = Experience(isPlaceholder: true)
+    static let placeholder = Experience(
+        isPlaceholder: true
+    )
     
-    // MOCK PARA PREVIEWS
     static let mock = Experience(
         title: "Viagem Inesquecível",
         description: "Um dia incrível de sol e muita alegria com a família.",
@@ -143,8 +149,6 @@ struct Experience: Identifiable {
     )
 }
 
-// MARK: - Paleta de Cores
-// CORREÇÃO: Removida a barra invertida '\' antes do enum
 enum MomentosPalette {
     static let accentFront = Color(red: 0.30, green: 0.36, blue: 0.12)
     static let accentSoft = Color(red: 0.62, green: 0.72, blue: 0.30)
@@ -177,3 +181,52 @@ enum MomentosPalette {
         [.pink.opacity(0.6), .white]
     ]
 }
+
+import SwiftUI
+
+protocol PhotoProtocol: Hashable {
+    var id: String { get }
+}
+
+struct ItemGalery: Identifiable, PhotoProtocol {
+    var id: String = UUID().uuidString
+    var title: String
+    var image: UIImage?
+    var experienceID: UUID
+}
+
+struct PinGalleryItem: Identifiable, PhotoProtocol {
+    var id: String = UUID().uuidString
+    var title: String
+    var imageName: String
+    var customHeight: CGFloat
+}
+
+extension ItemGalery {
+    var calculatedHeight: CGFloat {
+        guard let image = image else { return 200 }
+        
+        let aspectRatio = image.size.height / image.size.width
+        let screenWidth = UIScreen.main.bounds.width
+        
+        let columnsCount: CGFloat = 2
+        let spacing: CGFloat = 12
+        let horizontalPadding: CGFloat = 15 * 2
+        
+        let totalSpacing = (spacing * (columnsCount - 1)) + horizontalPadding
+        let dynamicColumnWidth = (screenWidth - totalSpacing) / columnsCount
+        
+        return dynamicColumnWidth * aspectRatio
+    }
+}
+
+var sampleExperienceID = UUID()
+var sampleItems: [ItemGalery] = {
+    (1...7).map { i in
+        ItemGalery(
+            title: "Title \(i)",
+            image: UIImage(named: "foto\(i)"),
+            experienceID: sampleExperienceID
+        )
+    }
+}()

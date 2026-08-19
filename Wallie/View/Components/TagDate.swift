@@ -25,7 +25,7 @@ struct TagDate: View {
         }
         .padding(.horizontal, 16)
         .frame(height: 32)
-        .background(Color.green)
+        .background(.verdeProjeto)
         .cornerRadius(20)
     }
 }
