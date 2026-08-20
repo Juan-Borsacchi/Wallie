@@ -20,7 +20,7 @@ struct MemoriesView: View {
         NavigationStack  {
             VStack() {
                 HStack {
-                    ToolBarMemoriesAlbuns(
+                    ToolBarViewsTitle(
                         title: "Memórias",
                         subtitle: nil,
                         onSearching: { print("Pesquisar") },
@@ -37,7 +37,7 @@ struct MemoriesView: View {
                 } else {
                     MemoriesTitles(title: "A curto prazo", subtitle: "Explore as fotos mais recentes")
                     Divider()
-                    MemoriesTitles(title: "A longo prazo", subtitle: "Todas as fotos")
+                    MemoriesTitles(title: "Todos momentos", subtitle: "Explore os momentos criados por você")
                     
                     MasonryGridView(
                         columnsCount: 2,
@@ -59,7 +59,7 @@ struct MemoriesView: View {
                     } overlay: { item, isExpanded, dragOffset, dismiss in
                         EmptyView()
                     }
-                    .safeAreaPadding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .sheet(isPresented: $isShowingAddExperience) {
@@ -81,7 +81,6 @@ struct MemoriesView: View {
 }
 
 extension MemoriesView {
-    
     @ViewBuilder
     func ImageView(_ item: ItemGalery, isExpanded: Bool = false) -> some View {
         Rectangle()
@@ -118,15 +117,6 @@ extension MemoriesView {
         .compositingGroup()
         .opacity(interactiveOpacity)
     }
-    
-    //    @ViewBuilder
-    //    private func ActionButton(icon: String) -> some View {
-    //        Button {} label: {
-    //            Image(systemName: icon)
-    //                .font(.title3)
-    //                .padding(10)
-    //        }
-    //    }
 }
 
 #Preview {

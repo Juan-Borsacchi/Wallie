@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct FirtMomentCard: View {
+struct FirstMomentCard: View {
     var body: some View {
         
         VStack {
@@ -26,5 +26,5 @@ struct FirtMomentCard: View {
 }
 
 #Preview {
-    FirtMomentCard()
+    FirstMomentCard()
 }
