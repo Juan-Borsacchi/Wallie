@@ -16,7 +16,7 @@ extension Album {
 
 extension Xperience {
     var uiImage: UIImage? {
-        guard let data = self.cover else { return nil } // Ajustado para 'cover' conforme seu DataManager
+        guard let data = self.cover else { return nil }
         return UIImage(data: data)
     }
 }
