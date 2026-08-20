@@ -100,7 +100,7 @@ struct MomentosHomeView: View {
                         displayMode = displayMode == .stack ? .carousel : .stack
                     }
                 } label: {
-                    Image(systemName: displayMode == .stack ? "rectangle.grid.1x2" : "square.stack")
+                    Image(systemName: displayMode == .stack ? "book.fill" : "rectangle.fill.on.rectangle.fill")
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 44, height: 44)

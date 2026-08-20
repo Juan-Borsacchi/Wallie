@@ -5,15 +5,6 @@
 //  Created by Juan Gabriel Borsacchi Marques on 18/08/26.
 //
 
-
-//
-//  CameraCaptureRow.swift
-//  Wallie
-//
-//  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
-//
-
-
 import SwiftUI
 
 struct CameraCaptureRow: View {

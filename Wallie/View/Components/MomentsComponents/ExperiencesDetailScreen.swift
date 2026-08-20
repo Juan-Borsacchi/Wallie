@@ -23,21 +23,17 @@ struct ExperienceDetailScreen: View {
     @State private var selectedImageIndex = 0
     @State private var config: PhotoHeroEffectConfig<ExperiencePhoto> = .init()
     
-    // Progresso do timer (0.0 a 1.0) para a barra de progresso
     @State private var progress: Double = 0.0
-    // Timer executando a cada 0.05s para animação fluida da barra
+    
     @State private var progressTimer = Timer.publish(every: 0.05, on: .main, in: .common).autoconnect()
     private let displayDuration: Double = 5.0 // Tempo em segundos por foto
     
-    // Controle das páginas deslizantes quando há humor e áudio
     @State private var selectedTab = 0
     
-    // Gerenciador do Player de Áudio
     @State private var audioPlayer: AVPlayer?
     @State private var isPlayingAudio = false
     @State private var playingAudioURL: URL?
-
-    // Consolida todas as imagens (capa + fotos anexadas nos itens extras)
+    
     private var allPhotos: [ExperiencePhoto] {
         var photos: [ExperiencePhoto] = []
         
@@ -57,7 +53,7 @@ struct ExperienceDetailScreen: View {
         
         return photos
     }
-
+    
     private var audioURLs: [URL] {
         experience.extraItems.compactMap { item in
             if case .audio(let url) = item.content { return url }
@@ -70,11 +66,9 @@ struct ExperienceDetailScreen: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Foto de fundo ocupando 100% da tela com suporte a Arrastar (Swipe)
             fullScreenBackgroundPhoto
                 .ignoresSafeArea()
             
-            // Indicadores de progresso estilo Stories no topo
             if allPhotos.count > 1 {
                 VStack {
                     storyProgressBar
@@ -85,7 +79,6 @@ struct ExperienceDetailScreen: View {
                 .ignoresSafeArea()
             }
             
-            // Layout com VStack: o Spacer empurra o Card obrigatoriamente para a base
             VStack {
                 Spacer()
                 glassContentCard
@@ -144,8 +137,7 @@ struct ExperienceDetailScreen: View {
             audioPlayer?.pause()
         }
     }
-
-    // MARK: - Barra de Progresso Estilo Stories
+    
     private var storyProgressBar: some View {
         HStack(spacing: 4) {
             ForEach(0..<allPhotos.count, id: \.self) { index in
@@ -163,7 +155,7 @@ struct ExperienceDetailScreen: View {
             }
         }
     }
-
+    
     private func barWidth(for index: Int, totalWidth: CGFloat) -> CGFloat {
         if index < selectedImageIndex {
             return totalWidth
@@ -173,8 +165,7 @@ struct ExperienceDetailScreen: View {
             return 0
         }
     }
-
-    // MARK: - Card Flutuante de Vidro Original (Ancorado na Base)
+    
     private var glassContentCard: some View {
         VStack(spacing: 16) {
             Text(experience.title.isEmpty ? "Sem título" : experience.title)
@@ -185,8 +176,7 @@ struct ExperienceDetailScreen: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 20)
                 .padding(.top)
-
-            // Detalhes do Conteúdo
+            
             detailContent
         }
         .frame(maxWidth: .infinity)
@@ -207,8 +197,7 @@ struct ExperienceDetailScreen: View {
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
     }
-
-    // MARK: - Foto em Tela Cheia no Fundo (Navegação por Arrastar + Clique para Abrir)
+    
     private var fullScreenBackgroundPhoto: some View {
         GeometryReader { proxy in
             if !allPhotos.isEmpty {
@@ -235,8 +224,7 @@ struct ExperienceDetailScreen: View {
             }
         }
     }
-
-    // MARK: - Conteúdo de Detalhes
+    
     private var detailContent: some View {
         VStack(alignment: .leading, spacing: 18) {
             // Descrição
@@ -246,8 +234,7 @@ struct ExperienceDetailScreen: View {
                     .foregroundStyle(.white.opacity(0.9))
                     .fixedSize(horizontal: false, vertical: true)
             }
-
-            // Seção de Humor e Áudio
+            
             if hasMood && hasAudio {
                 VStack(spacing: 8) {
                     TabView(selection: $selectedTab) {
@@ -278,11 +265,10 @@ struct ExperienceDetailScreen: View {
                 audioPlayerSection
                     .frame(height: 64)
             }
-
+            
             Divider()
                 .overlay(Color.white.opacity(0.2))
-
-            // Linha com Data e Álbum
+            
             HStack(spacing: 16) {
                 if experience.includeDate {
                     Label(experience.date.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
@@ -298,8 +284,7 @@ struct ExperienceDetailScreen: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 16)
     }
-
-    // MARK: - Tags de Humor (Emoji corrigido para renderizar adequadamente)
+    
     private var moodTagsView: some View {
         HStack(spacing: 12) {
             if let quality = experience.quality {
@@ -312,8 +297,7 @@ struct ExperienceDetailScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())
     }
-
-    // MARK: - Player de Áudio
+    
     private var audioPlayerSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             ForEach(audioURLs, id: \.self) { url in
@@ -323,7 +307,7 @@ struct ExperienceDetailScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())
     }
-
+    
     private func audioPlayerRow(url: URL) -> some View {
         HStack(spacing: 14) {
             Button {
@@ -334,7 +318,7 @@ struct ExperienceDetailScreen: View {
                     .foregroundStyle(.white)
             }
             .buttonStyle(.plain)
-
+            
             VStack(alignment: .leading, spacing: 2) {
                 Text("Gravação de Áudio")
                     .font(.subheadline.weight(.semibold))
@@ -343,7 +327,7 @@ struct ExperienceDetailScreen: View {
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.75))
             }
-
+            
             Spacer()
             
             Image(systemName: "waveform")
@@ -355,7 +339,7 @@ struct ExperienceDetailScreen: View {
         .background(Color.white.opacity(0.12))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
-
+    
     private func toggleAudioPlay(url: URL) {
         if isPlayingAudio && playingAudioURL == url {
             audioPlayer?.pause()
@@ -367,8 +351,7 @@ struct ExperienceDetailScreen: View {
             isPlayingAudio = true
         }
     }
-
-    // MARK: - Componente das Tags com Emoji e Texto separados
+    
     private func detailTag(title: String, imageName: String, label: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -376,7 +359,7 @@ struct ExperienceDetailScreen: View {
                 .foregroundStyle(.white.opacity(0.75))
             
             HStack(spacing: 6) {
-                Image(imageName) // Carrega a imagem do diretório Assets
+                Image(imageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -394,7 +377,7 @@ struct ExperienceDetailScreen: View {
         .background(Color.white.opacity(0.12))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
-
+    
     @ViewBuilder
     func OverlayActionView(dragOffset: CGSize, dismiss: @escaping () -> Void) -> some View {
         let interactiveOpacity: CGFloat = 1 - min(abs(dragOffset.height / 30), 1)

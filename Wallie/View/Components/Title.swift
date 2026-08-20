@@ -45,13 +45,13 @@ struct MemoriesTitles: View {
     
 }
 
-
 struct AlertMemories: View {
     var body: some View {
         
         VStack (alignment:  .center) {
             Text("Adicione uma nova experiência para começar a explorar suas memórias.")
                 .font(.custom("Manrope-Regular", size: 17))
+                .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             Spacer()
         }
