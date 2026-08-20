@@ -23,7 +23,6 @@ struct MemoriesView: View {
                     ToolBarViewsTitle(
                         title: "Memórias",
                         subtitle: nil,
-                        onSearching: { print("Pesquisar") },
                         onAdd: { isShowingAddExperience = true }
                     )
                 }

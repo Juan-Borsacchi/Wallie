@@ -10,8 +10,9 @@ import Observation
 
 @Observable
 class WallieViewModel {
-        var experiences: [Experience] = []
-        var allGallery: [ItemGalery] = []
+    var experiences: [Experience] = []
+    var allGallery: [ItemGalery] = []
+    var albums: [formAlbum] = []
     
     var displaySheet: Bool = false
     
@@ -24,5 +25,9 @@ class WallieViewModel {
                 allGallery.insert(newItem, at: 0)
             }
         }
+    }
+    
+    func addNewAlbum(_ album: formAlbum) {
+        albums.append(album)
     }
 }

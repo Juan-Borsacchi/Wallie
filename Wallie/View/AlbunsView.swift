@@ -13,7 +13,6 @@ struct AlbunsView: View {
     @Environment(WallieViewModel.self) var viewmodel
     
     @State private var displaySheet = false
-    @State private var albums: [formAlbum] = []
     
     var body: some View {
         
@@ -24,13 +23,12 @@ struct AlbunsView: View {
                         ToolBarViewsTitle(
                             title: "Álbuns",
                             subtitle: "Colecione mémorias",
-                            onSearching: { print("Pesquisar") },
                             onAdd: { displaySheet = true }
                         )
                     }
                     .padding(.bottom, 32)
                     
-                    ForEach(albums) { album in
+                    ForEach(viewmodel.albums) { album in
                         NavigationLink(value: album) {
                             
                             let allAlbumImages = getImagesForAlbum(albumName: album.name)
@@ -54,7 +52,7 @@ struct AlbunsView: View {
         }
         .sheet(isPresented: $displaySheet) {
             CreateAlbumView(onSave: { newAlbum in
-                albums.append(newAlbum)
+                viewmodel.addNewAlbum(newAlbum)
             })
             .presentationDragIndicator(.visible)
             .presentationDetents([.large])

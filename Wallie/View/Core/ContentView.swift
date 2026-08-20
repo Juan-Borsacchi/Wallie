@@ -4,43 +4,42 @@
 //
 //  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
 //
-
 import SwiftUI
 
 struct ContentView: View {
     @Environment(WallieViewModel.self) var viewmodel
  
     var body: some View {
-        
         @Bindable var bindableViewmodel = viewmodel
         
         TabView {
-            MomentsRootView()
-                .tint(nil)
-                .tabItem {
-                    Label("Momentos", systemImage: "photo.fill.on.rectangle.fill")
-                }
-            MemoriesView()
-                .tint(nil)
-                .tabItem {
-                    Label("Memórias", systemImage: "square.grid.3x3.square")
-                }
-            AlbunsView()
-                .tint(nil)
-                .tabItem {
-                    Label("Álbuns", systemImage: "rectangle.stack")
-                }
+            Tab("Momentos", systemImage: "photo.fill.on.rectangle.fill") {
+                MomentsRootView()
+                    .tint(nil)
+            }
             
-            CalendarView()
-                .tint(nil)
-                .tabItem {
-                    Label("Calendário", systemImage: "calendar")
-                }
+            Tab("Memórias", systemImage: "square.grid.3x3.square") {
+                MemoriesView()
+                    .tint(nil)
+            }
+            
+            Tab("Álbuns", systemImage: "rectangle.stack") {
+                AlbunsView()
+                    .tint(nil)
+            }
+//     PRO FUTURO
+//            Tab("Calendário", systemImage: "calendar") {
+//                CalendarView()
+//                    .tint(nil)
+//            }
+            
+            Tab(role: .search) {
+                SearchView()
+            }
         }
         .tint(.verdeProjeto)
         .sheet(isPresented: $bindableViewmodel.displaySheet) {
             Text("Teste")
-            
         }
     }
 }
