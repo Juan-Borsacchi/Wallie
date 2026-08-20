@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ToolBarMemoriesAlbuns: View {
+struct ToolBarViewsTitle: View {
     let title: String
     let subtitle: String?
     var onSearching: () -> Void
@@ -25,7 +25,7 @@ struct ToolBarMemoriesAlbuns: View {
                 }
             }
             Spacer()
-            HStack(spacing: 16) {
+            HStack {
                 Button(action: onSearching) {
                     Image(systemName: "magnifyingglass")
                         .font(.title2)
@@ -34,7 +34,7 @@ struct ToolBarMemoriesAlbuns: View {
                 }
                 Button(action: onAdd) {
                     Image(systemName: "plus")
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
                         .background(.azulProjeto)
@@ -44,3 +44,4 @@ struct ToolBarMemoriesAlbuns: View {
         }
     }
 }
+

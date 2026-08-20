@@ -23,13 +23,13 @@ struct MomentosHomeView: View {
     @State private var isShowingAllExperiences = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            header.padding(.horizontal, 20).padding(.top, 8)
+        VStack {
+            header
             Spacer()
             
             Group {
                 if viewmodel.experiences.isEmpty {
-                    FirtMomentCard()
+                    FirstMomentCard()
                         .onTapGesture {
                             isShowingAddExperience = true
                         }
@@ -101,7 +101,7 @@ struct MomentosHomeView: View {
                     }
                 } label: {
                     Image(systemName: displayMode == .stack ? "rectangle.grid.1x2" : "square.stack")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 44, height: 44)
                         .background(.ultraThinMaterial)
@@ -110,6 +110,7 @@ struct MomentosHomeView: View {
                 }
             }
         }
+        .padding(16)
     }
     
     @ViewBuilder
