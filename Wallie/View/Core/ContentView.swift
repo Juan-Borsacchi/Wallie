@@ -14,7 +14,9 @@ struct ContentView: View {
         
         TabView {
             Tab("Momentos", systemImage: "photo.fill.on.rectangle.fill") {
-                MomentsRootView()
+                NavigationStack {
+                    MomentosHomeView()
+                }
                     .tint(nil)
             }
             
