@@ -21,7 +21,7 @@ struct AlbunsView: View {
             ScrollView {
                 VStack (alignment: .leading) {
                     HStack {
-                        ToolBarMemoriesAlbuns(
+                        ToolBarViewsTitle(
                             title: "Álbuns",
                             subtitle: "Colecione mémorias",
                             onSearching: { print("Pesquisar") },

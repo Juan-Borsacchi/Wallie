@@ -115,30 +115,6 @@ struct AlbumGroup: View {
     }
 }
 
-struct PhotoOrEmpty: View {
-    let image: UIImage?
-    
-    var body: some View {
-        ZStack {
-            if let image = image {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .clipped()
-                    .cornerRadius(8)
-            } else {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.black.opacity(0.2), lineWidth: 1)
-                    )
-            }
-        }
-    }
-}
-
 #Preview {
     AlbumGroup(
         titleAlbum: "Viagem para o Chile",
