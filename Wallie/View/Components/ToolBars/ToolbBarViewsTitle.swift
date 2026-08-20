@@ -10,7 +10,6 @@ import SwiftUI
 struct ToolBarViewsTitle: View {
     let title: String
     let subtitle: String?
-    var onSearching: () -> Void
     var onAdd: () -> Void
     
     var body: some View {
@@ -26,12 +25,6 @@ struct ToolBarViewsTitle: View {
             }
             Spacer()
             HStack {
-                Button(action: onSearching) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                }
                 Button(action: onAdd) {
                     Image(systemName: "plus")
                         .font(.system(size: 20, weight: .semibold))
