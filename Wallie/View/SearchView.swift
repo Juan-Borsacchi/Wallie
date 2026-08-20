@@ -40,9 +40,9 @@ struct SearchView: View {
             Group {
                 if query.isEmpty {
                     ContentUnavailableView(
-                        "Pesquisar",
-                        systemImage: "magnifyingglass",
-                        description: Text("Busque por momentos, álbuns ou categorias."))
+                        "",
+                        systemImage: "",
+                        description: Text("Clique na barra abaixo e busque por momentos, álbuns ou categorias."))
                 } else if filterExperience.isEmpty && filterAlbums.isEmpty {
                     ContentUnavailableView.search(text: query)
                 } else {
