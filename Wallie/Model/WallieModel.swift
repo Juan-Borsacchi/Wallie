@@ -20,10 +20,18 @@ struct Post: Identifiable {
 }
 
 struct formAlbum: Identifiable, Hashable {
-    let id = UUID()
+    var id: UUID = UUID()
     var name: String
     var date: Date?
     var category: String?
+    
+    // Inicializador explícito para garantir que o Linker o encontre
+    init(id: UUID = UUID(), name: String, date: Date? = nil, category: String? = nil) {
+        self.id = id
+        self.name = name
+        self.date = date
+        self.category = category
+    }
 }
 
 enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {

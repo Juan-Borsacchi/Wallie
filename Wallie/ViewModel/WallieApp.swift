@@ -7,7 +7,7 @@
 
 
 import SwiftUI
-internal import CoreData
+import CoreData
 
 @main
 struct WallieApp: App {
