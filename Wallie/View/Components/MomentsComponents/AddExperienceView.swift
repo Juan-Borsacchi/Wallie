@@ -219,6 +219,7 @@ struct AddExperienceView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(.verdeProjeto)
+                    .disabled(coverImage == nil || title.isEmpty)
                 }
 
                 // MARK: Toolbar inferior
