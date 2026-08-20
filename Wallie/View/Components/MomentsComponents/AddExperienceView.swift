@@ -14,8 +14,17 @@ struct AddExperienceView: View {
     @StateObject private var viewModel: AddExperienceViewModel
     @FocusState private var isInputFocused: Bool
     
-    init(editing experience: Experience? = nil, onSave: @escaping (Experience) -> Void) {
-        _viewModel = StateObject(wrappedValue: AddExperienceViewModel(editing: experience, onSave: onSave))
+    // MARK: - Inicializador Atualizado
+    init(
+        editing experience: Experience? = nil,
+        availableAlbums: [String] = [],
+        onSave: @escaping (Experience) -> Void
+    ) {
+        _viewModel = StateObject(wrappedValue: AddExperienceViewModel(
+            editing: experience,
+            availableAlbums: availableAlbums,
+            onSave: onSave
+        ))
     }
     
     var body: some View {
@@ -193,7 +202,7 @@ struct AddExperienceView: View {
 
 // MARK: - Preview
 #Preview {
-    AddExperienceView { experience in
+    AddExperienceView(availableAlbums: ["Viagem", "Família"]) { experience in
         print("Experiência salva: \(experience.title)")
     }
 }
