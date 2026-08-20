@@ -138,7 +138,6 @@ struct MomentCardStack: View {
     }
 }
 
-// MARK: - Carrossel horizontal
 struct MomentCarousel: View {
     let items: [Experience]
     var onFocusChange: (Experience) -> Void = { _ in }
@@ -189,7 +188,6 @@ struct MomentCarousel: View {
     }
 }
 
-// MARK: - Previews
 #Preview("Stack") {
     MomentCardStack(items: [.mock, .placeholder])
         .padding(.top, 40)
