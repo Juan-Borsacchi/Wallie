@@ -20,9 +20,10 @@ struct EmptyAlbum: View {
                 Label("Adicione sua primeira experiência", systemImage: "plus.circle.fill")
             }
             .frame(width: 370, height: 76)
-            .background(.white)
+            .foregroundStyle(.primary)
+            .background(Color(.systemBackground))
             .cornerRadius(16)
-            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 0)
+            .shadow(color: Color.primary.opacity(0.4), radius: 1, x: 0, y: 0)
         }
         .padding(.bottom, 20)
     }

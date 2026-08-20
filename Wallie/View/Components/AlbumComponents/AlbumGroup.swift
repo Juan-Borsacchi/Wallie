@@ -9,6 +9,7 @@ import SwiftUI
 import PhotosUI
 
 struct AlbumItem1: View {
+    @Environment(\.colorScheme) var colorSh
     let image: UIImage?
     
     var body: some View {
@@ -18,7 +19,7 @@ struct AlbumItem1: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                Color.white
+                colorSh == .dark ? Color.black : Color.white
                 
             }
         }
@@ -26,13 +27,15 @@ struct AlbumItem1: View {
         .mask(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(image == nil ? Color.gray.opacity(0.3) : .white, lineWidth: image == nil ? 1 : 0.5)
+                .strokeBorder(image == nil ? Color.secondary.opacity(0.4) : .white, lineWidth: image == nil ? 1 : 0.5)
         )
         .rotationEffect(.degrees(-5))
     }
 }
 
 struct AlbumItem2: View {
+    @Environment(\.colorScheme) var colorSh
+
     let image: UIImage?
 
     var body: some View {
@@ -42,21 +45,22 @@ struct AlbumItem2: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                Color.white
-                
+                colorSh == .dark ? Color.black : Color.white
+
             }
         }
         .frame(width: 92, height: 140)
         .mask(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(image == nil ? Color.gray.opacity(0.3) : .white, lineWidth: image == nil ? 1 : 0.5)
+                .strokeBorder(image == nil ? Color.secondary.opacity(0.4) : .white, lineWidth: image == nil ? 1 : 0.5)
         )
         .rotationEffect(.degrees(5))
     }
 }
 
 struct LastImageAlbum: View {
+    @Environment(\.colorScheme) var colorSh
     let image: UIImage?
     let totalImagesCount: Int
     
@@ -68,21 +72,21 @@ struct LastImageAlbum: View {
                         .resizable()
                         .scaledToFill()
                 } else {
-                    Color.white
+                    colorSh == .dark ? Color.black : Color.white
                 }
             }
             .frame(width: 92, height: 140)
             .mask(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(image == nil ? Color.gray.opacity(0.3) : .white, lineWidth: image == nil ? 1 : 0.5)
+                    .strokeBorder(image == nil ? Color.secondary.opacity(0.4) : .white, lineWidth: image == nil ? 1 : 0.5)
             )
             .rotationEffect(.degrees(5))
             .blur(radius: image == nil ? 0 : 2)
             
             if image == nil, totalImagesCount >= 4 {
                 Text("+\(max(0, totalImagesCount - 4))")
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .fontWeight(.semibold)
             }
         }

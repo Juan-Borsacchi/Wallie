@@ -5,20 +5,6 @@
 
 import SwiftUI
 
-struct MomentsRootView: View {
-
-    var body: some View {
-
-        NavigationStack {
-
-            MomentosHomeView()
-
-        }
-
-    }
-
-}
-
 struct MomentosHomeView: View {
 
     @Environment(WallieViewModel.self)
@@ -574,12 +560,9 @@ struct MomentosHomeView: View {
 
 }
 
-
-// MARK: - Preview
-
 #Preview {
 
-    MomentsRootView()
+    MomentosHomeView()
         .environment(
             WallieViewModel()
         )

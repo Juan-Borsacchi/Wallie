@@ -14,12 +14,19 @@ struct WallieApp: App {
     let persistenceController = PersistenceController.shared
     
     @State private var viewmodel = WallieViewModel()
-
+    @State private var showSplash = false
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environment(viewmodel)
+            ZStack {
+                if showSplash {
+                    ContentView()
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                        .environment(viewmodel)
+                } else {
+                    VideoSplashScreen(showSplash: $showSplash)
+                }
+            }
+        }
         }
     }
-}
