@@ -1,11 +1,4 @@
-//
-//  DataManager.swift
-//  Wallie
-//
-//  Created by Tais Akemi Kawaguti on 18/08/26.
-//
-
-internal import CoreData
+import CoreData
 import UIKit
 import SwiftUI
 import Combine
@@ -15,94 +8,132 @@ class DataManager: ObservableObject {
     static let shared = DataManager()
     
     @Published var xperiences: [Xperience] = []
+    @Published var albums: [Album] = []
     
-    // Salva uma nova experiência
-    func saveExperience(with title: String, cover: UIImage) {
-        let managedContext = PersistenceController.shared.container.viewContext
-         
-        let newXperience = Xperience(context: managedContext)
-         
-        newXperience.id = UUID()
-        newXperience.title = title
-        newXperience.timestamp = Date()
-         
-        if let imageData = cover.jpegData(compressionQuality: 0.8) {
-            newXperience.cover = imageData //salvar externo do projeto
-        }
-         
-        do {
-            try managedContext.save()
-            print("Salvo com sucesso!")
-            loadData() // Atualiza a lista após salvar
-        } catch let error as NSError {
-            print("Não deu para salvar. \(error), \(error.userInfo)")
-        }
-    }
-
-    // Busca todas as experiências salvas no banco de dados
+    // MARK: - Core Data Operations
+    
     func loadData() {
-        let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
         let context = PersistenceController.shared.container.viewContext
-         
+        
+        let fetchXperiences: NSFetchRequest<Xperience> = Xperience.fetchRequest()
+        fetchXperiences.sortDescriptors = [NSSortDescriptor(keyPath: \Xperience.timestamp, ascending: false)]
+        
+        let fetchAlbums: NSFetchRequest<Album> = Album.fetchRequest()
+        fetchAlbums.sortDescriptors = [NSSortDescriptor(keyPath: \Album.title, ascending: true)]
+        
         do {
-            let results = try context.fetch(fetchRequest)
-            self.xperiences = results
+            self.xperiences = try context.fetch(fetchXperiences)
+            self.albums = try context.fetch(fetchAlbums)
         } catch {
-            print("Erro ao recuperar dados: \(error)")
+            print("Erro ao recuperar dados: \(error.localizedDescription)")
         }
     }
-     
-    // Atualiza a experiência buscando especificamente pelo ID
-    func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
+    
+    func saveExperience(_ experienceUI: Experience) {
         let context = PersistenceController.shared.container.viewContext
+        
+        // Verifica se a experiência já existe (para Update)
         let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-         
-        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-         
+        fetchRequest.predicate = NSPredicate(format: "id == %@", experienceUI.id as CVarArg)
+        
+        let xperience: Xperience
+        if let existing = try? context.fetch(fetchRequest).first {
+            xperience = existing
+        } else {
+            xperience = Xperience(context: context)
+            xperience.id = experienceUI.id
+        }
+        
+        // Mapeamento de UI -> Core Data
+        xperience.title = experienceUI.title
+        xperience.descriptions = experienceUI.description
+        xperience.timestamp = experienceUI.date
+        xperience.sensation = experienceUI.quality?.rawValue
+        xperience.feelings = experienceUI.emotion?.rawValue
+        
+        if let coverData = experienceUI.images.first {
+            xperience.cover = coverData
+        }
+        
+        // Lógica de Relacionamento de Álbum
+        if experienceUI.album != "Nenhum" {
+            xperience.album = getOrCreateAlbum(withName: experienceUI.album, in: context)
+        } else {
+            xperience.album = nil
+        }
+        
         do {
-            let results = try context.fetch(fetchRequest)
-             
-            if let experienceToUpdate = results.first {
-                experienceToUpdate.title = newTitle
-                 
-                if let cover = newCover, let imageData = cover.jpegData(compressionQuality: 0.8) {
-                    experienceToUpdate.cover = imageData
+            try context.save()
+            print("Experiência salva com sucesso!")
+            loadData()
+        } catch {
+            print("Erro ao salvar a experiência: \(error.localizedDescription)")
+        }
+    }
+    
+    func saveAlbum(_ albumUI: formAlbum) {
+        let context = PersistenceController.shared.container.viewContext
+        let album = getOrCreateAlbum(withName: albumUI.name, in: context)
+        album.category = albumUI.category
+        
+        do {
+            try context.save()
+            loadData()
+        } catch {
+            print("Erro ao salvar álbum: \(error)")
+        }
+    }
+    
+    private func getOrCreateAlbum(withName name: String, in context: NSManagedObjectContext) -> Album {
+        let request: NSFetchRequest<Album> = Album.fetchRequest()
+        request.predicate = NSPredicate(format: "title == %@", name)
+        
+        if let existingAlbum = try? context.fetch(request).first {
+            return existingAlbum
+        }
+        
+        let newAlbum = Album(context: context)
+        newAlbum.id = UUID()
+        newAlbum.title = name
+        newAlbum.category = "Nenhuma"
+        return newAlbum
+    }
+    
+    func deleteExperience(_ xperience: Xperience) {
+        let context = PersistenceController.shared.container.viewContext
+        context.delete(xperience)
+        
+        do {
+            try context.save()
+            loadData()
+        } catch {
+            print("Erro ao deletar: \(error.localizedDescription)")
+        }
+    }
+    // MARK: - Legacy Update (Para a UIViewController)
+        
+        func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
+            let context = PersistenceController.shared.container.viewContext
+            let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
+            
+            fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+            
+            do {
+                if let experienceToUpdate = try context.fetch(fetchRequest).first {
+                    experienceToUpdate.title = newTitle
+                    
+                    if let cover = newCover, let imageData = cover.jpegData(compressionQuality: 0.8) {
+                        experienceToUpdate.cover = imageData
+                    }
+                    
+                    try context.save()
+                    print("Experiência atualizada com sucesso pelo ID!")
+                    loadData()
+                } else {
+                    print("Nenhuma experiência encontrada com o ID informado.")
                 }
-                 
-                try context.save()
-                print("Experiência atualizada com sucesso pelo ID!")
-                loadData()
-            } else {
-                print("Nenhuma experiência encontrada com o ID informado.")
+            } catch {
+                print("Erro ao atualizar por ID: \(error.localizedDescription)")
             }
-        } catch {
-            print("Erro ao atualizar por ID: \(error.localizedDescription)")
         }
-    }
-     
-    // Atualiza apenas o título de uma tarefa/experiência existente
-    func updateTitleExp(task: Xperience, newTitle: String) {
-        let context = PersistenceController.shared.container.viewContext
-        task.title = newTitle
-         
-        do {
-            try context.save()
-            loadData()
-        } catch {
-            print("Update error: \(error.localizedDescription)")
-        }
-    }
-     
-    // Deleta uma experiência
-    func deleteTask(task: Xperience) {
-        let context = PersistenceController.shared.container.viewContext
-        context.delete(task)
-         
-        do {
-            try context.save()
-            loadData()
-        } catch {
-            print("Delete error: \(error.localizedDescription)")
-        }
-    }
 }
