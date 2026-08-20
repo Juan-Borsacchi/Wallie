@@ -15,7 +15,8 @@ struct ExperienceCoverHeaderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             
-            VStack(alignment: .leading, spacing: 10) {
+            // Card Principal
+            VStack(alignment: .leading, spacing: 12) {
                 
                 // MARK: - Título da Seção com Ícone
                 Label("Capa da Experiência", systemImage: "photo.on.rectangle")
@@ -30,9 +31,9 @@ struct ExperienceCoverHeaderView: View {
                             .resizable()
                             .scaledToFill()
                             .frame(maxWidth: .infinity, minHeight: 220, maxHeight: 320)
-                            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                             .overlay {
-                                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
                                     .stroke(Color.black.opacity(0.08), lineWidth: 1)
                             }
                         
@@ -47,8 +48,10 @@ struct ExperienceCoverHeaderView: View {
                     }
                 }
                 
-                // MARK: - Botões de Seleção
+                // MARK: - Botões de Seleção (Com Borda/Contorno)
                 HStack(spacing: 12) {
+                    
+                    // Botão Galeria com Contorno Sutil
                     Button(action: onSelectPhoto) {
                         Label(
                             coverImage == nil ? "Acessar Galeria" : "Trocar foto",
@@ -58,29 +61,43 @@ struct ExperienceCoverHeaderView: View {
                         .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                        )
                     }
                     .buttonStyle(.plain)
                     
+                    // Botão Câmera (Destaque em Accent Color ou Contorno de Acento)
                     Button(action: onTakePhoto) {
                         Label(
                             coverImage == nil ? "Tirar foto" : "Tirar outra",
                             systemImage: coverImage == nil ? "camera.fill" : "camera"
                         )
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(coverImage == nil ? .white : .primary)
+                        .foregroundStyle(coverImage == nil ? .white : MomentosPalette.accentSoft)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
-                        .background(
-                            coverImage == nil ? MomentosPalette.accentSoft : Color(.systemBackground),
-                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        )
+                        .background {
+                            if coverImage == nil {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(MomentosPalette.accentSoft)
+                            } else {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(MomentosPalette.accentSoft, lineWidth: 1.5)
+                            }
+                        }
                     }
                     .buttonStyle(.plain)
                 }
             }
+            .padding(14)
+            .background(
+                Color(.systemBackground),
+                in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+            )
             
-            // Texto explicativo fora e abaixo da seção da capa
+            // MARK: - Legenda Externa
             Text("Campo obrigatório.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
