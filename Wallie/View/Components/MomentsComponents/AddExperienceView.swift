@@ -83,6 +83,7 @@ struct AddExperienceView: View {
     
     private var mainForm: some View {
         VStack(spacing: 14) {
+            Divider()
             VStack(alignment: .leading, spacing: 6) {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Título", systemImage: "text.cursor")
@@ -120,6 +121,8 @@ struct AddExperienceView: View {
                 Color(.systemBackground),
                 in: RoundedRectangle(cornerRadius: 14, style: .continuous)
             )
+            
+            Divider()
             
             DateSelectionRow(
                 includeDate: $viewModel.includeDate,
@@ -180,6 +183,7 @@ struct AddExperienceView: View {
                     } label: {
                         Image(systemName: tipo.icon)
                     }
+                    .padding(.horizontal)
                 }
             }
         }

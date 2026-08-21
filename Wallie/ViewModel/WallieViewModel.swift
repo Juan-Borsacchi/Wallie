@@ -22,12 +22,15 @@ class WallieViewModel {
     
     var allGallery: [ItemGalery] {
         dataManager.xperiences.compactMap { xperience in
-            guard let coverData = xperience.cover, let uiImage = UIImage(data: coverData) else { return nil }
+            guard let coverData = xperience.cover,
+                  let uiImage = UIImage(data: coverData),
+                  let id = xperience.id else { return nil }
+            
             return ItemGalery(
-                id: xperience.id?.uuidString ?? UUID().uuidString,
+                id: id.uuidString,
                 title: xperience.title ?? "",
                 image: uiImage,
-                experienceID: xperience.id ?? UUID()
+                experienceID: id
             )
         }
     }
@@ -61,7 +64,7 @@ class WallieViewModel {
     func deleteAlbum(_ album: formAlbum) {
         let context = PersistenceController.shared.container.viewContext
         let request: NSFetchRequest<Album> = Album.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", album.name)
+        request.predicate = NSPredicate(format: "id == %@", album.id as CVarArg)
         
         if let albumToDelete = try? context.fetch(request).first {
             if let associatedExperiences = albumToDelete.xperiences as? Set<Xperience> {

@@ -12,16 +12,11 @@ import Combine
 
 extension Xperience {
     func toUIModel() -> Experience {
-        
         var qualityVal: QualityRating? = nil
-        if let sens = sensation {
-            qualityVal = QualityRating(rawValue: sens)
-        }
+        if let sens = sensation { qualityVal = QualityRating(rawValue: sens) }
         
         var emotionVal: EmotionTag? = nil
-        if let feel = feelings {
-            emotionVal = EmotionTag(rawValue: feel)
-        }
+        if let feel = feelings { emotionVal = EmotionTag(rawValue: feel) }
         
         var imgData: [Data] = []
         if let coverData = cover {
@@ -46,6 +41,7 @@ extension Xperience {
 extension Album {
     func toUIModel() -> formAlbum {
         return formAlbum(
+            id: self.id ?? UUID(),
             name: self.title ?? "Sem Nome",
             date: nil,
             category: self.category

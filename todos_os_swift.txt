@@ -10,32 +10,32 @@ ARQUIVO: ./Wallie/ViewModel/AddExperienceViewModel.swift
 
 import SwiftUI
 import PhotosUI
-import Combine
+import Observation
 
 @MainActor
-final class AddExperienceViewModel: ObservableObject {
-    
+@Observable
+final class AddExperienceViewModel {
     let existingID: UUID?
     private let onSave: (Experience) -> Void
     
-    @Published var coverImage: UIImage?
-    @Published var title: String
-    @Published var description: String
-    @Published var includeDate: Bool
-    @Published var date: Date
-    @Published var album: String
-    @Published var itensExtras: [AddItem]
+    var coverImage: UIImage?
+    var title: String
+    var description: String
+    var includeDate: Bool
+    var date: Date
+    var album: String
+    var itensExtras: [AddItem]
     
-    @Published var accentColor: Color?
-    @Published var backgroundGradient: [Color]?
+    var accentColor: Color?
+    var backgroundGradient: [Color]?
     
-    @Published var showCoverPhotoPicker = false
-    @Published var selectedCoverPhotoItems: [PhotosPickerItem] = [] {
+    var showCoverPhotoPicker = false
+    var selectedCoverPhotoItems: [PhotosPickerItem] = [] {
         didSet { carregarCapa(selectedCoverPhotoItems) }
     }
     
-    @Published var showCoverCamera = false
-    @Published var capturedCoverImage: UIImage? {
+    var showCoverCamera = false
+    var capturedCoverImage: UIImage? {
         didSet {
             if let image = capturedCoverImage {
                 withAnimation(.easeInOut(duration: 0.25)) { coverImage = image }
@@ -44,13 +44,13 @@ final class AddExperienceViewModel: ObservableObject {
         }
     }
     
-    @Published var showPhotoPicker = false
-    @Published var selectedPhotoItems: [PhotosPickerItem] = [] {
+    var showPhotoPicker = false
+    var selectedPhotoItems: [PhotosPickerItem] = [] {
         didSet { carregarFotosDosItens(selectedPhotoItems) }
     }
     
-    @Published var showCamera = false
-    @Published var capturedCameraImage: UIImage? {
+    var showCamera = false
+    var capturedCameraImage: UIImage? {
         didSet {
             if let image = capturedCameraImage {
                 withAnimation {
@@ -61,16 +61,13 @@ final class AddExperienceViewModel: ObservableObject {
         }
     }
     
-    @Published var mostrarBarraDeItens = false
-    
-    // MARK: - Lista Dinâmica de Álbuns
-    @Published var availableAlbums: [String] = ["Nenhum"]
+    var mostrarBarraDeItens = false
+    var availableAlbums: [String] = ["Nenhum", "Viagem", "Família", "Trabalho"]
     
     var isSaveDisabled: Bool {
         coverImage == nil || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    // MARK: - Construtor Atualizado
     init(
         editing experience: Experience? = nil,
         availableAlbums: [String] = [],
@@ -88,12 +85,11 @@ final class AddExperienceViewModel: ObservableObject {
         self.backgroundGradient = experience?.backgroundGradient
         self.itensExtras = experience?.extraItems ?? []
         
-        // Garante que "Nenhum" esteja presente e mescla com os álbuns salvos no app
-        var albumList = ["Nenhum"]
-        for item in availableAlbums where !albumList.contains(item) {
-            albumList.append(item)
+        var defaultList = ["Nenhum", "Viagem", "Família", "Trabalho"]
+        for item in availableAlbums where !defaultList.contains(item) {
+            defaultList.append(item)
         }
-        self.availableAlbums = albumList
+        self.availableAlbums = defaultList
         
         if let data = experience?.images.first, let image = UIImage(data: data) {
             self.coverImage = image
@@ -206,15 +202,22 @@ struct WallieApp: App {
     let persistenceController = PersistenceController.shared
     
     @State private var viewmodel = WallieViewModel()
-
+    @State private var showSplash = false
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                .environment(viewmodel)
+            ZStack {
+                if showSplash {
+                    ContentView()
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                        .environment(viewmodel)
+                } else {
+                    VideoSplashScreen(showSplash: $showSplash)
+                }
+            }
+        }
         }
     }
-}
 
 
 ========================================
@@ -229,7 +232,7 @@ ARQUIVO: ./Wallie/ViewModel/ExperienceDetailViewModel.swift
 
 import SwiftUI
 import AVKit
-import Combine
+import Observation
 
 @Observable
 final class ExperienceDetailViewModel {
@@ -249,7 +252,7 @@ final class ExperienceDetailViewModel {
     var playingAudioURL: URL?
     
     private let displayDuration: Double = 5.0
-    private var timerCancellable: AnyCancellable?
+    private var timerTask: Task<Void, Never>?
 
     init(
         experience: Experience,
@@ -264,7 +267,7 @@ final class ExperienceDetailViewModel {
     
     deinit {
         stopAudio()
-        timerCancellable?.cancel()
+        timerTask?.cancel()
     }
 
     var allPhotos: [ExperiencePhoto] {
@@ -295,11 +298,12 @@ final class ExperienceDetailViewModel {
     var hasMood: Bool { experience.quality != nil || experience.emotion != nil }
 
     func startTimer() {
-        timerCancellable = Timer.publish(every: 0.05, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
+        timerTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(0.05))
                 self?.updateProgress()
             }
+        }
     }
 
     private func updateProgress() {
@@ -346,35 +350,39 @@ ARQUIVO: ./Wallie/ViewModel/WallieViewModel.swift
 
 import SwiftUI
 import Observation
-import Combine
 import CoreData
 
 @Observable
 class WallieViewModel {
-    var experiences: [Experience] = []
-    var allGallery: [ItemGalery] = []
-    var albums: [formAlbum] = []
-    
     var displaySheet: Bool = false
-    
-    private var cancellables = Set<AnyCancellable>()
     private let dataManager = DataManager.shared
+    
+    var experiences: [Experience] {
+        dataManager.xperiences.map { $0.toUIModel() }
+    }
+    
+    var albums: [formAlbum] {
+        dataManager.albums.map { $0.toUIModel() }
+    }
+    
+    var allGallery: [ItemGalery] {
+        dataManager.xperiences.compactMap { xperience in
+            guard let coverData = xperience.cover,
+                  let uiImage = UIImage(data: coverData),
+                  let id = xperience.id else { return nil }
+            
+            return ItemGalery(
+                id: id.uuidString,
+                title: xperience.title ?? "",
+                image: uiImage,
+                experienceID: id
+            )
+        }
+    }
     
     init() {
         dataManager.loadData()
-        
-        // Observa as mudanças do DataManager e atualiza a UI
-        dataManager.$xperiences.sink { [weak self] fetchedXperiences in
-            self?.experiences = fetchedXperiences.map { $0.toUIModel() }
-            self?.updateGallery(from: fetchedXperiences)
-        }.store(in: &cancellables)
-        
-        dataManager.$albums.sink { [weak self] fetchedAlbums in
-            self?.albums = fetchedAlbums.map { $0.toUIModel() }
-        }.store(in: &cancellables)
     }
-    
-    // MARK: - Experiências
     
     func addNewExperience(_ experience: Experience) {
         dataManager.saveExperience(experience)
@@ -394,8 +402,6 @@ class WallieViewModel {
         }
     }
     
-    // MARK: - Álbuns
-    
     func addNewAlbum(_ album: formAlbum) {
         dataManager.saveAlbum(album)
     }
@@ -403,10 +409,9 @@ class WallieViewModel {
     func deleteAlbum(_ album: formAlbum) {
         let context = PersistenceController.shared.container.viewContext
         let request: NSFetchRequest<Album> = Album.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", album.name)
+        request.predicate = NSPredicate(format: "id == %@", album.id as CVarArg)
         
         if let albumToDelete = try? context.fetch(request).first {
-            // Desvincula as experiências associadas a este álbum antes de apagar
             if let associatedExperiences = albumToDelete.xperiences as? Set<Xperience> {
                 for exp in associatedExperiences {
                     exp.album = nil
@@ -419,27 +424,102 @@ class WallieViewModel {
                 try context.save()
                 dataManager.loadData()
             } catch {
-                print("Erro ao deletar álbum: \(error.localizedDescription)")
+                print(error.localizedDescription)
             }
         }
     }
+}
+
+
+========================================
+ARQUIVO: ./Wallie/Branding/SplashScreenView.swift
+========================================
+//
+//  SplashScreenView.swift
+//  Wallie
+//
+//  Created by Vitor Silva Souza on 20/08/26.
+//
+
+import SwiftUI
+import AVFoundation
+
+struct VideoSplashScreen: View {
+    @Binding var showSplash: Bool
+    @Environment(\.colorScheme) var colorScheme
     
-    // MARK: - Galeria
-    
-    private func updateGallery(from dbExperiences: [Xperience]) {
-        var newGallery: [ItemGalery] = []
-        for xperience in dbExperiences {
-            if let coverData = xperience.cover, let uiImage = UIImage(data: coverData) {
-                let newItem = ItemGalery(
-                    id: UUID().uuidString,
-                    title: xperience.title ?? "",
-                    image: uiImage,
-                    experienceID: xperience.id ?? UUID()
-                )
-                newGallery.append(newItem)
+    var body: some View {
+        ZStack {
+            Color(UIColor.systemBackground)
+                .ignoresSafeArea()
+            
+            SplashVideoPlayer(
+                videoName: colorScheme == .dark ? "SplashDark" : "SplashLight",
+                videoExtension: "mp4"
+            ) {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    showSplash = true
+                }
             }
+            .ignoresSafeArea()
         }
-        self.allGallery = newGallery
+    }
+}
+
+struct SplashVideoPlayer: UIViewRepresentable {
+    let videoName: String
+    let videoExtension: String
+    let onFinish: () -> Void
+    
+    func makeUIView(context: Context) -> UIView {
+        let view = SplashVideoUIView(videoName: videoName, videoExtension: videoExtension)
+        
+        NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: view.player?.currentItem,
+            queue: .main
+        ) { _ in
+            onFinish()
+        }
+        
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+class SplashVideoUIView: UIView {
+    var playerLayer: AVPlayerLayer?
+    var player: AVPlayer?
+    
+    init(videoName: String, videoExtension: String) {
+        super.init(frame: .zero)
+        
+        guard let url = Bundle.main.url(forResource: videoName, withExtension: videoExtension) else {
+            print("Vídeo '\(videoName).\(videoExtension)' não encontrado!")
+            return
+        }
+        
+        player = AVPlayer(url: url)
+        player?.isMuted = true
+        
+        playerLayer = AVPlayerLayer(player: player)
+        playerLayer?.videoGravity = .resizeAspect
+        
+        if let playerLayer = playerLayer {
+            layer.addSublayer(playerLayer)
+        }
+        
+        player?.play()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) não foi implementado")
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        playerLayer?.frame = bounds
     }
 }
 
@@ -447,19 +527,24 @@ class WallieViewModel {
 ========================================
 ARQUIVO: ./Wallie/CoreData/DataManager.swift
 ========================================
+//
+//  CoreDataExtensions.swift
+//  Wallie
+//
+//  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
+//
+
 import CoreData
 import UIKit
 import SwiftUI
-import Combine
+import Observation
 
-class DataManager: ObservableObject {
-    
+@Observable
+class DataManager {
     static let shared = DataManager()
     
-    @Published var xperiences: [Xperience] = []
-    @Published var albums: [Album] = []
-    
-    // MARK: - Core Data Operations
+    var xperiences: [Xperience] = []
+    var albums: [Album] = []
     
     func loadData() {
         let context = PersistenceController.shared.container.viewContext
@@ -474,14 +559,13 @@ class DataManager: ObservableObject {
             self.xperiences = try context.fetch(fetchXperiences)
             self.albums = try context.fetch(fetchAlbums)
         } catch {
-            print("Erro ao recuperar dados: \(error.localizedDescription)")
+            print(error.localizedDescription)
         }
     }
     
     func saveExperience(_ experienceUI: Experience) {
         let context = PersistenceController.shared.container.viewContext
         
-        // Verifica se a experiência já existe (para Update)
         let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", experienceUI.id as CVarArg)
         
@@ -493,7 +577,6 @@ class DataManager: ObservableObject {
             xperience.id = experienceUI.id
         }
         
-        // Mapeamento de UI -> Core Data
         xperience.title = experienceUI.title
         xperience.descriptions = experienceUI.description
         xperience.timestamp = experienceUI.date
@@ -504,7 +587,6 @@ class DataManager: ObservableObject {
             xperience.cover = coverData
         }
         
-        // Lógica de Relacionamento de Álbum
         if experienceUI.album != "Nenhum" {
             xperience.album = getOrCreateAlbum(withName: experienceUI.album, in: context)
         } else {
@@ -513,10 +595,9 @@ class DataManager: ObservableObject {
         
         do {
             try context.save()
-            print("Experiência salva com sucesso!")
             loadData()
         } catch {
-            print("Erro ao salvar a experiência: \(error.localizedDescription)")
+            print(error.localizedDescription)
         }
     }
     
@@ -529,7 +610,7 @@ class DataManager: ObservableObject {
             try context.save()
             loadData()
         } catch {
-            print("Erro ao salvar álbum: \(error)")
+            print(error.localizedDescription)
         }
     }
     
@@ -556,35 +637,31 @@ class DataManager: ObservableObject {
             try context.save()
             loadData()
         } catch {
-            print("Erro ao deletar: \(error.localizedDescription)")
+            print(error.localizedDescription)
         }
     }
-    // MARK: - Legacy Update (Para a UIViewController)
+    
+    func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
+        let context = PersistenceController.shared.container.viewContext
+        let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
         
-        func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
-            let context = PersistenceController.shared.container.viewContext
-            let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-            
-            fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-            
-            do {
-                if let experienceToUpdate = try context.fetch(fetchRequest).first {
-                    experienceToUpdate.title = newTitle
-                    
-                    if let cover = newCover, let imageData = cover.jpegData(compressionQuality: 0.8) {
-                        experienceToUpdate.cover = imageData
-                    }
-                    
-                    try context.save()
-                    print("Experiência atualizada com sucesso pelo ID!")
-                    loadData()
-                } else {
-                    print("Nenhuma experiência encontrada com o ID informado.")
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            if let experienceToUpdate = try context.fetch(fetchRequest).first {
+                experienceToUpdate.title = newTitle
+                
+                if let cover = newCover, let imageData = cover.jpegData(compressionQuality: 0.8) {
+                    experienceToUpdate.cover = imageData
                 }
-            } catch {
-                print("Erro ao atualizar por ID: \(error.localizedDescription)")
+                
+                try context.save()
+                loadData()
             }
+        } catch {
+            print(error.localizedDescription)
         }
+    }
 }
 
 
@@ -597,6 +674,7 @@ ARQUIVO: ./Wallie/CoreData/CoreDataExtensions.swift
 //
 //  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
 //
+
 import CoreData
 import UIKit
 import SwiftUI
@@ -604,16 +682,11 @@ import Combine
 
 extension Xperience {
     func toUIModel() -> Experience {
-        
         var qualityVal: QualityRating? = nil
-        if let sens = sensation {
-            qualityVal = QualityRating(rawValue: sens)
-        }
+        if let sens = sensation { qualityVal = QualityRating(rawValue: sens) }
         
         var emotionVal: EmotionTag? = nil
-        if let feel = feelings {
-            emotionVal = EmotionTag(rawValue: feel)
-        }
+        if let feel = feelings { emotionVal = EmotionTag(rawValue: feel) }
         
         var imgData: [Data] = []
         if let coverData = cover {
@@ -630,7 +703,7 @@ extension Xperience {
             album: self.album?.title ?? "Nenhum",
             quality: qualityVal,
             emotion: emotionVal,
-            extraItems: [] // Decodificar o "photos" e "audio" binary data se implementado no futuro
+            extraItems: []
         )
     }
 }
@@ -638,7 +711,7 @@ extension Xperience {
 extension Album {
     func toUIModel() -> formAlbum {
         return formAlbum(
-          //  id: self.id ?? UUID(),
+            id: self.id ?? UUID(),
             name: self.title ?? "Sem Nome",
             date: nil,
             category: self.category
@@ -661,7 +734,7 @@ import CoreData
 
 struct PersistenceController {
     static let shared = PersistenceController()
-
+    
     @MainActor
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
@@ -678,9 +751,9 @@ struct PersistenceController {
         }
         return result
     }()
-
+    
     let container: NSPersistentContainer
-
+    
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "Wallie")
         if inMemory {
@@ -726,151 +799,55 @@ ARQUIVO: ./Wallie/CoreData/MyViewController.swift
 
 
 ========================================
-ARQUIVO: ./Wallie/CoreData/UIViewController.swift
+ARQUIVO: ./Wallie/Model/WallieModel.swift
 ========================================
 //
-//  XperienceTableViewController.swift
+//  WallieModel.swift
 //  Wallie
 //
-//  Created by Tais Akemi Kawaguti on 18/08/26.
-//
-
-import UIKit
-
-class XperienceTableViewController: UITableViewController {
-    
-    let dataManager = DataManager.shared
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        // Carrega os dados atualizados e recarrega a tabela
-        dataManager.loadData()
-        tableView.reloadData()
-    }
-    
-    // MARK: - Métodos da TableView
-    
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return dataManager.xperiences.count
-    }
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        
-        let experience = dataManager.xperiences[indexPath.row]
-        cell.textLabel?.text = experience.title
-        
-        if let data = experience.cover, let image = UIImage(data: data) {
-            cell.imageView?.image = image
-        }
-        
-        return cell
-    }
-    
-    // Método auxiliar para atualizar uma experiência a partir da linha selecionada
-    func updateExperienceFromCell(indexPath: IndexPath, newTitle: String, newCover: UIImage?) {
-        let experience = dataManager.xperiences[indexPath.row]
-         
-        guard let id = experience.id else { return }
-         
-        // Chama o método correto correspondente ao DataManager atualizado
-        dataManager.updateExperience(id: id, newTitle: newTitle, newCover: newCover)
-        
-        // Recarrega a tabela visualmente
-        tableView.reloadData()
-    }
-}
-
-
-========================================
-ARQUIVO: ./Wallie/Manager/PhotoManager.swift
-========================================
-//
-//  PhotoManager.swift
-//  Wallie
-//
-//  Created by Vitor Silva Souza on 16/08/26.
+//  Created by Vitor Silva Souza on 14/08/26.
 //
 
 import SwiftUI
-import Photos
-import Combine
+import Foundation
+import UIKit
 
-class PhotoManager: ObservableObject {
-    @Published var recentImages: [FotoItem] = []
+struct FotoItem: Identifiable {
+    let id: String
+    let image: UIImage
+}
+
+struct Post: Identifiable {
+    let id = UUID()
+    let color: Color
+    let height: CGFloat
+}
+
+struct formAlbum: Identifiable, Hashable {
+    var id: UUID = UUID()
+    var name: String
+    var date: Date?
+    var category: String?
     
-    func requestPermissionAndFetch() {
-        PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
-            if status == .authorized || status == .limited {
-                self.fetchPhotos()
-            }
-        }
-    }
-    
-    private func fetchPhotos() {
-        let fetchOptions = PHFetchOptions()
-        fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        fetchOptions.fetchLimit = 10
-        
-        let assets = PHAsset.fetchAssets(with: .image, options: fetchOptions)
-        let imageManager = PHImageManager.default()
-        let targetSize = CGSize(width: 200, height: 200)
-        
-        let requestOptions = PHImageRequestOptions()
-        requestOptions.isSynchronous = false
-        requestOptions.deliveryMode = .opportunistic
-        
-        assets.enumerateObjects { asset, _, _ in
-            let fotoID = asset.localIdentifier
-            
-            imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: .aspectFill, options: requestOptions) { image, _ in
-                if let image = image {
-                    DispatchQueue.main.async {
-                        if !self.recentImages.contains(where: { $0.id == fotoID }) {
-                            self.recentImages.append(FotoItem(id: fotoID, image: image))
-                        }
-                    }
-                }
-            }
-        }
+    init(id: UUID = UUID(), name: String, date: Date? = nil, category: String? = nil) {
+        self.id = id
+        self.name = name
+        self.date = date
+        self.category = category
     }
 }
 
-
-========================================
-ARQUIVO: ./Wallie/Model/ExperiencePhoto.swift
-========================================
-//
-//  ExperiencePhoto.swift
-//  Wallie
-//
-//  Created by Juan Gabriel Borsacchi Marques on 20/08/26.
-//
-
-
-import UIKit
+struct AddItem: Identifiable {
+    let id = UUID()
+    let type: AddListModel
+    var content: AddItemContent?
+    var caption: String = ""
+}
 
 struct ExperiencePhoto: Identifiable, PhotoProtocol, Hashable {
     let id: String
     let image: UIImage
 }
-
-========================================
-ARQUIVO: ./Wallie/Model/AddListModel.swift
-========================================
-//
-//  AddListModel.swift
-//  Wallie
-//
-//  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
-//
-
-import SwiftUI
 
 enum AddListModel: String, CaseIterable, Identifiable {
     case mood
@@ -890,57 +867,26 @@ enum AddListModel: String, CaseIterable, Identifiable {
     }
 }
 
+enum ActiveSheet: Identifiable {
+    case audioRecorder
+    case photoPicker
+    
+    var id: Int {
+        hashValue
+    }
+}
+
 enum AddItemContent {
     case mood(quality: QualityRating?, emotion: EmotionTag?)
     case images([UIImage])
     case audio(URL)
 }
 
-struct AddItem: Identifiable {
-    let id = UUID()
-    let type: AddListModel
-    var content: AddItemContent?
-    var caption: String = ""
-}
+enum DisplayMode {
+    case stack
+    case carousel
+    case book
 
-
-========================================
-ARQUIVO: ./Wallie/Model/WallieModel.swift
-========================================
-//
-//  WallieModel.swift
-//  Wallie
-//
-//  Created by Vitor Silva Souza on 14/08/26.
-//
-
-import SwiftUI
-import Foundation
-
-struct FotoItem: Identifiable {
-    let id: String
-    let image: UIImage
-}
-
-struct Post: Identifiable {
-    let id = UUID()
-    let color: Color
-    let height: CGFloat
-}
-
-struct formAlbum: Identifiable, Hashable {
-    var id: UUID = UUID()
-    var name: String
-    var date: Date?
-    var category: String?
-    
-    // Inicializador explícito para garantir que o Linker o encontre
-    init(id: UUID = UUID(), name: String, date: Date? = nil, category: String? = nil) {
-        self.id = id
-        self.name = name
-        self.date = date
-        self.category = category
-    }
 }
 
 enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
@@ -1097,8 +1043,6 @@ enum MomentosPalette {
     ]
 }
 
-import SwiftUI
-
 protocol PhotoProtocol: Hashable {
     var id: String { get }
 }
@@ -1203,7 +1147,6 @@ struct CreateAlbumView: View {
     private func saveAlbumProcess() {
         let trimmedName = albumName.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // Define o nome final
         let finalName: String
         if trimmedName.isEmpty {
             finalName = generateUniqueDefaultName()
@@ -1211,7 +1154,6 @@ struct CreateAlbumView: View {
             finalName = trimmedName
         }
         
-        // Verifica se já existe um álbum salvo com este mesmo nome
         if existingAlbums.contains(where: { $0.name.lowercased() == finalName.lowercased() }) {
             showAlertDuplicate = true
             return
@@ -1225,7 +1167,6 @@ struct CreateAlbumView: View {
         dismiss()
     }
     
-    /// Gera um nome incremental caso o usuário não informe um título (ex: "Novo Álbum 1", "Novo Álbum 2")
     private func generateUniqueDefaultName() -> String {
         let baseName = "Novo Álbum"
         if !existingAlbums.contains(where: { $0.name.lowercased() == baseName.lowercased() }) {
@@ -1292,9 +1233,9 @@ struct SearchView: View {
             Group {
                 if query.isEmpty {
                     ContentUnavailableView(
-                        "Pesquisar",
-                        systemImage: "magnifyingglass",
-                        description: Text("Busque por momentos, álbuns ou categorias."))
+                        "",
+                        systemImage: "",
+                        description: Text("Clique na barra abaixo e busque por momentos, álbuns ou categorias."))
                 } else if filterExperience.isEmpty && filterAlbums.isEmpty {
                     ContentUnavailableView.search(text: query)
                 } else {
@@ -1302,7 +1243,7 @@ struct SearchView: View {
                         if !filterAlbums.isEmpty {
                             Section("Álbuns") {
                                 ForEach(filterAlbums) { album in
-                                    NavigationLink(destination: SelectedAlbumView(album: album)) {
+                                    NavigationLink(destination: SelectedAlbumViews(album: album)) {
                                         HStack {
                                             Image(systemName: "rectangle.stack.fill")
                                                 .foregroundStyle(.blue)
@@ -1327,9 +1268,8 @@ struct SearchView: View {
                             Section("Experiências") {
                                 ForEach(filterExperience) { experience in
                                     NavigationLink(destination: ExperienceDetailScreen(experience: experience, onSave: { updated in
-                                        if let index = viewmodel.experiences.firstIndex(where: { $0.id == updated.id }) {
-                                            viewmodel.experiences[index] = updated
-                                        }
+                                            viewmodel.updateExperience(updated)
+                                        
                                     })) {
                                         HStack(spacing: 12) {
                                             if let data = experience.images.first, let uiImage = UIImage(data: data) {
@@ -1343,7 +1283,7 @@ struct SearchView: View {
                                                     .fill(Color(.systemGray5))
                                                     .frame(width: 50, height: 50)
                                                     .overlay(Image(systemName: "photo")
-                                                    .foregroundStyle(.secondary))
+                                                        .foregroundStyle(.secondary))
                                             }
                                             
                                             VStack(alignment: .leading, spacing: 4) {
@@ -1369,6 +1309,192 @@ struct SearchView: View {
 }
 
 
+#Preview {
+    SearchView()
+        .environment(WallieViewModel())
+}
+
+
+========================================
+ARQUIVO: ./Wallie/View/MomentsViews.swift
+========================================
+//
+//  MomentsViews.swift
+//  Wallie
+//
+//  Created by Vitor Silva Souza on 21/08/26.
+//
+
+import SwiftUI
+
+struct MomentsViews: View {
+    @Environment(WallieViewModel.self) var viewmodel
+    
+    @State private var displayMode: DisplayMode = .carousel
+    @State private var focusedExperience: Experience?
+    @State private var visibleBookExperiences: [Experience] = []
+    
+    @State private var isShowingAddExperience = false
+    @State private var selectedExperienceID: UUID?
+    @State private var isShowingDetail = false
+    @State private var isShowingAllExperiences = false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            
+            MomentsToolBar(
+                hasExperiences: !viewmodel.experiences.isEmpty,
+                displayModeIcon: displayModeIcon,
+                onCycleMode: cycleDisplayMode
+            )
+            
+            Spacer()
+            
+            MomentsMainContentView(
+                viewmodel: viewmodel,
+                displayMode: displayMode,
+                focusedExperience: $focusedExperience,
+                visibleBookExperiences: $visibleBookExperiences,
+                onAddExperience: { isShowingAddExperience = true },
+                onTapExperience: handleTap
+            )
+            
+            if !viewmodel.experiences.isEmpty {
+                MomentsCaption(
+                    displayMode: displayMode,
+                    focusedExperience: focusedExperience,
+                    visibleBookExperiences: visibleBookExperiences
+                )
+                .padding(.top, captionTopSpacing)
+            }
+            
+            Spacer()
+            
+            MomentsAddButton {
+                isShowingAddExperience = true
+            }
+            .padding(.bottom, 30)
+            
+        }
+        .background {
+            Image("BackgroundMoments")
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationDestination(isPresented: $isShowingDetail) {
+            detailDestinationView
+        }
+        .navigationDestination(isPresented: $isShowingAllExperiences) {
+            
+        }
+        .sheet(isPresented: $isShowingAddExperience) {
+            AddExperienceView { newExperience in
+                viewmodel.addNewExperience(newExperience)
+            }
+        }
+        .onAppear {
+            focusedExperience = viewmodel.experiences.first
+        }
+    }
+    
+    private func handleTap(_ experience: Experience) {
+        selectedExperienceID = experience.id
+        isShowingDetail = true
+    }
+    
+    private func cycleDisplayMode() {
+        switch displayMode {
+        case .stack:    displayMode = .carousel
+        case .carousel: displayMode = .book
+        case .book:     displayMode = .stack
+        }
+    }
+    
+    private var displayModeIcon: String {
+        switch displayMode {
+        case .stack:    return "rectangle.on.rectangle"
+        case .carousel: return "book.closed"
+        case .book:     return "square.stack.3d.up"
+        }
+    }
+    
+    private var captionTopSpacing: CGFloat {
+        switch displayMode {
+        case .stack, .carousel:
+            return 16
+        case .book:
+            return 8
+        }
+    }
+    
+    @ViewBuilder
+    private var detailDestinationView: some View {
+        if let experience = viewmodel.experiences.first(where: { $0.id == selectedExperienceID }) {
+            ExperienceDetailScreen(experience: experience) { updated in
+                viewmodel.updateExperience(updated)
+            }
+        }
+    }
+}
+
+struct MomentsMainContentView: View {
+    var viewmodel: WallieViewModel
+    let displayMode: DisplayMode
+    
+    @Binding var focusedExperience: Experience?
+    @Binding var visibleBookExperiences: [Experience]
+    
+    let onAddExperience: () -> Void
+    let onTapExperience: (Experience) -> Void
+    
+    var body: some View {
+        Group {
+            if viewmodel.experiences.isEmpty {
+                FirstMomentCard()
+                    .onTapGesture {
+                        onAddExperience()
+                    }
+            } else {
+                switch displayMode {
+                case .stack:
+                    MomentCardStack(
+                        items: viewmodel.experiences,
+                        onFocusChange: { focusedExperience = $0 },
+                        onTapFocused: onTapExperience
+                    )
+                    
+                case .carousel:
+                    MomentCarousel(
+                        items: viewmodel.experiences,
+                        onFocusChange: { focusedExperience = $0 },
+                        onTapFocused: onTapExperience
+                    )
+                    
+                case .book:
+                    BookView(
+                        experiences: viewmodel.experiences,
+                        onTapExperience: onTapExperience,
+                        onVisibleExperiencesChange: { visible in
+                            visibleBookExperiences = visible
+                            focusedExperience = visible.first
+                        }
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+#Preview {
+    MomentsViews()
+        .environment(WallieViewModel())
+}
+
+
 ========================================
 ARQUIVO: ./Wallie/View/Core/ContentView.swift
 ========================================
@@ -1378,6 +1504,7 @@ ARQUIVO: ./Wallie/View/Core/ContentView.swift
 //
 //  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
 //
+
 import SwiftUI
 
 struct ContentView: View {
@@ -1388,7 +1515,9 @@ struct ContentView: View {
         
         TabView {
             Tab("Momentos", systemImage: "photo.fill.on.rectangle.fill") {
-                MomentsRootView()
+                NavigationStack {
+                    MomentsViews()
+                }
                     .tint(nil)
             }
             
@@ -1401,6 +1530,7 @@ struct ContentView: View {
                 AlbunsView()
                     .tint(nil)
             }
+            
 //     PRO FUTURO
 //            Tab("Calendário", systemImage: "calendar") {
 //                CalendarView()
@@ -1425,677 +1555,340 @@ struct ContentView: View {
 
 
 ========================================
-ARQUIVO: ./Wallie/View/MomentsView.swift
-========================================
-//
-//  MomentsHomeView.swift
-//  Wallie
-//
-
-import SwiftUI
-
-struct MomentsRootView: View {
-
-    var body: some View {
-
-        NavigationStack {
-
-            MomentosHomeView()
-
-        }
-
-    }
-
-}
-
-struct MomentosHomeView: View {
-
-    @Environment(WallieViewModel.self)
-    var viewmodel
-
-    // MARK: - Modo de exibição
-
-    enum DisplayMode {
-
-        case stack
-        case carousel
-        case book
-
-    }
-
-    @State
-    private var displayMode: DisplayMode = .carousel
-
-    // Experiência atualmente em foco.
-    // No BookView, ela é atualizada conforme as páginas mudam.
-    @State
-    private var focusedExperience: Experience?
-
-    @State
-    private var visibleBookExperiences: [Experience] = []
-
-    @State
-    private var isShowingAddExperience = false
-
-    @State
-    private var selectedExperienceID: UUID?
-
-    @State
-    private var isShowingDetail = false
-
-    @State
-    private var isShowingAllExperiences = false
-
-
-    // MARK: - Body
-
-    var body: some View {
-
-        VStack(spacing: 0) {
-
-            header
-
-            Spacer()
-
-            Group {
-
-                if viewmodel.experiences.isEmpty {
-
-                    FirstMomentCard()
-                        .onTapGesture {
-
-                            isShowingAddExperience = true
-
-                        }
-
-                } else {
-
-                    switch displayMode {
-
-                    // MARK: Stack
-
-                    case .stack:
-
-                        MomentCardStack(
-                            items: viewmodel.experiences,
-                            onFocusChange: {
-
-                                focusedExperience = $0
-
-                            },
-                            onTapFocused: handleTap
-                        )
-
-
-                    // MARK: Carousel
-
-                    case .carousel:
-
-                        MomentCarousel(
-                            items: viewmodel.experiences,
-                            onFocusChange: {
-
-                                focusedExperience = $0
-
-                            },
-                            onTapFocused: handleTap
-                        )
-
-
-                    // MARK: Book
-
-                    case .book:
-
-                        BookView(
-
-                            experiences:
-                                Bindable(viewmodel).experiences,
-
-                            onTapExperience: handleTap,
-
-                            onVisibleExperiencesChange: { visible in
-
-                                visibleBookExperiences = visible
-
-                                // Mantemos a primeira experiência
-                                // como experiência principal para
-                                // compatibilidade com o captionView.
-
-                                focusedExperience = visible.first
-
-                            }
-
-                        )
-                        .transition(
-                            .opacity.combined(
-                                with: .scale(scale: 0.95)
-                            )
-                        )
-
-                    }
-
-                }
-
-            }
-            .frame(
-                maxWidth: .infinity
-            )
-
-
-            // MARK: Caption
-
-            if !viewmodel.experiences.isEmpty {
-
-                captionView
-                    .padding(
-                        .top,
-                        captionTopSpacing
-                    )
-
-            }
-
-            Spacer()
-
-            addButton
-                .padding(.bottom, 30)
-
-        }
-        .background {
-
-            Image("BackgroundMoments")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-
-        }
-        .toolbar(
-            .hidden,
-            for: .navigationBar
-        )
-        .navigationDestination(
-            isPresented: $isShowingDetail
-        ) {
-
-            if let experience =
-                viewmodel.experiences.first(
-                    where: {
-                        $0.id == selectedExperienceID
-                    }
-                ) {
-
-                ExperienceDetailScreen(
-                    experience: experience
-                ) { updated in
-
-                    if let index =
-                        viewmodel.experiences.firstIndex(
-                            where: {
-                                $0.id == updated.id
-                            }
-                        ) {
-
-                        viewmodel.experiences[index] =
-                            updated
-
-                    }
-
-                }
-
-            }
-
-        }
-        .navigationDestination(
-            isPresented:
-                $isShowingAllExperiences
-        ) {
-
-            ExperiencesReadingScreen(
-                experiences:
-                    Bindable(viewmodel).experiences
-            )
-
-        }
-        .sheet(
-            isPresented:
-                $isShowingAddExperience
-        ) {
-
-            AddExperienceView { newExperience in
-
-                viewmodel.addNewExperience(
-                    newExperience
-                )
-
-            }
-
-        }
-        .onAppear {
-
-            focusedExperience =
-                viewmodel.experiences.first
-
-        }
-        
-
-    }
-
-
-    // MARK: - Tap Experience
-
-    private func handleTap(
-        _ experience: Experience
-    ) {
-
-        selectedExperienceID = experience.id
-
-        isShowingDetail = true
-
-    }
-
-
-    // MARK: - Header
-
-    private var header: some View {
-
-        HStack {
-
-            Title(
-                title: "Momentos",
-                subtitle: ""
-            )
-            .foregroundStyle(.white)
-
-            Spacer()
-
-            if !viewmodel.experiences.isEmpty {
-
-                Button {
-
-                    withAnimation(
-                        .easeInOut(
-                            duration: 0.35
-                        )
-                    ) {
-
-                        cycleDisplayMode()
-
-                    }
-
-                } label: {
-
-                    Image(
-                        systemName:
-                            displayModeIcon
-                    )
-                    .font(
-                        .system(
-                            size: 20,
-                            weight: .semibold
-                        )
-                    )
-                    .foregroundStyle(.white)
-                    .frame(
-                        width: 44,
-                        height: 44
-                    )
-                    .background(
-                        .ultraThinMaterial
-                    )
-                    .background(
-                        Color.blue
-                    )
-                    .clipShape(
-                        Circle()
-                    )
-
-                }
-
-            }
-
-        }
-        .padding(16)
-
-    }
-
-
-    // MARK: - Cycle Display Mode
-
-    private func cycleDisplayMode() {
-
-        switch displayMode {
-
-        case .stack:
-
-            displayMode = .carousel
-
-
-        case .carousel:
-
-            displayMode = .book
-
-
-        case .book:
-
-            displayMode = .stack
-
-        }
-
-    }
-
-
-    // MARK: - Display Icon
-
-    private var displayModeIcon: String {
-
-        switch displayMode {
-
-        case .stack:
-
-            // Próximo: Carousel
-            return "rectangle.on.rectangle"
-
-
-        case .carousel:
-
-            // Próximo: Livro
-            return "book.closed"
-
-
-        case .book:
-
-            // Próximo: Stack
-            return "square.stack.3d.up"
-
-        }
-
-    }
-
-
-    // MARK: - Caption Spacing
-
-    private var captionTopSpacing: CGFloat {
-
-        switch displayMode {
-
-        case .stack:
-
-            return 16
-
-        case .carousel:
-
-            return 16
-
-        case .book:
-
-            // O livro já possui uma altura maior.
-            // Um espaço menor deixa o caption
-            // visualmente conectado às páginas.
-
-            return 8
-
-        }
-
-    }
-
-
-    // MARK: - Caption
-
-    @ViewBuilder
-    private var captionView: some View {
-
-        switch displayMode {
-
-        // -----------------------------------
-        // STACK E CAROUSEL
-        // -----------------------------------
-
-        case .stack, .carousel:
-
-            if let experience = focusedExperience {
-
-                caption(
-                    for: experience
-                )
-
-            }
-
-
-        // -----------------------------------
-        // BOOK
-        // -----------------------------------
-
-        case .book:
-
-            if visibleBookExperiences.count == 1,
-               let experience =
-                    visibleBookExperiences.first {
-
-                // Apenas uma página visível.
-
-                caption(
-                    for: experience
-                )
-
-            } else if visibleBookExperiences.count >= 2 {
-
-                // Quando existem duas páginas,
-                // mostramos os títulos das duas
-                // experiências abaixo do livro.
-
-                HStack(
-                    spacing: 16
-                ) {
-
-                    ForEach(
-                        visibleBookExperiences,
-                        id: \.id
-                    ) { experience in
-
-                        Text(
-                            experience.title.isEmpty
-                            ? "Sem título"
-                            : experience.title
-                        )
-                        .font(
-                            .headline
-                        )
-                        .foregroundStyle(
-                            .white
-                        )
-                        .multilineTextAlignment(
-                            .center
-                        )
-                        .lineLimit(2)
-                        .frame(
-                            maxWidth: .infinity
-                        )
-
-                    }
-
-                }
-                .padding(
-                    .horizontal,
-                    24
-                )
-
-            }
-
-        }
-
-    }
-
-
-    // MARK: - Single Caption
-
-    private func caption(
-        for experience: Experience
-    ) -> some View {
-
-        Text(
-            experience.title.isEmpty
-            ? "Sem título"
-            : experience.title
-        )
-        .font(
-            .title3.bold()
-        )
-        .foregroundStyle(
-            .white
-        )
-        .shadow(
-            color: .black.opacity(0.2),
-            radius: 2,
-            x: 2,
-            y: 2
-        )
-        .multilineTextAlignment(
-            .center
-        )
-        .lineLimit(2)
-        .padding(
-            .horizontal,
-            30
-        )
-
-    }
-
-
-    // MARK: - Add Button
-
-    private var addButton: some View {
-
-        Button {
-
-            isShowingAddExperience = true
-
-        } label: {
-
-            Label(
-                "Adicionar experiência",
-                systemImage:
-                    "plus.circle.fill"
-            )
-            .font(
-                .headline
-            )
-            .foregroundStyle(
-                .white
-            )
-            .padding(8)
-
-        }
-        .buttonStyle(
-            .glassProminent
-        )
-        .tint(
-            .verdeProjeto
-        )
-        .padding(
-            .horizontal,
-            16
-        )
-        .padding(
-            .vertical,
-            30
-        )
-
-    }
-
-}
-
-
-// MARK: - Preview
-
-#Preview {
-
-    MomentsRootView()
-        .environment(
-            WallieViewModel()
-        )
-
-}
-
-
-========================================
 ARQUIVO: ./Wallie/View/AlbunsView.swift
 ========================================
 //
 //  AlbunsView.swift
 //  Wallie
 //
-//  Created by Vitor Silva Souza on 15/08/26.
-//
 
 import SwiftUI
 
 struct AlbunsView: View {
-    
     @Environment(\.managedObjectContext) var viewContext
     @Environment(WallieViewModel.self) var viewmodel
+    @Environment(\.colorScheme) private var colorScheme
     
     @State private var displaySheet = false
     
+    // MARK: - Estados de Seleção Múltipla
+    @State private var isEditingMode = false
+    @State private var selectedAlbumIDs: Set<UUID> = []
+    @State private var isShowingDeleteAlert = false
+    
     var body: some View {
-        
         NavigationStack {
-            ScrollView {
-                VStack (alignment: .leading) {
-                    HStack {
-                        ToolBarViewsTitle(
-                            title: "Álbuns",
-                            subtitle: "Colecione mémorias",
-                            onAdd: { displaySheet = true }
-                        )
-                    }
-                    .padding(.bottom, 32)
-                    
-                    ForEach(viewmodel.albums) { album in
-                        NavigationLink(value: album) {
-                            
-                            let allAlbumImages = getImagesForAlbum(albumName: album.name)
-                            if allAlbumImages.isEmpty {
-                                EmptyAlbum(emptyAlbumTitle: album.name)
-                                
-                            } else {
-                                AlbumGroup(
-                                    titleAlbum: album.name,
-                                    images: Array(allAlbumImages.prefix(4)),
-                                    totalCount: allAlbumImages.count)
+            VStack(spacing: 0) {
+                ToolBarViewsTitle(
+                    title: "Álbuns",
+                    subtitle: "Colecione memórias",
+                    showEditButton: !viewmodel.albums.isEmpty,
+                    isEditingMode: isEditingMode,
+                    onAdd: { displaySheet = true },
+                    onEditToggle: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            isEditingMode.toggle()
+                            if !isEditingMode {
+                                selectedAlbumIDs.removeAll()
+                            }
                         }
                     }
-                    .buttonStyle(.plain)
+                )
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        ForEach(viewmodel.albums) { album in
+                            let isSelected = selectedAlbumIDs.contains(album.id)
+                            let allAlbumImages = getImagesForAlbum(albumName: album.name)
+                            
+                            if isEditingMode {
+                                Button {
+                                    toggleAlbumSelection(for: album.id)
+                                } label: {
+                                    ZStack(alignment: .topTrailing) {
+                                        albumCardContent(for: album, images: allAlbumImages)
+                                        
+                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle.fill")
+                                            .font(.title2)
+                                            .foregroundStyle(isSelected ? Color.verdeProjeto : Color.white.opacity(0.8))
+                                            .background(Circle().fill(Color.black.opacity(0.25)))
+                                            .padding(.top, 8)
+                                            .padding(.trailing, 12)
+                                            .transition(.scale.combined(with: .opacity))
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            } else {
+                                NavigationLink(value: album) {
+                                    albumCardContent(for: album, images: allAlbumImages)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                    .padding(16)
+                    .padding(.bottom, isEditingMode ? 90 : 20)
                 }
             }
-            .padding(16)
-        }
-        .navigationDestination(for: formAlbum.self) { album in
-            SelectedAlbumView(album: album)
-        }
-        .sheet(isPresented: $displaySheet) {
-            CreateAlbumView(onSave: { newAlbum in
-                viewmodel.addNewAlbum(newAlbum)
-            })
-            .presentationDragIndicator(.visible)
-            .presentationDetents([.large])
+            .overlay(alignment: .bottom) {
+                if isEditingMode && !selectedAlbumIDs.isEmpty {
+                    HStack {
+                        Text("\(selectedAlbumIDs.count) álbum(ns) selecionado(s)")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Button(role: .destructive) {
+                            isShowingDeleteAlert = true
+                        } label: {
+                            Label("Excluir", systemImage: "trash")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.12), radius: 10, x: 0, y: 5)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .alert("Excluir Álbuns", isPresented: $isShowingDeleteAlert) {
+                Button("Cancelar", role: .cancel) { }
+                Button("Excluir (\(selectedAlbumIDs.count))", role: .destructive) {
+                    deleteSelectedAlbums()
+                }
+            } message: {
+                Text("Tem certeza que deseja apagar os \(selectedAlbumIDs.count) álbuns selecionados? As experiências associadas permanecerão salvas em suas memórias.")
+            }
+            .navigationDestination(for: formAlbum.self) { album in
+                SelectedAlbumViews(album: album)
+            }
+            .sheet(isPresented: $displaySheet) {
+                CreateAlbumView(existingAlbums: viewmodel.albums, onSave: { newAlbum in
+                    viewmodel.addNewAlbum(newAlbum)
+                })
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.large])
+            }
         }
     }
-}
-
-private func getImagesForAlbum(albumName: String) -> [UIImage] {
-    let albumExperienceIDs = viewmodel.experiences
-        .filter { $0.album == albumName }
-        .map { $0.id }
     
-    return viewmodel.allGallery
-        .filter { albumExperienceIDs.contains($0.experienceID) }
-        .compactMap { $0.image }
+    // MARK: - Subviews
+    @ViewBuilder
+    private func albumCardContent(for album: formAlbum, images: [UIImage]) -> some View {
+        if images.isEmpty {
+            EmptyAlbum(emptyAlbumTitle: album.name)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            AlbumGroup(
+                titleAlbum: album.name,
+                images: Array(images.prefix(4)),
+                totalCount: images.count
+            )
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
     
-}
+    // MARK: - Métodos Auxiliares
+    private func toggleAlbumSelection(for id: UUID) {
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+            if selectedAlbumIDs.contains(id) {
+                selectedAlbumIDs.remove(id)
+            } else {
+                selectedAlbumIDs.insert(id)
+            }
+        }
+    }
+    
+    private func deleteSelectedAlbums() {
+        for id in selectedAlbumIDs {
+            if let album = viewmodel.albums.first(where: { $0.id == id }) {
+                viewmodel.deleteAlbum(album)
+            }
+        }
+        selectedAlbumIDs.removeAll()
+        withAnimation { isEditingMode = false }
+    }
+    
+    private func getImagesForAlbum(albumName: String) -> [UIImage] {
+        let albumExperienceIDs = viewmodel.experiences
+            .filter { $0.album == albumName }
+            .map { $0.id }
+        
+        return viewmodel.allGallery
+            .filter { albumExperienceIDs.contains($0.experienceID) }
+            .compactMap { $0.image }
+    }
 }
 
 #Preview {
     AlbunsView()
         .environment(WallieViewModel())
+}
+
+
+========================================
+ARQUIVO: ./Wallie/View/SelectedAlbumViews.swift
+========================================
+//
+//  SelectAlbumView.swift
+//  Wallie
+//
+//  Created by Vitor Silva Souza on 21/08/26.
+//
+
+import SwiftUI
+
+struct SelectedAlbumViews: View {
+    let album: formAlbum
+    
+    @Environment(\.dismiss) private var dismiss
+    @Environment(WallieViewModel.self) var viewmodel
+    
+    @State private var isShowingAddExperience = false
+    @State private var selectedMoments: Experience?
+    @State private var isShowingDetail = false
+    @State private var isShowingDeleteAlbumAlert = false
+    @State private var isShowingEditAlbum = false
+    
+    var albumGallery: [ItemGalery] {
+        viewmodel.allGallery.filter { item in
+            if let exp = viewmodel.experiences.first(where: { $0.id == item.experienceID }) {
+                return exp.album == album.name
+            }
+            return false
+        }
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading) {
+                Title(title: album.name, subtitle: "")
+                
+                HStack {
+                    if let category = album.category {
+                        TagCategory(nameCategory: category)
+                    }
+                    
+                    if let date = album.date {
+                        TagDate(dateSelected: date)
+                    }
+                }
+                .padding(.bottom, 16)
+                
+                MasonryGridView(
+                    columnsCount: 2,
+                    data: albumGallery,
+                    heightProvider: { $0.calculatedHeight }
+                ) { item in
+                    ImageView(item, isExpanded: false)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if let experienceOpen = viewmodel.experiences.first(where: { $0.id == item.experienceID }) {
+                                self.selectedMoments = experienceOpen
+                                self.isShowingDetail = true
+                            }
+                        }
+                } detail: { _, _, _, _ in
+                    EmptyView()
+                } overlay: { _, _, _, _ in
+                    EmptyView()
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+        }
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        isShowingEditAlbum = true
+                    } label: {
+                        Label("Editar Álbum", systemImage: "pencil")
+                    }
+                    
+                    Button(role: .destructive) {
+                        isShowingDeleteAlbumAlert = true
+                    } label: {
+                        Label("Excluir Álbum", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 18, weight: .semibold))
+                }
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isShowingAddExperience = true
+                } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+        .alert("Excluir Álbum", isPresented: $isShowingDeleteAlbumAlert) {
+            Button("Cancelar", role: .cancel) { }
+            Button("Excluir", role: .destructive) {
+                viewmodel.deleteAlbum(album)
+                dismiss()
+            }
+        } message: {
+            Text("Tem certeza que deseja excluir o álbum '\(album.name)'?")
+        }
+        .sheet(isPresented: $isShowingAddExperience) {
+            AddExperienceView(
+                availableAlbums: viewmodel.albums.map { $0.name }
+            ) { newExperience in
+                var experienceAdd = newExperience
+                experienceAdd.album = album.name
+                viewmodel.addNewExperience(experienceAdd)
+            }
+        }
+        .sheet(isPresented: $isShowingEditAlbum) {
+            EditAlbumSheet(album: album) { updatedAlbum in
+                viewmodel.addNewAlbum(updatedAlbum)
+            }
+        }
+        .navigationDestination(isPresented: $isShowingDetail) {
+            if let experience = selectedMoments {
+                ExperienceDetailScreen(
+                    experience: experience,
+                    onSave: { updated in
+                        viewmodel.updateExperience(updated)
+                    },
+                    onDelete: { deleted in
+                        viewmodel.deleteExperience(deleted)
+                        isShowingDetail = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+extension SelectedAlbumViews {
+    @ViewBuilder
+    func ImageView(_ item: ItemGalery, isExpanded: Bool = false) -> some View {
+        Rectangle()
+            .foregroundStyle(.clear)
+            .overlay {
+                if let image = item.image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: isExpanded ? .fit : .fill)
+                }
+            }
+            .cornerRadius(isExpanded ? 0 : 12)
+            .clipped()
+    }
 }
 
 
@@ -2114,11 +1907,11 @@ import SwiftUI
 struct CameraCaptureRow: View {
     @Binding var image: UIImage?
     @State private var mostrarCamera = false
-
+    
     private var cameraDisponivel: Bool {
         UIImagePickerController.isSourceTypeAvailable(.camera)
     }
-
+    
     var body: some View {
         Button {
             mostrarCamera = true
@@ -2132,7 +1925,7 @@ struct CameraCaptureRow: View {
                 .ignoresSafeArea()
         }
     }
-
+    
     @ViewBuilder
     private var conteudo: some View {
         if let image {
@@ -2160,22 +1953,22 @@ struct CameraCaptureRow: View {
 private struct CameraPicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     @Environment(\.dismiss) private var dismiss
-
+    
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = .camera
         picker.delegate = context.coordinator
         return picker
     }
-
+    
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-
+    
     func makeCoordinator() -> Coordinator { Coordinator(self) }
-
+    
     final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let parent: CameraPicker
         init(_ parent: CameraPicker) { self.parent = parent }
-
+        
         func imagePickerController(
             _ picker: UIImagePickerController,
             didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
@@ -2183,7 +1976,7 @@ private struct CameraPicker: UIViewControllerRepresentable {
             parent.image = info[.originalImage] as? UIImage
             parent.dismiss()
         }
-
+        
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.dismiss()
         }
@@ -2206,7 +1999,7 @@ import SwiftUI
 struct GlassCardView<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
-
+    
     var body: some View {
         VStack(spacing: 16) {
             Text(title.isEmpty ? "Sem título" : title)
@@ -2217,7 +2010,7 @@ struct GlassCardView<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 20)
                 .padding(.top)
-
+            
             content
         }
         .frame(maxWidth: .infinity)
@@ -2254,7 +2047,7 @@ ARQUIVO: ./Wallie/View/Components/MemoriesComponents/MansoryGridView.swift
 import SwiftUI
 
 struct MasonryGridView<Data: RandomAccessCollection, GridItem: View, Detail: View, Overlay: View>: View where Data.Element: PhotoProtocol & Identifiable {
-
+    
     var spacing: CGFloat = 12
     var columnsCount: Int = 2
     var data: Data
@@ -2363,6 +2156,7 @@ struct DetailPhotoView<Data: RandomAccessCollection, Detail: View, Overlay: View
     
     @Binding var config: PhotoHeroEffectConfig<Data.Element>
     var data: Data
+    
     @ViewBuilder var detail: (Data.Element, Bool, CGSize, @escaping () -> ()) -> Detail
     @ViewBuilder var overlay: (Data.Element?, Bool, CGSize, @escaping () -> ()) -> Overlay
     
@@ -2542,7 +2336,7 @@ struct MoodTagView: View {
     let title: String
     let imageName: String
     let label: String
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
@@ -2587,7 +2381,7 @@ struct StoryProgressBar: View {
     let count: Int
     let selectedIndex: Int
     let progress: Double
-
+    
     var body: some View {
         HStack(spacing: 4) {
             ForEach(0..<count, id: \.self) { index in
@@ -2603,7 +2397,7 @@ struct StoryProgressBar: View {
             }
         }
     }
-
+    
     private func barWidth(for index: Int, totalWidth: CGFloat) -> CGFloat {
         if index < selectedIndex { return totalWidth }
         if index == selectedIndex { return totalWidth * CGFloat(progress) }
@@ -2626,7 +2420,7 @@ import SwiftUI
 
 struct DynamicItemsSection: View {
     @Binding var itens: [AddItem]
- 
+    
     var body: some View {
         if !itens.isEmpty {
             VStack(alignment: .leading, spacing: 16) {
@@ -2634,7 +2428,7 @@ struct DynamicItemsSection: View {
                     AddItemRowView(item: $item) {
                         remover(item)
                     }
- 
+                    
                     if item.id != itens.last?.id {
                         Divider()
                     }
@@ -2643,7 +2437,7 @@ struct DynamicItemsSection: View {
             .padding(.horizontal)
         }
     }
- 
+    
     private func remover(_ item: AddItem) {
         withAnimation {
             itens.removeAll { $0.id == item.id }
@@ -2862,11 +2656,11 @@ struct MemoriesTitles: View {
         VStack(alignment: .leading) {
             Text(title)
                 .font(.custom("Manrope-Bold", size: 22))
-                .foregroundStyle(Color.azulProjeto)
+                .foregroundStyle(Color.corTitulo)
             Text(subtitle)
                 .font(.custom("Manrope-Regular", size: 16))
-                .foregroundStyle(Color.gray)
-
+                .foregroundStyle(Color.secondary)
+            
             
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -2896,747 +2690,6 @@ struct AlertMemories: View {
 
 
 ========================================
-ARQUIVO: ./Wallie/View/Components/InteractiveBookView.swift
-========================================
-//
-// InteractiveBookView.swift
-// Wallie
-//
-// Livro interativo usando MomentCardFace
-//
-
-import SwiftUI
-
-// MARK: - Direção da virada
-
-private enum BookTurnDirection {
-    case forward
-    case backward
-}
-
-// MARK: - BookView
-
-struct BookView: View {
-
-    // MARK: - Dados
-
-    @Binding var experiences: [Experience]
-    var onTapExperience: ((Experience) -> Void)?
-
-    /// Informa ao MomentsHomeView quais cards estão atualmente visíveis.
-    var onVisibleExperiencesChange: (([Experience]) -> Void)?
-
-    // MARK: - Estado
-
-    /*
-     -1 = capa
-     0 = página 0 + página 1
-     2 = página 2 + página 3
-     4 = página 4 + página 5
-     */
-    @State private var currentPage: Int = -1
-    @State private var rotation: Double = 0
-    @State private var isTurning = false
-    @State private var turnDirection: BookTurnDirection?
-
-    // MARK: - Configuração
-
-    private let pageWidth: CGFloat = 180
-    private let pageHeight: CGFloat = 260
-    private let dragDistance: CGFloat = 250
-    private let turnThreshold: Double = 90
-
-    // MARK: - Estado do livro
-
-    private var isCover: Bool {
-        currentPage == -1
-    }
-
-    private var canGoForward: Bool {
-        if isCover {
-            return experiences.count >= 2
-        }
-        return currentPage + 2 < experiences.count
-    }
-
-    /*
-     Agora pode voltar do primeiro spread para a capa.
-     Antes estava:
-     currentPage >= 2
-     e isso impedia:
-     [1][2] → Capa
-     */
-    private var canGoBack: Bool {
-        !isCover
-    }
-
-    // MARK: - Body
-
-    var body: some View {
-        ZStack {
-            // Livro normal
-            HStack(spacing: 0) {
-                baseLeftPage
-                // spine // nao ficou bom
-                baseRightPage
-            }
-
-            // Página que está sendo virada.
-            //
-            // Ela fica POR CIMA do livro.
-            //
-            // Isso evita que o conteúdo "teleporte"
-            // durante a troca do currentPage.
-            if isTurning {
-                turningPage
-            }
-        }
-        .frame(
-            width: pageWidth * 2 + 5,
-            height: pageHeight
-        )
-        .contentShape(Rectangle())
-        .gesture(bookGesture)
-        .onAppear {
-            updateVisibleExperiences()
-        }
-        .onChange(of: currentPage) { _, _ in
-            updateVisibleExperiences()
-        }
-        .onChange(of: experiences.count) { _, _ in
-            // Evita que o livro fique em uma página
-            // que deixou de existir.
-            if currentPage >= experiences.count {
-                if experiences.isEmpty {
-                    currentPage = -1
-                } else {
-                    let lastEvenPage =
-                        max(
-                            0,
-                            (experiences.count - 1) / 2 * 2
-                        )
-                    currentPage = lastEvenPage
-                }
-            }
-            updateVisibleExperiences()
-        }
-    }
-}
-
-// MARK: - Páginas de base
-
-extension BookView {
-
-    /*
-     Esta é a parte mais importante da correção.
-     Durante uma virada, o livro de fundo já assume
-     a posição FINAL da página que está sendo revelada.
-     Assim, quando a folha chega em 180º, não existe
-     nenhuma troca visual brusca.
-     */
-    @ViewBuilder
-    private var baseLeftPage: some View {
-        if let index = baseLeftIndex {
-            MomentCardFace(
-                experience: experiences[index]
-            )
-            .frame(
-                width: pageWidth,
-                height: pageHeight
-            )
-            .contentShape(Rectangle())
-            .onTapGesture {
-                onTapExperience?(
-                    experiences[index]
-                )
-            }
-        } else {
-            Color.clear
-                .frame(
-                    width: pageWidth,
-                    height: pageHeight
-                )
-        }
-    }
-
-    @ViewBuilder
-    private var baseRightPage: some View {
-        if let index = baseRightIndex {
-            MomentCardFace(
-                experience: experiences[index]
-            )
-            .frame(
-                width: pageWidth,
-                height: pageHeight
-            )
-            .contentShape(Rectangle())
-            .onTapGesture {
-                onTapExperience?(
-                    experiences[index]
-                )
-            }
-        } else {
-            Color.clear
-                .frame(
-                    width: pageWidth,
-                    height: pageHeight
-                )
-        }
-    }
-}
-
-// MARK: - Índices das páginas de base
-
-extension BookView {
-
-    private var baseLeftIndex: Int? {
-        // ----------------------------------------
-        // CAPA NORMAL
-        // ----------------------------------------
-        if !isTurning {
-            if isCover {
-                return nil
-            }
-            return currentPage
-        }
-
-        // ----------------------------------------
-        // DURANTE VIRADA PARA FRENTE
-        // ----------------------------------------
-        if turnDirection == .forward {
-            /*
-             Capa → livro aberto
-             Durante a animação:
-             [1] [2]
-             A capa está saindo da direita.
-             */
-            if isCover {
-                return experiences.indices.contains(0)
-                    ? 0
-                    : nil
-            }
-            /*
-             Exemplo:
-             [1] [2]
-             virando 2:
-             [1] [3]
-             A página 3 fica atrás.
-             */
-            return experiences.indices.contains(currentPage)
-                ? currentPage
-                : nil
-        }
-
-        // ----------------------------------------
-        // DURANTE VIRADA PARA TRÁS
-        // ----------------------------------------
-        if turnDirection == .backward {
-            /*
-             Exemplo:
-             [3] [4]
-             voltando:
-             [1] [2]
-             A página 1 já fica atrás da folha.
-             */
-            let targetPage = currentPage - 2
-            return experiences.indices.contains(targetPage)
-                ? targetPage
-                : nil
-        }
-
-        return nil
-    }
-
-    private var baseRightIndex: Int? {
-        // ----------------------------------------
-        // CAPA NORMAL
-        // ----------------------------------------
-        if !isTurning {
-            if isCover {
-                return experiences.indices.contains(0)
-                    ? 0
-                    : nil
-            }
-            let index = currentPage + 1
-            return experiences.indices.contains(index)
-                ? index
-                : nil
-        }
-
-        // ----------------------------------------
-        // VIRANDO PARA FRENTE
-        // ----------------------------------------
-        if turnDirection == .forward {
-            /*
-             Exemplo:
-             [1] [2]
-             durante a virada:
-             [1] [3]
-             A página 3 fica atrás da página 2.
-             */
-            if isCover {
-                return experiences.indices.contains(1)
-                    ? 1
-                    : nil
-            }
-            let targetPage = currentPage + 3
-            return experiences.indices.contains(targetPage)
-                ? targetPage
-                : nil
-        }
-
-        // ----------------------------------------
-        // VIRANDO PARA TRÁS
-        // ----------------------------------------
-        if turnDirection == .backward {
-            /*
-             A página direita atual continua atrás
-             enquanto a página esquerda é virada.
-             Exemplo:
-             [3] [4]
-             durante a volta:
-             [1] [4]
-             */
-            let currentRight = currentPage + 1
-            return experiences.indices.contains(currentRight)
-                ? currentRight
-                : nil
-        }
-
-        return nil
-    }
-}
-
-// MARK: - Página em movimento
-
-extension BookView {
-
-    @ViewBuilder
-    private var turningPage: some View {
-        if let direction = turnDirection {
-            let frontIndex: Int? = {
-                switch direction {
-                case .forward:
-                    if isCover {
-                        return experiences.indices.contains(0)
-                            ? 0
-                            : nil
-                    }
-                    let index = currentPage + 1
-                    return experiences.indices.contains(index)
-                        ? index
-                        : nil
-                case .backward:
-                    let index = currentPage
-                    return experiences.indices.contains(index)
-                        ? index
-                        : nil
-                }
-            }()
-
-            let backIndex: Int? = {
-                switch direction {
-                case .forward:
-                    if isCover {
-                        /*
-                         A capa vira para se tornar
-                         a página esquerda.
-                         A parte de trás continua
-                         representando a própria capa.
-                         */
-                        return experiences.indices.contains(0)
-                            ? 0
-                            : nil
-                    }
-                    let index = currentPage + 2
-                    return experiences.indices.contains(index)
-                        ? index
-                        : nil
-                case .backward:
-                    if currentPage == 0 {
-                        /*
-                         Voltando para a capa.
-                         A parte de trás da página 1
-                         será a capa.
-                         */
-                        return experiences.indices.contains(0)
-                            ? 0
-                            : nil
-                    }
-                    let index = currentPage - 1
-                    return experiences.indices.contains(index)
-                        ? index
-                        : nil
-                }
-            }()
-
-            if let frontIndex {
-                BookTurningPage(
-                    front: AnyView(
-                        MomentCardFace(
-                            experience: experiences[frontIndex]
-                        )
-                    ),
-                    back: backIndex.map { index in
-                        AnyView(
-                            MomentCardFace(
-                                experience: experiences[index]
-                            )
-                        )
-                    },
-                    angle: rotation,
-                    direction: direction,
-                    width: pageWidth,
-                    height: pageHeight
-                )
-                .offset(
-                    x:
-                        direction == .forward
-                        ? pageWidth / 2 + 2.5
-                        : -(pageWidth / 2 + 2.5)
-                )
-            }
-        }
-    }
-}
-
-// MARK: - Página 3D
-
-private struct BookTurningPage: View {
-    let front: AnyView
-    let back: AnyView?
-    let angle: Double
-    let direction: BookTurnDirection
-    let width: CGFloat
-    let height: CGFloat
-
-    var body: some View {
-        ZStack {
-            // Frente
-            front
-                .frame(
-                    width: width,
-                    height: height
-                )
-                .opacity(
-                    angle < 90
-                    ? 1
-                    : 0
-                )
-
-            // Verso
-            if let back {
-                back
-                    .frame(
-                        width: width,
-                        height: height
-                    )
-                    .rotation3DEffect(
-                        .degrees(180),
-                        axis: (
-                            x: 0,
-                            y: 1,
-                            z: 0
-                        )
-                    )
-                    .opacity(
-                        angle >= 90
-                        ? 1
-                        : 0
-                    )
-            } else {
-                Color.clear
-                    .frame(
-                        width: width,
-                        height: height
-                    )
-            }
-        }
-        .clipShape(
-            RoundedRectangle(
-                cornerRadius: 20,
-                style: .continuous
-            )
-        )
-        .frame(
-            width: width,
-            height: height
-        )
-        .rotation3DEffect(
-            .degrees(
-                direction == .forward
-                ? -angle
-                : angle
-            ),
-            axis: (
-                x: 0,
-                y: 1,
-                z: 0
-            ),
-            anchor:
-                direction == .forward
-                ? .leading
-                : .trailing,
-            perspective: 0.65
-        )
-        .shadow(
-            color: .black.opacity(
-                angle > 5
-                ? 0.28
-                : 0
-            ),
-            radius: 10,
-            x: direction == .forward ? -5 : 5,
-            y: 4
-        )
-    }
-}
-
-// MARK: - Lombada
-
-extension BookView {
-    private var spine: some View {
-        LinearGradient(
-            colors: [
-                .black.opacity(0.30),
-                .black.opacity(0.08),
-                .black.opacity(0.30)
-            ],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-        .frame(
-            width: 5,
-            height: pageHeight
-        )
-    }
-}
-
-// MARK: - Gesture
-
-extension BookView {
-    private var bookGesture: some Gesture {
-        DragGesture(
-            minimumDistance: 15
-        )
-        .onChanged { value in
-            guard !isTurning else {
-                return
-            }
-
-            let translation =
-                value.translation.width
-
-            // ------------------------------------
-            // PARA FRENTE
-            // ------------------------------------
-            if translation < -10 {
-                guard canGoForward else {
-                    return
-                }
-                turnDirection = .forward
-                isTurning = true
-
-                let progress = min(
-                    max(
-                        -translation / dragDistance,
-                        0
-                    ),
-                    1
-                )
-                rotation = progress * 180
-            }
-            // ------------------------------------
-            // PARA TRÁS
-            // ------------------------------------
-            else if translation > 10 {
-                guard canGoBack else {
-                    return
-                }
-                turnDirection = .backward
-                isTurning = true
-
-                let progress = min(
-                    max(
-                        translation / dragDistance,
-                        0
-                    ),
-                    1
-                )
-                rotation = progress * 180
-            }
-        }
-        .onEnded { value in
-            guard isTurning,
-                  let direction = turnDirection
-            else {
-                return
-            }
-
-            let translation =
-                value.translation.width
-            let progress = min(
-                max(
-                    abs(translation) / dragDistance,
-                    0
-                ),
-                1
-            )
-
-            let shouldComplete =
-                progress > 0.5
-
-            if shouldComplete {
-                finishTurn(
-                    direction: direction
-                )
-            } else {
-                cancelTurn()
-            }
-        }
-    }
-}
-
-// MARK: - Finalizar virada
-
-extension BookView {
-    private func finishTurn(
-        direction: BookTurnDirection
-    ) {
-        withAnimation(
-            .easeInOut(duration: 0.45)
-        ) {
-            rotation = 180
-        }
-
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + 0.45
-        ) {
-            let targetPage: Int
-            switch direction {
-            case .forward:
-                if isCover {
-                    targetPage = 0
-                } else {
-                    targetPage = currentPage + 2
-                }
-            case .backward:
-                if currentPage <= 0 {
-                    targetPage = -1
-                } else {
-                    targetPage = currentPage - 2
-                }
-            }
-
-            /*
-             MUITO IMPORTANTE:
-             Primeiro mudamos o conteúdo do livro
-             enquanto a folha ainda está parada em 180º.
-             Não existe animação nessa troca.
-             */
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                currentPage = targetPage
-            }
-
-            /*
-             Esperamos um ciclo de renderização.
-             Nesse momento:
-             folha = 180º
-             conteúdo atrás = novo conteúdo
-             Portanto os dois lados são visualmente
-             idênticos.
-             Só depois removemos a folha.
-             */
-            DispatchQueue.main.async {
-                turnDirection = nil
-                isTurning = false
-                rotation = 0
-            }
-        }
-    }
-}
-
-// MARK: - Cancelar virada
-
-extension BookView {
-    private func cancelTurn() {
-        withAnimation(
-            .easeInOut(duration: 0.30)
-        ) {
-            rotation = 0
-        }
-
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + 0.30
-        ) {
-            turnDirection = nil
-            isTurning = false
-        }
-    }
-}
-
-// MARK: - Caption
-
-extension BookView {
-    private func updateVisibleExperiences() {
-        let visible: [Experience]
-
-        if experiences.isEmpty {
-            visible = []
-        } else if isCover {
-            visible = [
-                experiences[0]
-            ]
-        } else {
-            let first = currentPage
-            let second = currentPage + 1
-
-            if second < experiences.count {
-                visible = [
-                    experiences[first],
-                    experiences[second]
-                ]
-            } else {
-                visible = [
-                    experiences[first]
-                ]
-            }
-        }
-
-        onVisibleExperiencesChange?(visible)
-    }
-}
-
-// MARK: - Preview
-
-#Preview {
-    BookPreviewWrapper()
-}
-
-private struct BookPreviewWrapper: View {
-    @State private var experiences: [Experience] = [
-        .mock,
-        .mock,
-        .mock,
-        .mock
-    ]
-
-    var body: some View {
-        ZStack {
-            Color.gray.opacity(0.15)
-                .ignoresSafeArea()
-
-            BookView(
-                experiences: $experiences
-            )
-        }
-    }
-}
-
-
-========================================
 ARQUIVO: ./Wallie/View/Components/MomentsComponents/AddExperienceView.swift
 ========================================
 //
@@ -3650,18 +2703,16 @@ import SwiftUI
 import PhotosUI
 
 struct AddExperienceView: View {
-    
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel: AddExperienceViewModel
+    @State private var viewModel: AddExperienceViewModel
     @FocusState private var isInputFocused: Bool
     
-    // MARK: - Inicializador Atualizado
     init(
         editing experience: Experience? = nil,
         availableAlbums: [String] = [],
         onSave: @escaping (Experience) -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: AddExperienceViewModel(
+        _viewModel = State(initialValue: AddExperienceViewModel(
             editing: experience,
             availableAlbums: availableAlbums,
             onSave: onSave
@@ -3673,8 +2724,6 @@ struct AddExperienceView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: 16) {
-                        
-                        // MARK: - Capa
                         ExperienceCoverHeaderView(
                             coverImage: $viewModel.coverImage,
                             onSelectPhoto: { viewModel.showCoverPhotoPicker = true },
@@ -3682,13 +2731,11 @@ struct AddExperienceView: View {
                         )
                         .id("top")
                         
-                        // MARK: - Formulário Principal
                         mainForm
                         
                         Divider()
                             .padding(.horizontal, 16)
                         
-                        // MARK: - Itens Extras
                         DynamicItemsSection(itens: $viewModel.itensExtras)
                         
                         Spacer(minLength: 110)
@@ -3728,11 +2775,9 @@ struct AddExperienceView: View {
         }
     }
     
-    // MARK: - Formulário
     private var mainForm: some View {
         VStack(spacing: 14) {
-            
-            // MARK: Seção Título (Card + Legenda externa)
+            Divider()
             VStack(alignment: .leading, spacing: 6) {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Título", systemImage: "text.cursor")
@@ -3749,14 +2794,12 @@ struct AddExperienceView: View {
                     in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                 )
                 
-                // Texto informativo fora da área do card
                 Text("Campo obrigatório.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.leading, 12)
             }
             
-            // MARK: Seção Descrição
             VStack(alignment: .leading, spacing: 8) {
                 Label("Descrição", systemImage: "text.justify.left")
                     .font(.callout)
@@ -3773,13 +2816,13 @@ struct AddExperienceView: View {
                 in: RoundedRectangle(cornerRadius: 14, style: .continuous)
             )
             
-            // Seletor de Data
+            Divider()
+            
             DateSelectionRow(
                 includeDate: $viewModel.includeDate,
                 date: $viewModel.date
             )
             
-            // Seletor de Álbum
             AlbumSelectionMenu(
                 album: $viewModel.album,
                 availableAlbums: viewModel.availableAlbums
@@ -3798,7 +2841,6 @@ struct AddExperienceView: View {
         }
     }
     
-    // MARK: - Toolbar Content
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
@@ -3835,16 +2877,16 @@ struct AddExperienceView: View {
                     } label: {
                         Image(systemName: tipo.icon)
                     }
+                    .padding(.horizontal)
                 }
             }
         }
     }
 }
 
-// MARK: - Preview
 #Preview {
     AddExperienceView(availableAlbums: ["Viagem", "Família"]) { experience in
-        print("Experiência salva: \(experience.title)")
+        print(experience.title)
     }
 }
 
@@ -3862,8 +2904,8 @@ ARQUIVO: ./Wallie/View/Components/MomentsComponents/FirstMomentCard.swift
 import SwiftUI
 
 struct FirstMomentCard: View {
+    
     var body: some View {
-        
         VStack {
             Image("PrimeiroMomento")
                 .resizable()
@@ -3885,233 +2927,6 @@ struct FirstMomentCard: View {
 
 
 ========================================
-ARQUIVO: ./Wallie/View/Components/MomentsComponents/MomentCardFace.swift
-========================================
-//
-//  MomentCardFace.swift
-//  Wallie
-//
-
-import SwiftUI
-
-struct MomentCardFace: View {
-
-    let experience: Experience
-
-
-    var body: some View {
-
-        GeometryReader { geometry in
-
-            ZStack {
-
-                // MARK: Background
-
-                RoundedRectangle(
-                    cornerRadius: 20,
-                    style: .continuous
-                )
-                .fill(
-                    Color(.systemGray5)
-                )
-
-
-                // MARK: Placeholder
-
-                if experience.isPlaceholder {
-
-                    Rectangle()
-                        .fill(
-                            .ultraThinMaterial
-                        )
-
-
-                // MARK: Image
-
-                } else if
-                    let data =
-                        experience.images.first,
-                    let uiImage =
-                        UIImage(data: data)
-                {
-
-                    Image(
-                        uiImage: uiImage
-                    )
-                    .resizable()
-                    .scaledToFill()
-                    .frame(
-                        width: geometry.size.width,
-                        height: geometry.size.height
-                    )
-                    .clipped()
-
-
-                // MARK: Empty Image
-
-                } else {
-
-                    Image(
-                        systemName:
-                            "photo"
-                    )
-                    .font(
-                        .largeTitle
-                    )
-                    .foregroundStyle(
-                        .secondary
-                    )
-
-                }
-
-            }
-            .frame(
-                width: geometry.size.width,
-                height: geometry.size.height
-            )
-            .clipShape(
-
-                RoundedRectangle(
-                    cornerRadius: 20,
-                    style: .continuous
-                )
-
-            )
-            .overlay(
-
-                RoundedRectangle(
-                    cornerRadius: 20,
-                    style: .continuous
-                )
-                .strokeBorder(
-                    .white.opacity(0.25),
-                    lineWidth: 1
-                )
-
-            )
-
-        }
-
-    }
-
-
-    // MARK: - Rating Badge
-
-    private func ratingBadge(
-        _ quality: QualityRating
-    ) -> some View {
-
-        HStack(
-            spacing: 5
-        ) {
-
-            Text(
-                quality.imageName
-            )
-
-            Text(
-                quality.label
-            )
-            .lineLimit(1)
-
-        }
-        .font(
-            .caption2.weight(.bold)
-        )
-        .foregroundStyle(
-            .white
-        )
-        .padding(
-            .horizontal,
-            9
-        )
-        .padding(
-            .vertical,
-            6
-        )
-        .background(
-            .black.opacity(0.52),
-            in: Capsule()
-        )
-
-    }
-
-
-    // MARK: - Emotion Badge
-
-    private func emotionBadge(
-        _ emotion: EmotionTag
-    ) -> some View {
-
-        HStack(
-            spacing: 5
-        ) {
-
-            Text(
-                emotion.imageName
-            )
-
-            Text(
-                emotion.label
-            )
-            .lineLimit(1)
-
-        }
-        .font(
-            .caption2.weight(.bold)
-        )
-        .foregroundStyle(
-            .white
-        )
-        .padding(
-            .horizontal,
-            9
-        )
-        .padding(
-            .vertical,
-            6
-        )
-        .background(
-            .black.opacity(0.52),
-            in: Capsule()
-        )
-
-    }
-
-}
-
-
-// MARK: - Preview
-
-#Preview("Placeholder") {
-
-    MomentCardFace(
-        experience: .placeholder
-    )
-    .frame(
-        width: 210,
-        height: 280
-    )
-    .padding()
-
-}
-
-
-#Preview("Mock Data") {
-
-    MomentCardFace(
-        experience: .mock
-    )
-    .frame(
-        width: 210,
-        height: 280
-    )
-    .padding()
-
-}
-
-
-========================================
 ARQUIVO: ./Wallie/View/Components/MomentsComponents/ExperiencesDetailScreen.swift
 ========================================
 //
@@ -4126,7 +2941,7 @@ import SwiftUI
 struct ExperienceDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: ExperienceDetailViewModel
-
+    
     init(
         experience: Experience,
         onSave: @escaping (Experience) -> Void,
@@ -4140,14 +2955,14 @@ struct ExperienceDetailScreen: View {
             )
         )
     }
-
+    
     var body: some View {
         @Bindable var viewModel = viewModel
-
+        
         ZStack(alignment: .bottom) {
             backgroundPhotos
                 .ignoresSafeArea()
-
+            
             if viewModel.allPhotos.count > 1 {
                 VStack {
                     StoryProgressBar(
@@ -4161,7 +2976,7 @@ struct ExperienceDetailScreen: View {
                 }
                 .ignoresSafeArea()
             }
-
+            
             VStack {
                 Spacer()
                 GlassCardView(title: viewModel.experience.title) {
@@ -4179,7 +2994,7 @@ struct ExperienceDetailScreen: View {
                     } label: {
                         Label("Editar", systemImage: "pencil")
                     }
-
+                    
                     Button(role: .destructive) {
                         viewModel.isShowingDeleteAlert = true
                     } label: {
@@ -4225,7 +3040,7 @@ struct ExperienceDetailScreen: View {
             viewModel.stopAudio()
         }
     }
-
+    
     private var backgroundPhotos: some View {
         GeometryReader { proxy in
             if !viewModel.allPhotos.isEmpty {
@@ -4251,7 +3066,7 @@ struct ExperienceDetailScreen: View {
             }
         }
     }
-
+    
     private var cardContent: some View {
         VStack(alignment: .leading, spacing: 18) {
             if !viewModel.experience.description.isEmpty {
@@ -4260,17 +3075,17 @@ struct ExperienceDetailScreen: View {
                     .foregroundStyle(.white.opacity(0.9))
                     .fixedSize(horizontal: false, vertical: true)
             }
-
+            
             interactiveSection
-
+            
             Divider().overlay(Color.white.opacity(0.2))
-
+            
             footerSection
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 16)
     }
-
+    
     @ViewBuilder
     private var interactiveSection: some View {
         if viewModel.hasMood && viewModel.hasAudio {
@@ -4281,7 +3096,7 @@ struct ExperienceDetailScreen: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 64)
-
+                
                 HStack(spacing: 6) {
                     Circle()
                         .fill(viewModel.selectedTab == 0 ? Color.white : Color.white.opacity(0.3))
@@ -4298,7 +3113,7 @@ struct ExperienceDetailScreen: View {
             audioSection.frame(height: 64)
         }
     }
-
+    
     private var moodSection: some View {
         HStack(spacing: 12) {
             if let quality = viewModel.experience.quality {
@@ -4309,7 +3124,7 @@ struct ExperienceDetailScreen: View {
             }
         }
     }
-
+    
     private var audioSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             ForEach(viewModel.audioURLs, id: \.self) { url in
@@ -4321,7 +3136,7 @@ struct ExperienceDetailScreen: View {
             }
         }
     }
-
+    
     private var footerSection: some View {
         HStack(spacing: 16) {
             if viewModel.experience.includeDate {
@@ -4335,11 +3150,11 @@ struct ExperienceDetailScreen: View {
         .font(.footnote)
         .foregroundStyle(.white.opacity(0.75))
     }
-
+    
     @ViewBuilder
     private func overlayActionView(dragOffset: CGSize, dismiss: @escaping () -> Void) -> some View {
         let interactiveOpacity: CGFloat = 1 - min(abs(dragOffset.height / 30), 1)
-
+        
         VStack {
             HStack {
                 Button(action: dismiss) {
@@ -4367,7 +3182,104 @@ struct ExperienceDetailScreen: View {
 
 
 ========================================
-ARQUIVO: ./Wallie/View/Components/MomentsComponents/ExperienceFormFields.swift.swift
+ARQUIVO: ./Wallie/View/Components/MomentsComponents/MomentsCard.swift
+========================================
+//
+//  MomentsCard.swift
+//  Wallie
+//
+//  Created by Vitor Silva Souza on 21/08/26.
+//
+
+import SwiftUI
+
+struct MomentsCard: View {
+    let experience: Experience
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color(.systemGray5))
+                
+                if experience.isPlaceholder {
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        
+                } else if let data = experience.images.first,
+                          let uiImage = UIImage(data: data) {
+                    
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(
+                            width: geometry.size.width,
+                            height: geometry.size.height
+                        )
+                        .clipped()
+                        
+                } else {
+                    Image(systemName: "photo")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(
+                width: geometry.size.width,
+                height: geometry.size.height
+            )
+            .clipShape(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(.white.opacity(0.25), lineWidth: 1)
+            )
+        }
+    }
+    
+    private func ratingBadge(_ quality: QualityRating) -> some View {
+        HStack(spacing: 5) {
+            Text(quality.imageName)
+            Text(quality.label)
+                .lineLimit(1)
+        }
+        .font(.caption2.weight(.bold))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 6)
+        .background(.black.opacity(0.52), in: Capsule())
+    }
+    
+    private func emotionBadge(_ emotion: EmotionTag) -> some View {
+        HStack(spacing: 5) {
+            Text(emotion.imageName)
+            Text(emotion.label)
+                .lineLimit(1)
+        }
+        .font(.caption2.weight(.bold))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 9)
+        .padding(.vertical, 6)
+        .background(.black.opacity(0.52), in: Capsule())
+    }
+}
+
+#Preview("Placeholder") {
+    MomentsCard(experience: .placeholder)
+        .frame(width: 210, height: 280)
+        .padding()
+}
+
+#Preview("Mock Data") {
+    MomentsCard(experience: .mock)
+        .frame(width: 210, height: 280)
+        .padding()
+}
+
+
+========================================
+ARQUIVO: ./Wallie/View/Components/MomentsComponents/ExperienceFormFields.swift
 ========================================
 //
 //  DateSelectionRow.swift
@@ -4402,7 +3314,6 @@ struct DateSelectionRow: View {
                     .padding(.bottom, 14)
             }
         }
-        // Fundo ajustado para systemBackground
         .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
@@ -4410,9 +3321,18 @@ struct DateSelectionRow: View {
 struct AlbumSelectionMenu: View {
     @Binding var album: String
     let availableAlbums: [String]
+    var onCreateNewAlbum: (() -> Void)? = nil
     
     var body: some View {
         Menu {
+            Button {
+                onCreateNewAlbum?()
+            } label: {
+                Label("Criar novo álbum...", systemImage: "plus")
+            }
+            
+            Divider()
+            
             ForEach(availableAlbums, id: \.self) { option in
                 Button {
                     album = option
@@ -4439,7 +3359,6 @@ struct AlbumSelectionMenu: View {
                     .foregroundStyle(.secondary)
             }
             .padding(14)
-            // Fundo ajustado para systemBackground
             .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .foregroundStyle(.primary)
@@ -4448,124 +3367,47 @@ struct AlbumSelectionMenu: View {
 
 
 ========================================
-ARQUIVO: ./Wallie/View/Components/MomentsComponents/ExperiencesReadingScreen.swift
+ARQUIVO: ./Wallie/View/Components/MomentsComponents/MomentsToolBar.swift
 ========================================
 //
-//  ExperiencesReadingScreen.swift
+//  MomentsHeader.swift
 //  Wallie
 //
-//  Created by Vitor Silva Souza on 17/08/26.
+//  Created by Vitor Silva Souza on 21/08/26.
 //
 
 import SwiftUI
 
-struct ExperiencesReadingScreen: View {
-    @Binding var experiences: [Experience]
-    
-    @State private var selectedID: UUID?
-    @State private var isShowingDetail = false
-    
+struct MomentsToolBar: View {
+    let hasExperiences: Bool
+    let displayModeIcon: String
+    let onCycleMode: () -> Void
+
     var body: some View {
-        ScrollView {
-            if experiences.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "book")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.secondary)
-                    Text("Nenhuma experiência ainda")
-                        .font(.headline)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.top, 80)
-            } else {
-                LazyVStack(spacing: 20) {
-                    ForEach(experiences) { experience in
-                        ExperienceCard(experience: experience)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                selectedID = experience.id
-                                isShowingDetail = true
-                            }
+        HStack {
+            Title(title: "Momentos", subtitle: "")
+                .foregroundStyle(.white)
+
+            Spacer()
+
+            if hasExperiences {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.35)) {
+                        onCycleMode()
                     }
-                }
-                .padding(20)
-            }
-        }
-        .background(Color(.systemGray6))
-        .navigationTitle("Suas experiências")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(isPresented: $isShowingDetail) {
-            if let experience = experiences.first(where: { $0.id == selectedID }) {
-                ExperienceDetailScreen(experience: experience) { updated in
-                    if let index = experiences.firstIndex(where: { $0.id == updated.id }) {
-                        experiences[index] = updated
-                    }
+                } label: {
+                    Image(systemName: displayModeIcon)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(width: 44, height: 44)
+                        .background(.ultraThinMaterial)
+                        .background(Color.blue)
+                        .clipShape(Circle())
                 }
             }
         }
+        .padding(16)
     }
-}
-
-struct ExperienceCard: View {
-    let experience: Experience
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            if let data = experience.images.first, let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 200)
-                    .clipped()
-            }
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Text(experience.title.isEmpty ? "Sem título" : experience.title)
-                    .font(.headline)
-                
-                if !experience.description.isEmpty {
-                    Text(experience.description)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-                
-                HStack(spacing: 12) {
-                    if experience.includeDate {
-                        Label(experience.date.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
-                    }
-                    if experience.album != "Nenhum" {
-                        Label(experience.album, systemImage: "square.stack")
-                    }
-                    if let quality = experience.quality {
-                        Text(quality.imageName)
-                    }
-                    if let emotion = experience.emotion {
-                        Text(emotion.imageName)
-                    }
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            }
-            .padding(16)
-        }
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-    }
-}
-
-// MARK: - Previews
-#Preview("Reading Screen") {
-    NavigationStack {
-        ExperiencesReadingScreen(experiences: .constant([.mock, .placeholder]))
-    }
-}
-
-#Preview("List Card") {
-    ExperienceCard(experience: .mock)
-        .padding()
-        .background(Color(.systemGroupedBackground))
 }
 
 
@@ -4585,20 +3427,17 @@ struct ExperienceCoverHeaderView: View {
     @Binding var coverImage: UIImage?
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             
-            // Card Principal
             VStack(alignment: .leading, spacing: 12) {
                 
-                // MARK: - Título da Seção com Ícone
                 Label("Capa da Experiência", systemImage: "photo.on.rectangle")
                     .font(.callout)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                 
-                // MARK: - Preview da Imagem
                 if let image = coverImage {
                     ZStack(alignment: .topTrailing) {
                         Image(uiImage: image)
@@ -4622,45 +3461,36 @@ struct ExperienceCoverHeaderView: View {
                     }
                 }
                 
-                // MARK: - Botões de Seleção (Com Borda/Contorno)
                 HStack(spacing: 12) {
                     
-                    // Botão Galeria com Contorno Sutil
                     Button(action: onSelectPhoto) {
-                        Label(
-                            coverImage == nil ? "Acessar Galeria" : "Trocar foto",
-                            systemImage: "photo"
-                        )
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(Color.primary.opacity(0.15), lineWidth: 1)
-                        )
+                        Text(coverImage == nil ? "Acessar Galeria" : "Trocar foto")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                            )
                     }
                     .buttonStyle(.plain)
                     
-                    // Botão Câmera (Destaque em Accent Color ou Contorno de Acento)
                     Button(action: onTakePhoto) {
-                        Label(
-                            coverImage == nil ? "Tirar foto" : "Tirar outra",
-                            systemImage: coverImage == nil ? "camera.fill" : "camera"
-                        )
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(coverImage == nil ? .white : MomentosPalette.accentSoft)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background {
-                            if coverImage == nil {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(MomentosPalette.accentSoft)
-                            } else {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(MomentosPalette.accentSoft, lineWidth: 1.5)
+                        Text(coverImage == nil ? "Tirar foto" : "Tirar outra")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(coverImage == nil ? .white : MomentosPalette.accentSoft)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background {
+                                if coverImage == nil {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(MomentosPalette.accentSoft)
+                                } else {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(MomentosPalette.accentSoft, lineWidth: 1.5)
+                                }
                             }
-                        }
                     }
                     .buttonStyle(.plain)
                 }
@@ -4671,13 +3501,96 @@ struct ExperienceCoverHeaderView: View {
                 in: RoundedRectangle(cornerRadius: 16, style: .continuous)
             )
             
-            // MARK: - Legenda Externa
             Text("Campo obrigatório.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .padding(.leading, 12)
         }
         .padding(.horizontal, 16)
+    }
+}
+
+
+========================================
+ARQUIVO: ./Wallie/View/Components/MomentsComponents/MomentsAddButton.swift
+========================================
+//
+//  MomentsAddButton.swift
+//  Wallie
+//
+//  Created by Vitor Silva Souza on 21/08/26.
+//
+
+import SwiftUI
+
+struct MomentsAddButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label("Adicionar experiência", systemImage: "plus.circle.fill")
+                .font(.headline)
+                .foregroundStyle(.white)
+                .padding(8)
+        }
+        .buttonStyle(.glassProminent)
+        .tint(.verdeProjeto)
+        .padding(.horizontal, 16)
+    }
+}
+
+
+========================================
+ARQUIVO: ./Wallie/View/Components/MomentsComponents/MomentsCaption.swift
+========================================
+//
+//  MomentsCaptionView.swift
+//  Wallie
+//
+//  Created by Vitor Silva Souza on 21/08/26.
+//
+
+import SwiftUI
+
+struct ExperienceCaptionText: View {
+    let experience: Experience
+
+    var body: some View {
+        Text(experience.title.isEmpty ? "Sem título" : experience.title)
+            .font(.title3.bold())
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.2), radius: 2, x: 2, y: 2)
+            .multilineTextAlignment(.center)
+            .lineLimit(2)
+            .padding(.horizontal, 30)
+    }
+}
+
+struct MomentsCaption: View {
+    let displayMode: DisplayMode
+    let focusedExperience: Experience?
+    let visibleBookExperiences: [Experience]
+
+    var body: some View {
+        switch displayMode {
+        case .stack, .carousel:
+            if let experience = focusedExperience {
+                ExperienceCaptionText(experience: experience)
+            }
+            
+        case .book:
+            if visibleBookExperiences.count == 1, let experience = visibleBookExperiences.first {
+                ExperienceCaptionText(experience: experience)
+            } else if visibleBookExperiences.count >= 2 {
+                HStack(spacing: 16) {
+                    ForEach(visibleBookExperiences, id: \.id) { experience in
+                        ExperienceCaptionText(experience: experience)
+                            .frame(maxWidth: .infinity)
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+        }
     }
 }
 
@@ -4758,7 +3671,7 @@ struct MomentCardStack: View {
             let scale = isFocused ? 1 : 1 - (scaleStep * depth)
             let zIndexValue: Double = isIncoming ? Double(items.count) + 5 : Double(items.count) - Double(distance)
             
-            MomentCardFace(experience: item)
+            MomentsCard(experience: item)
                 .frame(width: cardWidth, height: cardHeight)
                 .offset(x: xOffset, y: yOffset)
                 .scaleEffect(scale)
@@ -4839,7 +3752,7 @@ struct MomentCarousel: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(items) { item in
-                            MomentCardFace(experience: item)
+                            MomentsCard(experience: item)
                                 .frame(width: cardWidth, height: cardWidth * 1.3)
                                 .id(item.id)
                                 .onTapGesture { onTapFocused(item) }
@@ -4887,49 +3800,10 @@ struct MomentCarousel: View {
 
 
 ========================================
-ARQUIVO: ./Wallie/View/Components/ToolBars/ToolBarCreateMoment.swift
-========================================
-//
-//  ToolBarCreateMoment.swift
-//  Wallie
-//
-//  Created by Vitor Silva Souza on 16/08/26.
-//
-
-import SwiftUI
-
-struct ToolBarCreateMoment: ToolbarContent {
-    var cancelAction: () -> Void
-    var confirmAction: () -> Void
-    
-    var body: some ToolbarContent {
-        
-        ToolbarItem(placement: .cancellationAction) {
-            Button(action: cancelAction) {
-                Image(systemName: "xmark")
-            }
-        }
-        
-        ToolbarItem(placement: .principal) {
-            Text("Criar momento")
-                .font(.headline)
-        }
-        
-        ToolbarItem(placement: .confirmationAction) {
-            Button(action: confirmAction) {
-                Image(systemName: "checkmark")
-            }
-        }
-        
-    }
-}
-
-
-========================================
 ARQUIVO: ./Wallie/View/Components/ToolBars/ToolbBarViewsTitle.swift
 ========================================
 //
-//  ToolbBarAlbum.swift
+//  ToolBarViewsTitle.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 16/08/26.
@@ -4938,36 +3812,103 @@ ARQUIVO: ./Wallie/View/Components/ToolBars/ToolbBarViewsTitle.swift
 import SwiftUI
 
 struct ToolBarViewsTitle: View {
+    @Environment(\.colorScheme) var colorScheme
+    
     let title: String
     let subtitle: String?
+    var showEditButton: Bool = true
+    var isEditingMode: Bool = false
     var onAdd: () -> Void
+    var onEditToggle: (() -> Void)? = nil
     
     var body: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.custom("Gupter-Bold", size: 41))
+                    .font(.custom("Gupter-Bold", size: 34))
+                    .foregroundStyle(.primary)
+                
                 if let subtitle {
                     Text(subtitle)
-                        .font(.custom("Manrope-Regular", size: 15))
-                        .foregroundColor(.secondary)
+                        .font(.custom("Manrope-Regular", size: 14))
+                        .foregroundStyle(.secondary)
                 }
             }
+            
             Spacer()
-            HStack {
+            
+            HStack(spacing: 12) {
+                if showEditButton, let onEditToggle {
+                    Button(action: {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            onEditToggle()
+                        }
+                    }) {
+                        ZStack {
+                            if isEditingMode {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .transition(.scale.combined(with: .opacity))
+                            } else {
+                                Text("Editar")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(.primary)
+                                    .padding(.horizontal, 16)
+                                    .transition(.scale.combined(with: .opacity))
+                            }
+                        }
+                        .frame(height: 38)
+                        .frame(minWidth: isEditingMode ? 38 : 0)
+                        .background {
+                            Group {
+                                if isEditingMode {
+                                    Circle()
+                                        .fill(Color.verdeProjeto)
+                                } else {
+                                    Capsule()
+                                        .fill(.thinMaterial)
+                                        .overlay(
+                                            Capsule()
+                                                .stroke(
+                                                    LinearGradient(
+                                                        colors: colorScheme == .dark ? [
+                                                            .white.opacity(0.18),
+                                                            .white.opacity(0.03)
+                                                        ] : [
+                                                            .black.opacity(0.12),
+                                                            .white.opacity(0.5)
+                                                        ],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    ),
+                                                    lineWidth: 1
+                                                )
+                                        )
+                                }
+                            }
+                        }
+                        .shadow(
+                            color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08),
+                            radius: 8,
+                            x: 0,
+                            y: 4
+                        )
+                    }
+                }
+                
                 Button(action: onAdd) {
                     Image(systemName: "plus")
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundColor(.white)
-                        .frame(width: 44, height: 44)
-                        .background(.azulProjeto)
+                        .frame(width: 38, height: 38)
+                        .background(Color.corTitulo)
                         .clipShape(Circle())
                 }
             }
         }
     }
 }
-
 
 
 ========================================
@@ -5010,82 +3951,344 @@ struct ToolBarCreateSheetAlbum: ToolbarContent {
 
 
 ========================================
-ARQUIVO: ./Wallie/View/Components/AudioRecorder.swift
+ARQUIVO: ./Wallie/View/Components/BookCard.swift
 ========================================
 //
-//  AudioRecorder.swift
+//  BookCard.swift
 //  Wallie
 //
-//  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
+//  Created by Vitor Silva Souza on 21/08/26.
 //
 
-import Foundation
-import AVFoundation
-import Combine
+import SwiftUI
 
-@MainActor
-final class AudioRecorder: NSObject, ObservableObject {
-    @Published var isRecording = false
-    @Published var formatedTime = "00:00"
+enum BookTurnDirection {
+    case forward
+    case backward
+}
 
-    private var recorder: AVAudioRecorder?
-    private var timer: Timer?
-    private var recordStart: Date?
+struct BookView: View {
 
-    func StartRecord() {
-        AVAudioApplication.requestRecordPermission { [weak self] permited in
-            guard permited else { return }
-            
-            Task { @MainActor [weak self] in
-                self?.startwithpermission()
+    var experiences: [Experience]
+    var onTapExperience: ((Experience) -> Void)?
+    var onVisibleExperiencesChange: (([Experience]) -> Void)?
+
+    @State private(set) var currentPage: Int = -1
+    @State private(set) var rotation: Double = 0
+    @State private(set) var isTurning = false
+    @State private(set) var turnDirection: BookTurnDirection?
+
+    let pageWidth: CGFloat = 180
+    let pageHeight: CGFloat = 260
+    let dragDistance: CGFloat = 250
+    let turnThreshold: Double = 90
+
+    var body: some View {
+        ZStack {
+            HStack(spacing: 0) {
+                BookStaticPage(
+                    index: baseLeftIndex,
+                    experiences: experiences,
+                    size: CGSize(width: pageWidth, height: pageHeight),
+                    onTap: onTapExperience
+                )
+                                
+                BookStaticPage(
+                    index: baseRightIndex,
+                    experiences: experiences,
+                    size: CGSize(width: pageWidth, height: pageHeight),
+                    onTap: onTapExperience
+                )
             }
+
+            if isTurning, let direction = turnDirection, let frontIndex = turningFrontIndex {
+                BookTurningPage(
+                    frontIndex: frontIndex,
+                    backIndex: turningBackIndex,
+                    experiences: experiences,
+                    angle: rotation,
+                    direction: direction,
+                    size: CGSize(width: pageWidth, height: pageHeight)
+                )
+                .offset(x: direction == .forward ? (pageWidth / 2 + 2.5) : -(pageWidth / 2 + 2.5))
+            }
+        }
+        .frame(width: pageWidth * 2 + 5, height: pageHeight)
+        .contentShape(Rectangle())
+        .gesture(bookGesture)
+        .onAppear(perform: updateVisibleExperiences)
+        .onChange(of: currentPage) { _, _ in updateVisibleExperiences() }
+        .onChange(of: experiences.count) { _, _ in handleExperiencesCountChange() }
+    }
+}
+
+private struct BookStaticPage: View {
+    let index: Int?
+    let experiences: [Experience]
+    let size: CGSize
+    let onTap: ((Experience) -> Void)?
+
+    var body: some View {
+        Group {
+            if let index = index, experiences.indices.contains(index) {
+                MomentsCard(experience: experiences[index])
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onTap?(experiences[index])
+                    }
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: size.width, height: size.height)
+    }
+}
+
+private struct BookTurningPage: View {
+    let frontIndex: Int
+    let backIndex: Int?
+    let experiences: [Experience]
+    let angle: Double
+    let direction: BookTurnDirection
+    let size: CGSize
+
+    var body: some View {
+        ZStack {
+            if experiences.indices.contains(frontIndex) {
+                MomentsCard(experience: experiences[frontIndex])
+                    .frame(width: size.width, height: size.height)
+                    .opacity(angle < 90 ? 1 : 0)
+            }
+
+            if let backIndex = backIndex, experiences.indices.contains(backIndex) {
+                MomentsCard(experience: experiences[backIndex])
+                    .frame(width: size.width, height: size.height)
+                    .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+                    .opacity(angle >= 90 ? 1 : 0)
+            } else {
+                Color.clear
+                    .frame(width: size.width, height: size.height)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .frame(width: size.width, height: size.height)
+        .rotation3DEffect(
+            .degrees(direction == .forward ? -angle : angle),
+            axis: (x: 0, y: 1, z: 0),
+            anchor: direction == .forward ? .leading : .trailing,
+            perspective: 0.65
+        )
+        .shadow(
+            color: .black.opacity(angle > 5 ? 0.28 : 0),
+            radius: 10,
+            x: direction == .forward ? -5 : 5,
+            y: 4
+        )
+    }
+}
+
+extension BookView {
+    
+    private var bookGesture: some Gesture {
+        DragGesture(minimumDistance: 15)
+            .onChanged(handleDragChange)
+            .onEnded(handleDragEnd)
+    }
+
+    private func handleDragChange(_ value: DragGesture.Value) {
+        guard !isTurning else { return }
+
+        let translation = value.translation.width
+
+        if translation < -10 {
+            guard canGoForward else { return }
+            startTurn(direction: .forward, translation: -translation)
+        } else if translation > 10 {
+            guard canGoBack else { return }
+            startTurn(direction: .backward, translation: translation)
         }
     }
 
-    private func startwithpermission() {
-        let sessao = AVAudioSession.sharedInstance()
-        do {
-            try sessao.setCategory(.playAndRecord, mode: .default)
-            try sessao.setActive(true)
+    private func startTurn(direction: BookTurnDirection, translation: CGFloat) {
+        turnDirection = direction
+        isTurning = true
+        let progress = min(max(translation / dragDistance, 0), 1)
+        rotation = progress * 180
+    }
 
-            let archive = FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString)
-                .appendingPathExtension("m4a")
+    private func handleDragEnd(_ value: DragGesture.Value) {
+        guard isTurning, let direction = turnDirection else { return }
 
-            let config: [String: Any] = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVSampleRateKey: 44_100,
-                AVNumberOfChannelsKey: 1,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-            ]
+        let translation = abs(value.translation.width)
+        let progress = min(max(translation / dragDistance, 0), 1)
+        
+        if progress > 0.5 {
+            finishTurn(direction: direction)
+        } else {
+            cancelTurn()
+        }
+    }
 
-            recorder = try AVAudioRecorder(url: archive, settings: config)
-            recorder?.record()
-            isRecording = true
-            recordStart = Date()
+    private func finishTurn(direction: BookTurnDirection) {
+        withAnimation(.easeInOut(duration: 0.45)) {
+            rotation = 180
+        }
 
-            timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    self?.timeRefresh()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+            let targetPage: Int = {
+                switch direction {
+                case .forward: return isCover ? 0 : currentPage + 2
+                case .backward: return currentPage <= 0 ? -1 : currentPage - 2
                 }
+            }()
+
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                currentPage = targetPage
             }
-        } catch {
-            print("Erro ao iniciar gravação: \(error)")
+
+            DispatchQueue.main.async {
+                resetTurnState()
+            }
         }
     }
 
-    func stopRecord(completion: @escaping (URL?) -> Void) {
-        recorder?.stop()
-        timer?.invalidate()
-        isRecording = false
-        formatedTime = "00:00"
-        completion(recorder?.url)
+    private func cancelTurn() {
+        withAnimation(.easeInOut(duration: 0.30)) {
+            rotation = 0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
+            resetTurnState()
+        }
+    }
+    
+    private func resetTurnState() {
+        turnDirection = nil
+        isTurning = false
+        rotation = 0
+    }
+}
+
+extension BookView {
+    
+    private var isCover: Bool { currentPage == -1 }
+    
+    private var canGoForward: Bool {
+        isCover ? experiences.count >= 2 : currentPage + 2 < experiences.count
+    }
+    
+    private var canGoBack: Bool { !isCover }
+    
+    private func updateVisibleExperiences() {
+        let visible: [Experience]
+
+        if experiences.isEmpty {
+            visible = []
+        } else if isCover {
+            visible = [experiences[0]]
+        } else {
+            let first = currentPage
+            let second = currentPage + 1
+            visible = second < experiences.count
+                ? [experiences[first], experiences[second]]
+                : [experiences[first]]
+        }
+
+        onVisibleExperiencesChange?(visible)
+    }
+    
+    private func handleExperiencesCountChange() {
+        if currentPage >= experiences.count {
+            if experiences.isEmpty {
+                currentPage = -1
+            } else {
+                let lastEvenPage = max(0, (experiences.count - 1) / 2 * 2)
+                currentPage = lastEvenPage
+            }
+        }
+        updateVisibleExperiences()
+    }
+}
+
+extension BookView {
+    
+    var baseLeftIndex: Int? {
+        if !isTurning {
+            return isCover ? nil : currentPage
+        }
+
+        if turnDirection == .forward {
+            if isCover { return experiences.indices.contains(0) ? 0 : nil }
+            return experiences.indices.contains(currentPage) ? currentPage : nil
+        } else if turnDirection == .backward {
+            let targetPage = currentPage - 2
+            return experiences.indices.contains(targetPage) ? targetPage : nil
+        }
+        return nil
     }
 
-    private func timeRefresh() {
-        guard let start = recordStart else { return }
-        let interval = Int(Date().timeIntervalSince(start))
-        formatedTime = String(format: "%02d:%02d", interval / 60, interval % 60)
+    var baseRightIndex: Int? {
+        if !isTurning {
+            if isCover { return experiences.indices.contains(0) ? 0 : nil }
+            let index = currentPage + 1
+            return experiences.indices.contains(index) ? index : nil
+        }
+
+        if turnDirection == .forward {
+            if isCover { return experiences.indices.contains(1) ? 1 : nil }
+            let targetPage = currentPage + 3
+            return experiences.indices.contains(targetPage) ? targetPage : nil
+        } else if turnDirection == .backward {
+            let currentRight = currentPage + 1
+            return experiences.indices.contains(currentRight) ? currentRight : nil
+        }
+        return nil
+    }
+    
+    var turningFrontIndex: Int? {
+        guard let direction = turnDirection else { return nil }
+        switch direction {
+        case .forward:
+            if isCover { return experiences.indices.contains(0) ? 0 : nil }
+            let index = currentPage + 1
+            return experiences.indices.contains(index) ? index : nil
+        case .backward:
+            let index = currentPage
+            return experiences.indices.contains(index) ? index : nil
+        }
+    }
+    
+    var turningBackIndex: Int? {
+        guard let direction = turnDirection else { return nil }
+        switch direction {
+        case .forward:
+            if isCover { return experiences.indices.contains(0) ? 0 : nil }
+            let index = currentPage + 2
+            return experiences.indices.contains(index) ? index : nil
+        case .backward:
+            if currentPage == 0 { return experiences.indices.contains(0) ? 0 : nil }
+            let index = currentPage - 1
+            return experiences.indices.contains(index) ? index : nil
+        }
+    }
+}
+
+#Preview {
+    BookPreviewWrapper()
+}
+
+private struct BookPreviewWrapper: View {
+    @State private var experiences: [Experience] = [
+        .mock, .mock, .mock, .mock
+    ]
+    var body: some View {
+        ZStack {
+            Color.gray.opacity(0.15)
+                .ignoresSafeArea()
+
+            BookView(experiences: experiences)
+        }
     }
 }
 
@@ -5106,7 +4309,7 @@ struct AudioPlayerRow: View {
     let url: URL
     let isPlaying: Bool
     let onTogglePlay: () -> Void
-
+    
     var body: some View {
         HStack(spacing: 14) {
             Button(action: onTogglePlay) {
@@ -5140,6 +4343,70 @@ struct AudioPlayerRow: View {
 
 
 ========================================
+ARQUIVO: ./Wallie/View/Components/AlbumComponents/EditAlbumSheet.swift
+========================================
+//
+//  EditAlbumSheet.swift
+//  Wallie
+//
+//  Created by Vitor Silva Souza on 21/08/26.
+//
+
+import SwiftUI
+
+struct EditAlbumSheet: View {
+    @Environment(\.dismiss) var dismiss
+    let album: formAlbum
+    var onSave: (formAlbum) -> Void
+    
+    @State private var name: String = ""
+    @State private var category: String = "Nenhuma"
+    
+    let categories = ["Nenhuma", "Amigos", "Viagem", "Trabalho", "Outros"]
+    
+    init(album: formAlbum, onSave: @escaping (formAlbum) -> Void) {
+        self.album = album
+        self.onSave = onSave
+        _name = State(initialValue: album.name)
+        _category = State(initialValue: album.category ?? "Nenhuma")
+    }
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Título") {
+                    TextField("Nome do Álbum", text: $name)
+                }
+                Section("Categoria") {
+                    Picker("Categoria", selection: $category) {
+                        ForEach(categories, id: \.self) { cat in
+                            Text(cat).tag(cat)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Editar Álbum")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Salvar") {
+                        var updated = album
+                        updated.name = name
+                        updated.category = category == "Nenhuma" ? nil : category
+                        onSave(updated)
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+========================================
 ARQUIVO: ./Wallie/View/Components/AlbumComponents/TagCategory.swift
 ========================================
 //
@@ -5152,11 +4419,9 @@ ARQUIVO: ./Wallie/View/Components/AlbumComponents/TagCategory.swift
 import SwiftUI
 
 struct TagCategory: View {
-    
     var nameCategory: String
     
-        var body: some View {
-        
+    var body: some View {
         VStack {
             Text(nameCategory)
                 .font(.custom("Manrope-Bold", size: 17))
@@ -5199,9 +4464,10 @@ struct EmptyAlbum: View {
                 Label("Adicione sua primeira experiência", systemImage: "plus.circle.fill")
             }
             .frame(width: 370, height: 76)
-            .background(.white)
+            .foregroundStyle(.primary)
+            .background(Color(.systemBackground))
             .cornerRadius(16)
-            .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 0)
+            .shadow(color: Color.primary.opacity(0.4), radius: 1, x: 0, y: 0)
         }
         .padding(.bottom, 20)
     }
@@ -5226,6 +4492,7 @@ import SwiftUI
 import PhotosUI
 
 struct AlbumItem1: View {
+    @Environment(\.colorScheme) var colorSh
     let image: UIImage?
     
     var body: some View {
@@ -5235,7 +4502,7 @@ struct AlbumItem1: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                Color.white
+                colorSh == .dark ? Color.black : Color.white
                 
             }
         }
@@ -5243,15 +4510,17 @@ struct AlbumItem1: View {
         .mask(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(image == nil ? Color.gray.opacity(0.3) : .white, lineWidth: image == nil ? 1 : 0.5)
+                .strokeBorder(image == nil ? Color.secondary.opacity(0.4) : .white, lineWidth: image == nil ? 1 : 0.5)
         )
         .rotationEffect(.degrees(-5))
     }
 }
 
 struct AlbumItem2: View {
+    @Environment(\.colorScheme) var colorSh
+    
     let image: UIImage?
-
+    
     var body: some View {
         Group {
             if let img = image  {
@@ -5259,7 +4528,7 @@ struct AlbumItem2: View {
                     .resizable()
                     .scaledToFill()
             } else {
-                Color.white
+                colorSh == .dark ? Color.black : Color.white
                 
             }
         }
@@ -5267,13 +4536,14 @@ struct AlbumItem2: View {
         .mask(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(image == nil ? Color.gray.opacity(0.3) : .white, lineWidth: image == nil ? 1 : 0.5)
+                .strokeBorder(image == nil ? Color.secondary.opacity(0.4) : .white, lineWidth: image == nil ? 1 : 0.5)
         )
         .rotationEffect(.degrees(5))
     }
 }
 
 struct LastImageAlbum: View {
+    @Environment(\.colorScheme) var colorSh
     let image: UIImage?
     let totalImagesCount: Int
     
@@ -5285,28 +4555,28 @@ struct LastImageAlbum: View {
                         .resizable()
                         .scaledToFill()
                 } else {
-                    Color.white
+                    colorSh == .dark ? Color.black : Color.white
                 }
             }
             .frame(width: 92, height: 140)
             .mask(RoundedRectangle(cornerRadius: 12))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(image == nil ? Color.gray.opacity(0.3) : .white, lineWidth: image == nil ? 1 : 0.5)
+                    .strokeBorder(image == nil ? Color.secondary.opacity(0.4) : .white, lineWidth: image == nil ? 1 : 0.5)
             )
             .rotationEffect(.degrees(5))
             .blur(radius: image == nil ? 0 : 2)
             
             if image == nil, totalImagesCount >= 4 {
                 Text("+\(max(0, totalImagesCount - 4))")
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .fontWeight(.semibold)
             }
         }
     }
 }
 
-struct AlbumGroup: View {
+struct AlbumGroup: View {    
     let titleAlbum: String
     let images: [UIImage]
     let totalCount: Int
@@ -5319,7 +4589,7 @@ struct AlbumGroup: View {
         VStack(alignment: .leading) {
             Text(titleAlbum)
                 .font(.custom("Manrope-Bold", size: 22))
-                .foregroundStyle(Color.blue)
+                .foregroundStyle(Color(.corTitulo))
             
             HStack(spacing: -5) {
                 AlbumItem1(image: getImage(at: 0))
@@ -5354,7 +4624,6 @@ ARQUIVO: ./Wallie/View/Components/AlbumComponents/TagDate.swift
 import SwiftUI
 
 struct TagDate: View {
-    
     var dateSelected: Date
     
     var formatoData: DateFormatter {
@@ -5399,7 +4668,7 @@ struct CreateAlbumForm: View {
     @Binding var albumDate: Date
     @Binding var includeDate: Bool
     @Binding var selectedCategory: String
-        
+    
     let categories = ["Nenhuma", "Amigos", "Viagem", "Trabalho", "Outros"]
     
     var body: some View {
@@ -5445,15 +4714,6 @@ ARQUIVO: ./Wallie/View/AddItemRowView.swift
 import SwiftUI
 import AVFoundation
 import PhotosUI
-
-enum ActiveSheet: Identifiable {
-    case audioRecorder
-    case photoPicker
-    
-    var id: Int {
-        hashValue
-    }
-}
 
 struct AddItemRowView: View {
     @Binding var item: AddItem
@@ -5701,8 +4961,6 @@ struct PhotoPickerSheetView: View {
     }
 }
 
-
-
 struct AudioWaveformView: View {
     var samples: [CGFloat]
     var barColor: Color = Color.indigo
@@ -5854,7 +5112,6 @@ struct AudioPlayerCardView: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 10) {
-                // Botão de Play/Pause
                 Button(action: togglePlay) {
                     Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 13, weight: .bold))
@@ -5882,7 +5139,6 @@ struct AudioPlayerCardView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            
             AudioWaveformView(samples: sampleAmplitudes, barColor: .indigo)
         }
         .padding()
@@ -5933,8 +5189,6 @@ ARQUIVO: ./Wallie/View/MemoriesView.swift
 //  MemoriesView.swift
 //  Wallie
 //
-//  Created by Tais Akemi Kawaguti on 14/08/26.
-//
 
 import SwiftUI
 
@@ -5942,53 +5196,109 @@ struct MemoriesView: View {
     @Environment(\.managedObjectContext) var viewContext
     @Environment(WallieViewModel.self) var viewmodel
     
-    // Instância para carregar as fotos da galeria nativa do dispositivo
-    @StateObject private var photoManager = PhotoManager()
-    
     @State private var isShowingAddExperience = false
     @State private var selectedMoments: Experience?
     @State private var isShowingDetail = false
     
+    // MARK: - Estados de Seleção Múltipla e Ações em Lote
+    @State private var isEditingMode = false
+    @State private var selectedExperienceIDs: Set<UUID> = []
+    @State private var isShowingDeleteAlert = false
+    @State private var isShowingMoveAlbumSheet = false
+    @State private var isShowingCreateAlbumSheet = false
+    @State private var selectedTargetAlbum: String = "Nenhum"
+    
+    var recentExperiences: [Experience] {
+        Array(viewmodel.experiences.sorted(by: { $0.date > $1.date }).prefix(5))
+    }
+    
     var body: some View {
         NavigationStack {
-            VStack {
-                HStack {
-                    ToolBarViewsTitle(
-                        title: "Memórias",
-                        subtitle: nil,
-                        onAdd: { isShowingAddExperience = true }
-                    )
-                }
-                .padding(16)
+            VStack(spacing: 0) {
+                ToolBarViewsTitle(
+                    title: "Memórias",
+                    subtitle: "Explore seus momentos favoritos",
+                    showEditButton: !viewmodel.allGallery.isEmpty,
+                    isEditingMode: isEditingMode,
+                    onAdd: { isShowingAddExperience = true },
+                    onEditToggle: {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isEditingMode.toggle()
+                            if !isEditingMode {
+                                selectedExperienceIDs.removeAll()
+                            }
+                        }
+                    }
+                )
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
                 
-                if viewmodel.allGallery.isEmpty && photoManager.recentImages.isEmpty {
+                if viewmodel.allGallery.isEmpty {
                     Spacer()
                     AlertMemories()
                     Spacer()
                 } else {
                     ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: 20) {
                             
-                            // MARK: - Seção Curto Prazo (Galeria do iOS)
+                            // Seção: A curto prazo
                             MemoriesTitles(
                                 title: "A curto prazo",
-                                subtitle: "Explore as fotos mais recentes da sua galeria"
+                                subtitle: "Seus momentos mais recentes"
                             )
                             
-                            if photoManager.recentImages.isEmpty {
-                                Text("Nenhuma foto recente encontrada.")
+                            if recentExperiences.isEmpty {
+                                Text("Nenhuma experiência recente encontrada.")
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                                     .padding(.horizontal, 16)
                             } else {
                                 ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack(spacing: 12) {
-                                        ForEach(photoManager.recentImages) { foto in
-                                            Image(uiImage: foto.image)
-                                                .resizable()
-                                                .scaledToFill()
-                                                .frame(width: 110, height: 110)
-                                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                    HStack(spacing: 14) {
+                                        ForEach(recentExperiences) { experience in
+                                            let isSelected = selectedExperienceIDs.contains(experience.id)
+                                            
+                                            VStack(alignment: .leading, spacing: 8) {
+                                                ZStack(alignment: .topTrailing) {
+                                                    if let data = experience.images.first, let uiImage = UIImage(data: data) {
+                                                        Image(uiImage: uiImage)
+                                                            .resizable()
+                                                            .scaledToFill()
+                                                            .frame(width: 135, height: 135)
+                                                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                                                    } else {
+                                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                                            .fill(Color(.systemGray5))
+                                                            .frame(width: 135, height: 135)
+                                                            .overlay(Image(systemName: "photo").foregroundStyle(.secondary))
+                                                    }
+                                                    
+                                                    if isEditingMode {
+                                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle.fill")
+                                                            .font(.title3)
+                                                            .foregroundStyle(isSelected ? Color.accentColor : .white.opacity(0.6))
+                                                            .background(Circle().fill(Color.black.opacity(0.2)))
+                                                            .padding(8)
+                                                    }
+                                                }
+                                                
+                                                Text(experience.title.isEmpty ? "Sem título" : experience.title)
+                                                    .font(.caption.weight(.bold))
+                                                    .lineLimit(1)
+                                                    .foregroundStyle(.primary)
+                                            }
+                                            .frame(width: 135)
+                                            .scaleEffect(isSelected ? 0.95 : 1.0)
+                                            .animation(.easeInOut(duration: 0.2), value: isSelected)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                if isEditingMode {
+                                                    toggleSelection(for: experience.id)
+                                                } else {
+                                                    self.selectedMoments = experience
+                                                    self.isShowingDetail = true
+                                                }
+                                            }
                                         }
                                     }
                                     .padding(.horizontal, 16)
@@ -5997,9 +5307,8 @@ struct MemoriesView: View {
                             
                             Divider()
                                 .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
                             
-                            // MARK: - Seção Todos os Momentos (CoreData)
+                            // Seção: Todos os Momentos
                             MemoriesTitles(
                                 title: "Todos momentos",
                                 subtitle: "Explore os momentos criados por você"
@@ -6010,16 +5319,32 @@ struct MemoriesView: View {
                                 data: viewmodel.allGallery,
                                 heightProvider: { $0.calculatedHeight }
                             ) { item in
-                                ImageView(item, isExpanded: false)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        if let experienceOpen = viewmodel.experiences.first(where: { exp in
-                                            return exp.id == item.experienceID
-                                        }) {
+                                let isSelected = selectedExperienceIDs.contains(item.experienceID)
+                                
+                                ZStack(alignment: .topTrailing) {
+                                    ImageView(item, isExpanded: false)
+                                    
+                                    if isEditingMode {
+                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle.fill")
+                                            .font(.title3)
+                                            .foregroundStyle(isSelected ? Color.accentColor : .white.opacity(0.6))
+                                            .background(Circle().fill(Color.black.opacity(0.2)))
+                                            .padding(8)
+                                    }
+                                }
+                                .scaleEffect(isSelected ? 0.96 : 1.0)
+                                .animation(.easeInOut(duration: 0.2), value: isSelected)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    if isEditingMode {
+                                        toggleSelection(for: item.experienceID)
+                                    } else {
+                                        if let experienceOpen = viewmodel.experiences.first(where: { $0.id == item.experienceID }) {
                                             self.selectedMoments = experienceOpen
                                             self.isShowingDetail = true
                                         }
                                     }
+                                }
                             } detail: { _, _, _, _ in
                                 EmptyView()
                             } overlay: { _, _, _, _ in
@@ -6027,12 +5352,101 @@ struct MemoriesView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
+                        .padding(.bottom, isEditingMode ? 90 : 20)
                     }
                 }
             }
-            .onAppear {
-                // Solicita permissão e carrega as fotos mais recentes da galeria
-                photoManager.requestPermissionAndFetch()
+            .overlay(alignment: .bottom) {
+                // Barra Flutuante com Ações de Mover ou Apagar os Itens Selecionados
+                if isEditingMode && !selectedExperienceIDs.isEmpty {
+                    HStack(spacing: 20) {
+                        Text("\(selectedExperienceIDs.count) selecionado(s)")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Button {
+                            isShowingMoveAlbumSheet = true
+                        } label: {
+                            Label("Mover", systemImage: "folder.badge.plus")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Color.accentColor)
+                        
+                        Button(role: .destructive) {
+                            isShowingDeleteAlert = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+            }
+            .alert("Excluir experiências", isPresented: $isShowingDeleteAlert) {
+                Button("Cancelar", role: .cancel) { }
+                Button("Excluir (\(selectedExperienceIDs.count))", role: .destructive) {
+                    deleteSelectedExperiences()
+                }
+            } message: {
+                Text("Tem certeza que deseja apagar os \(selectedExperienceIDs.count) itens selecionados?")
+            }
+            .sheet(isPresented: $isShowingMoveAlbumSheet) {
+                NavigationStack {
+                    Form {
+                        Section("Mover itens selecionados para:") {
+                            Picker("Álbum", selection: $selectedTargetAlbum) {
+                                ForEach(viewmodel.albums.map { $0.name }, id: \.self) { albumName in
+                                    Text(albumName).tag(albumName)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            
+                            Button {
+                                // Fecha a folha de seleção para liberar a abertura do modal de novo álbum
+                                isShowingMoveAlbumSheet = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                                    isShowingCreateAlbumSheet = true
+                                }
+                            } label: {
+                                Label("Criar novo álbum...", systemImage: "plus")
+                            }
+                        }
+                    }
+                    .navigationTitle("Mover para Álbum")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancelar") { isShowingMoveAlbumSheet = false }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Mover") {
+                                moveSelectedExperiencesToAlbum(selectedTargetAlbum)
+                                isShowingMoveAlbumSheet = false
+                            }
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $isShowingCreateAlbumSheet) {
+                CreateAlbumView(existingAlbums: viewmodel.albums) { newAlbum in
+                    viewmodel.addNewAlbum(newAlbum)
+                    selectedTargetAlbum = newAlbum.name
+                    // Reabre a tela de mover com o novo álbum já selecionado
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                        isShowingMoveAlbumSheet = true
+                    }
+                }
             }
             .sheet(isPresented: $isShowingAddExperience) {
                 AddExperienceView(
@@ -6050,11 +5464,42 @@ struct MemoriesView: View {
                         },
                         onDelete: { deleted in
                             viewmodel.deleteExperience(deleted)
+                            isShowingDetail = false
                         }
                     )
                 }
             }
         }
+    }
+    
+    // MARK: - Funções Auxiliares
+    private func toggleSelection(for id: UUID) {
+        if selectedExperienceIDs.contains(id) {
+            selectedExperienceIDs.remove(id)
+        } else {
+            selectedExperienceIDs.insert(id)
+        }
+    }
+    
+    private func deleteSelectedExperiences() {
+        for id in selectedExperienceIDs {
+            if let experience = viewmodel.experiences.first(where: { $0.id == id }) {
+                viewmodel.deleteExperience(experience)
+            }
+        }
+        selectedExperienceIDs.removeAll()
+        withAnimation { isEditingMode = false }
+    }
+    
+    private func moveSelectedExperiencesToAlbum(_ albumName: String) {
+        for id in selectedExperienceIDs {
+            if var experience = viewmodel.experiences.first(where: { $0.id == id }) {
+                experience.album = albumName
+                viewmodel.updateExperience(experience)
+            }
+        }
+        selectedExperienceIDs.removeAll()
+        withAnimation { isEditingMode = false }
     }
 }
 
@@ -6070,217 +5515,14 @@ extension MemoriesView {
                         .aspectRatio(contentMode: isExpanded ? .fit : .fill)
                 }
             }
-            .cornerRadius(isExpanded ? 0 : 12)
+            .cornerRadius(isExpanded ? 0 : 14)
             .clipped()
-    }
-    
-    @available(iOS 26.0, *)
-    @ViewBuilder
-    func OverlayActionView(dragOffset: CGSize, dismiss: @escaping () -> Void) -> some View {
-        let interactiveOpacity: CGFloat = 1 - min(abs(dragOffset.height / 30), 1)
-        
-        VStack {
-            HStack {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.title3)
-                        .frame(width: 20, height: 30)
-                }
-                .buttonStyle(.glass)
-                Spacer(minLength: 0)
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(16)
-        .compositingGroup()
-        .opacity(interactiveOpacity)
     }
 }
 
 #Preview {
     MemoriesView()
         .environment(WallieViewModel())
-}
-
-
-========================================
-ARQUIVO: ./Wallie/View/CalendarView.swift
-========================================
-//
-//  Untitled.swift
-//  Wallie
-//
-//  Created by Vitor Silva Souza on 17/08/26.
-//
-
-import SwiftUI
-
-struct CalendarView: View {
-    
-    @Environment(\.managedObjectContext) var viewContext
-    @Environment(WallieViewModel.self) var viewModel
-    
-    var body: some View {
-        Text("Calendario")
-    }
-}
-
-#Preview {
-    CalendarView()
-        .environment(WallieViewModel())
-}
-
-
-========================================
-ARQUIVO: ./Wallie/View/SelectedAlbumView.swift
-========================================
-//
-//  SelectedAlbumView.swift
-//  Wallie
-//
-//  Created by Vitor Silva Souza on 16/08/26.
-//
-
-import SwiftUI
-
-struct SelectedAlbumView: View {
-    let album: formAlbum
-    
-    @Environment(\.dismiss) private var dismiss
-    @Environment(WallieViewModel.self) var viewmodel
-    
-    @State private var isShowingAddExperience = false
-    @State private var selectedMoments: Experience?
-    @State private var isShowingDetail = false
-    @State private var isShowingDeleteAlbumAlert = false
-    
-    var albumGallery: [ItemGalery] {
-        viewmodel.allGallery.filter { item in
-            if let exp = viewmodel.experiences.first(where: { $0.id == item.experienceID }) {
-                return exp.album == album.name
-            }
-            return false
-        }
-    }
-    
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading) {
-                Title(title: album.name, subtitle: "")
-                
-                HStack {
-                    if let category = album.category {
-                        TagCategory(nameCategory: category)
-                    }
-                    
-                    if let date = album.date {
-                        TagDate(dateSelected: date)
-                    }
-                }
-                .padding(.bottom, 16)
-                
-                MasonryGridView(
-                    columnsCount: 2,
-                    data: albumGallery,
-                    heightProvider: { $0.calculatedHeight }
-                ) { item in
-                    ImageView(item, isExpanded: false)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            if let experienceOpen = viewmodel.experiences.first(where: { exp in
-                                return exp.id == item.experienceID
-                            }) {
-                                self.selectedMoments = experienceOpen
-                                self.isShowingDetail = true
-                            }
-                        }
-                } detail: { _, _, _, _ in
-                    EmptyView()
-                } overlay: { _, _, _, _ in
-                    EmptyView()
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal)
-        }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                // Menu de opções do álbum (Excluir)
-                Menu {
-                    Button(role: .destructive) {
-                        isShowingDeleteAlbumAlert = true
-                    } label: {
-                        Label("Excluir Álbum", systemImage: "trash")
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-                
-                // Botão de adicionar nova experiência direto no álbum
-                Button {
-                    isShowingAddExperience = true
-                } label: {
-                    Image(systemName: "plus")
-                }
-            }
-        }
-        .alert("Excluir Álbum", isPresented: $isShowingDeleteAlbumAlert) {
-            Button("Cancelar", role: .cancel) { }
-            Button("Excluir", role: .destructive) {
-                viewmodel.deleteAlbum(album)
-                dismiss()
-            }
-        } message: {
-            Text("Tem certeza que deseja excluir o álbum '\(album.name)'? As experiências associadas não serão apagadas.")
-        }
-        .sheet(isPresented: $isShowingAddExperience) {
-            AddExperienceView(
-                availableAlbums: viewmodel.albums.map { $0.name }
-            ) { newExperience in
-                var experienceAdd = newExperience
-                experienceAdd.album = album.name
-                viewmodel.addNewExperience(experienceAdd)
-            }
-        }
-        .navigationDestination(isPresented: $isShowingDetail) {
-            if let experience = selectedMoments {
-                ExperienceDetailScreen(
-                    experience: experience,
-                    onSave: { updated in
-                        viewmodel.updateExperience(updated)
-                    },
-                    onDelete: { deleted in
-                        viewmodel.deleteExperience(deleted)
-                    }
-                )
-            }
-        }
-    }
-}
-
-extension SelectedAlbumView {
-    @ViewBuilder
-    func ImageView(_ item: ItemGalery, isExpanded: Bool = false) -> some View {
-        Rectangle()
-            .foregroundStyle(.clear)
-            .overlay {
-                if let image = item.image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: isExpanded ? .fit : .fill)
-                }
-            }
-            .cornerRadius(isExpanded ? 0 : 12)
-            .clipped()
-    }
-}
-
-#Preview {
-    NavigationStack {
-        SelectedAlbumView(album: formAlbum(name: "Viagem pro Chile", date: Date(), category: "Viagem"))
-            .environment(WallieViewModel())
-    }
 }
 
 
