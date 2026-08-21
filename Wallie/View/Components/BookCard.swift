@@ -839,3 +839,4 @@ private struct BookPreviewWrapper: View {
         }
     }
 }
+
