@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct TagDate: View {
-    
     var dateSelected: Date
     
     var formatoData: DateFormatter {

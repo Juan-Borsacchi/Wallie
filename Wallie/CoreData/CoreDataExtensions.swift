@@ -4,6 +4,7 @@
 //
 //  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
 //
+
 import CoreData
 import UIKit
 import SwiftUI
@@ -37,7 +38,7 @@ extension Xperience {
             album: self.album?.title ?? "Nenhum",
             quality: qualityVal,
             emotion: emotionVal,
-            extraItems: [] // Decodificar o "photos" e "audio" binary data se implementado no futuro
+            extraItems: []
         )
     }
 }
@@ -45,7 +46,6 @@ extension Xperience {
 extension Album {
     func toUIModel() -> formAlbum {
         return formAlbum(
-          //  id: self.id ?? UUID(),
             name: self.title ?? "Sem Nome",
             date: nil,
             category: self.category

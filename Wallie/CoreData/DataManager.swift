@@ -1,16 +1,21 @@
+//
+//  CoreDataExtensions.swift
+//  Wallie
+//
+//  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
+//
+
 import CoreData
 import UIKit
 import SwiftUI
-import Combine
+import Observation
 
-class DataManager: ObservableObject {
-    
+@Observable
+class DataManager {
     static let shared = DataManager()
     
-    @Published var xperiences: [Xperience] = []
-    @Published var albums: [Album] = []
-    
-    // MARK: - Core Data Operations
+    var xperiences: [Xperience] = []
+    var albums: [Album] = []
     
     func loadData() {
         let context = PersistenceController.shared.container.viewContext
@@ -25,14 +30,13 @@ class DataManager: ObservableObject {
             self.xperiences = try context.fetch(fetchXperiences)
             self.albums = try context.fetch(fetchAlbums)
         } catch {
-            print("Erro ao recuperar dados: \(error.localizedDescription)")
+            print(error.localizedDescription)
         }
     }
     
     func saveExperience(_ experienceUI: Experience) {
         let context = PersistenceController.shared.container.viewContext
         
-        // Verifica se a experiência já existe (para Update)
         let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", experienceUI.id as CVarArg)
         
@@ -44,7 +48,6 @@ class DataManager: ObservableObject {
             xperience.id = experienceUI.id
         }
         
-        // Mapeamento de UI -> Core Data
         xperience.title = experienceUI.title
         xperience.descriptions = experienceUI.description
         xperience.timestamp = experienceUI.date
@@ -55,7 +58,6 @@ class DataManager: ObservableObject {
             xperience.cover = coverData
         }
         
-        // Lógica de Relacionamento de Álbum
         if experienceUI.album != "Nenhum" {
             xperience.album = getOrCreateAlbum(withName: experienceUI.album, in: context)
         } else {
@@ -64,10 +66,9 @@ class DataManager: ObservableObject {
         
         do {
             try context.save()
-            print("Experiência salva com sucesso!")
             loadData()
         } catch {
-            print("Erro ao salvar a experiência: \(error.localizedDescription)")
+            print(error.localizedDescription)
         }
     }
     
@@ -80,7 +81,7 @@ class DataManager: ObservableObject {
             try context.save()
             loadData()
         } catch {
-            print("Erro ao salvar álbum: \(error)")
+            print(error.localizedDescription)
         }
     }
     
@@ -107,33 +108,29 @@ class DataManager: ObservableObject {
             try context.save()
             loadData()
         } catch {
-            print("Erro ao deletar: \(error.localizedDescription)")
+            print(error.localizedDescription)
         }
     }
-    // MARK: - Legacy Update (Para a UIViewController)
+    
+    func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
+        let context = PersistenceController.shared.container.viewContext
+        let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
         
-        func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
-            let context = PersistenceController.shared.container.viewContext
-            let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-            
-            fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-            
-            do {
-                if let experienceToUpdate = try context.fetch(fetchRequest).first {
-                    experienceToUpdate.title = newTitle
-                    
-                    if let cover = newCover, let imageData = cover.jpegData(compressionQuality: 0.8) {
-                        experienceToUpdate.cover = imageData
-                    }
-                    
-                    try context.save()
-                    print("Experiência atualizada com sucesso pelo ID!")
-                    loadData()
-                } else {
-                    print("Nenhuma experiência encontrada com o ID informado.")
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            if let experienceToUpdate = try context.fetch(fetchRequest).first {
+                experienceToUpdate.title = newTitle
+                
+                if let cover = newCover, let imageData = cover.jpegData(compressionQuality: 0.8) {
+                    experienceToUpdate.cover = imageData
                 }
-            } catch {
-                print("Erro ao atualizar por ID: \(error.localizedDescription)")
+                
+                try context.save()
+                loadData()
             }
+        } catch {
+            print(error.localizedDescription)
         }
+    }
 }

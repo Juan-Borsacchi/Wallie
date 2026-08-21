@@ -11,7 +11,7 @@ struct AudioPlayerRow: View {
     let url: URL
     let isPlaying: Bool
     let onTogglePlay: () -> Void
-
+    
     var body: some View {
         HStack(spacing: 14) {
             Button(action: onTogglePlay) {

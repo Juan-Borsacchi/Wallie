@@ -9,18 +9,16 @@ import SwiftUI
 import PhotosUI
 
 struct AddExperienceView: View {
-    
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel: AddExperienceViewModel
+    @State private var viewModel: AddExperienceViewModel
     @FocusState private var isInputFocused: Bool
     
-    // MARK: - Inicializador Atualizado
     init(
         editing experience: Experience? = nil,
         availableAlbums: [String] = [],
         onSave: @escaping (Experience) -> Void
     ) {
-        _viewModel = StateObject(wrappedValue: AddExperienceViewModel(
+        _viewModel = State(initialValue: AddExperienceViewModel(
             editing: experience,
             availableAlbums: availableAlbums,
             onSave: onSave
@@ -32,8 +30,6 @@ struct AddExperienceView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: 16) {
-                        
-                        // MARK: - Capa
                         ExperienceCoverHeaderView(
                             coverImage: $viewModel.coverImage,
                             onSelectPhoto: { viewModel.showCoverPhotoPicker = true },
@@ -41,13 +37,11 @@ struct AddExperienceView: View {
                         )
                         .id("top")
                         
-                        // MARK: - Formulário Principal
                         mainForm
                         
                         Divider()
                             .padding(.horizontal, 16)
                         
-                        // MARK: - Itens Extras
                         DynamicItemsSection(itens: $viewModel.itensExtras)
                         
                         Spacer(minLength: 110)
@@ -87,11 +81,8 @@ struct AddExperienceView: View {
         }
     }
     
-    // MARK: - Formulário
     private var mainForm: some View {
         VStack(spacing: 14) {
-            
-            // MARK: Seção Título (Card + Legenda externa)
             VStack(alignment: .leading, spacing: 6) {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Título", systemImage: "text.cursor")
@@ -108,14 +99,12 @@ struct AddExperienceView: View {
                     in: RoundedRectangle(cornerRadius: 14, style: .continuous)
                 )
                 
-                // Texto informativo fora da área do card
                 Text("Campo obrigatório.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.leading, 12)
             }
             
-            // MARK: Seção Descrição
             VStack(alignment: .leading, spacing: 8) {
                 Label("Descrição", systemImage: "text.justify.left")
                     .font(.callout)
@@ -132,13 +121,11 @@ struct AddExperienceView: View {
                 in: RoundedRectangle(cornerRadius: 14, style: .continuous)
             )
             
-            // Seletor de Data
             DateSelectionRow(
                 includeDate: $viewModel.includeDate,
                 date: $viewModel.date
             )
             
-            // Seletor de Álbum
             AlbumSelectionMenu(
                 album: $viewModel.album,
                 availableAlbums: viewModel.availableAlbums
@@ -157,7 +144,6 @@ struct AddExperienceView: View {
         }
     }
     
-    // MARK: - Toolbar Content
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
@@ -200,9 +186,8 @@ struct AddExperienceView: View {
     }
 }
 
-// MARK: - Preview
 #Preview {
     AddExperienceView(availableAlbums: ["Viagem", "Família"]) { experience in
-        print("Experiência salva: \(experience.title)")
+        print(experience.title)
     }
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DynamicItemsSection: View {
     @Binding var itens: [AddItem]
- 
+    
     var body: some View {
         if !itens.isEmpty {
             VStack(alignment: .leading, spacing: 16) {
@@ -17,7 +17,7 @@ struct DynamicItemsSection: View {
                     AddItemRowView(item: $item) {
                         remover(item)
                     }
- 
+                    
                     if item.id != itens.last?.id {
                         Divider()
                     }
@@ -26,7 +26,7 @@ struct DynamicItemsSection: View {
             .padding(.horizontal)
         }
     }
- 
+    
     private func remover(_ item: AddItem) {
         withAnimation {
             itens.removeAll { $0.id == item.id }

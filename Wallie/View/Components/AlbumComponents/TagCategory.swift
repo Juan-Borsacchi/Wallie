@@ -8,11 +8,9 @@
 import SwiftUI
 
 struct TagCategory: View {
-    
     var nameCategory: String
     
-        var body: some View {
-        
+    var body: some View {
         VStack {
             Text(nameCategory)
                 .font(.custom("Manrope-Bold", size: 17))

@@ -50,7 +50,7 @@ struct SearchView: View {
                         if !filterAlbums.isEmpty {
                             Section("Álbuns") {
                                 ForEach(filterAlbums) { album in
-                                    NavigationLink(destination: SelectedAlbumView(album: album)) {
+                                    NavigationLink(destination: SelectedAlbumViews(album: album)) {
                                         HStack {
                                             Image(systemName: "rectangle.stack.fill")
                                                 .foregroundStyle(.blue)
@@ -75,9 +75,8 @@ struct SearchView: View {
                             Section("Experiências") {
                                 ForEach(filterExperience) { experience in
                                     NavigationLink(destination: ExperienceDetailScreen(experience: experience, onSave: { updated in
-                                        if let index = viewmodel.experiences.firstIndex(where: { $0.id == updated.id }) {
-                                            viewmodel.experiences[index] = updated
-                                        }
+                                            viewmodel.updateExperience(updated)
+                                        
                                     })) {
                                         HStack(spacing: 12) {
                                             if let data = experience.images.first, let uiImage = UIImage(data: data) {
@@ -91,7 +90,7 @@ struct SearchView: View {
                                                     .fill(Color(.systemGray5))
                                                     .frame(width: 50, height: 50)
                                                     .overlay(Image(systemName: "photo")
-                                                    .foregroundStyle(.secondary))
+                                                        .foregroundStyle(.secondary))
                                             }
                                             
                                             VStack(alignment: .leading, spacing: 4) {
@@ -114,4 +113,10 @@ struct SearchView: View {
         }
         .searchable(text: $query, prompt: "Explore seus momentos e álbuns")
     }
+}
+
+
+#Preview {
+    SearchView()
+        .environment(WallieViewModel())
 }

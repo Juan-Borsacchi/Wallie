@@ -40,36 +40,36 @@ struct AlbunsView: View {
                                     titleAlbum: album.name,
                                     images: Array(allAlbumImages.prefix(4)),
                                     totalCount: allAlbumImages.count)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
+                .padding(16)
             }
-            .padding(16)
-        }
-        .navigationDestination(for: formAlbum.self) { album in
-            SelectedAlbumView(album: album)
-        }
-        .sheet(isPresented: $displaySheet) {
-            CreateAlbumView(onSave: { newAlbum in
-                viewmodel.addNewAlbum(newAlbum)
-            })
-            .presentationDragIndicator(.visible)
-            .presentationDetents([.large])
+            .navigationDestination(for: formAlbum.self) { album in
+                SelectedAlbumViews(album: album)
+            }
+            .sheet(isPresented: $displaySheet) {
+                CreateAlbumView(onSave: { newAlbum in
+                    viewmodel.addNewAlbum(newAlbum)
+                })
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.large])
+            }
         }
     }
-}
-
-private func getImagesForAlbum(albumName: String) -> [UIImage] {
-    let albumExperienceIDs = viewmodel.experiences
-        .filter { $0.album == albumName }
-        .map { $0.id }
     
-    return viewmodel.allGallery
-        .filter { albumExperienceIDs.contains($0.experienceID) }
-        .compactMap { $0.image }
-    
-}
+    private func getImagesForAlbum(albumName: String) -> [UIImage] {
+        let albumExperienceIDs = viewmodel.experiences
+            .filter { $0.album == albumName }
+            .map { $0.id }
+        
+        return viewmodel.allGallery
+            .filter { albumExperienceIDs.contains($0.experienceID) }
+            .compactMap { $0.image }
+        
+    }
 }
 
 #Preview {

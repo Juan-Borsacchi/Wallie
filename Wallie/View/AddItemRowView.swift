@@ -9,15 +9,6 @@ import SwiftUI
 import AVFoundation
 import PhotosUI
 
-enum ActiveSheet: Identifiable {
-    case audioRecorder
-    case photoPicker
-    
-    var id: Int {
-        hashValue
-    }
-}
-
 struct AddItemRowView: View {
     @Binding var item: AddItem
     var onRemove: () -> Void
@@ -264,8 +255,6 @@ struct PhotoPickerSheetView: View {
     }
 }
 
-
-
 struct AudioWaveformView: View {
     var samples: [CGFloat]
     var barColor: Color = Color.indigo
@@ -417,7 +406,6 @@ struct AudioPlayerCardView: View {
     var body: some View {
         VStack(spacing: 12) {
             HStack(spacing: 10) {
-                // Botão de Play/Pause
                 Button(action: togglePlay) {
                     Image(systemName: isPlaying ? "pause.fill" : "play.fill")
                         .font(.system(size: 13, weight: .bold))
@@ -445,7 +433,6 @@ struct AudioPlayerCardView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            
             AudioWaveformView(samples: sampleAmplitudes, barColor: .indigo)
         }
         .padding()

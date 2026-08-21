@@ -10,7 +10,7 @@ import SwiftUI
 struct GlassCardView<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
-
+    
     var body: some View {
         VStack(spacing: 16) {
             Text(title.isEmpty ? "Sem título" : title)
@@ -21,7 +21,7 @@ struct GlassCardView<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 20)
                 .padding(.top)
-
+            
             content
         }
         .frame(maxWidth: .infinity)

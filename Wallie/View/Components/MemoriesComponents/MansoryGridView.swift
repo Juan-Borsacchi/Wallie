@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MasonryGridView<Data: RandomAccessCollection, GridItem: View, Detail: View, Overlay: View>: View where Data.Element: PhotoProtocol & Identifiable {
-
+    
     var spacing: CGFloat = 12
     var columnsCount: Int = 2
     var data: Data
