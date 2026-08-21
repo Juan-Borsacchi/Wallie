@@ -48,39 +48,33 @@ struct ExperienceCoverHeaderView: View {
                 HStack(spacing: 12) {
                     
                     Button(action: onSelectPhoto) {
-                        Label(
-                            coverImage == nil ? "Acessar Galeria" : "Trocar foto",
-                            systemImage: "photo"
-                        )
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(Color.primary.opacity(0.15), lineWidth: 1)
-                        )
+                        Text(coverImage == nil ? "Acessar Galeria" : "Trocar foto")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color.primary.opacity(0.15), lineWidth: 1)
+                            )
                     }
                     .buttonStyle(.plain)
                     
                     Button(action: onTakePhoto) {
-                        Label(
-                            coverImage == nil ? "Tirar foto" : "Tirar outra",
-                            systemImage: coverImage == nil ? "camera.fill" : "camera"
-                        )
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(coverImage == nil ? .white : MomentosPalette.accentSoft)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background {
-                            if coverImage == nil {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(MomentosPalette.accentSoft)
-                            } else {
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(MomentosPalette.accentSoft, lineWidth: 1.5)
+                        Text(coverImage == nil ? "Tirar foto" : "Tirar outra")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(coverImage == nil ? .white : MomentosPalette.accentSoft)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background {
+                                if coverImage == nil {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .fill(MomentosPalette.accentSoft)
+                                } else {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(MomentosPalette.accentSoft, lineWidth: 1.5)
+                                }
                             }
-                        }
                     }
                     .buttonStyle(.plain)
                 }

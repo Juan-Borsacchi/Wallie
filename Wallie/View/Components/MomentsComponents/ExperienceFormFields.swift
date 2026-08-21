@@ -38,9 +38,18 @@ struct DateSelectionRow: View {
 struct AlbumSelectionMenu: View {
     @Binding var album: String
     let availableAlbums: [String]
+    var onCreateNewAlbum: (() -> Void)? = nil
     
     var body: some View {
         Menu {
+            Button {
+                onCreateNewAlbum?()
+            } label: {
+                Label("Criar novo álbum...", systemImage: "plus")
+            }
+            
+            Divider()
+            
             ForEach(availableAlbums, id: \.self) { option in
                 Button {
                     album = option
