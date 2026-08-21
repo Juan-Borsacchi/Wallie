@@ -12,6 +12,8 @@ struct EditAlbumSheet: View {
     let album: formAlbum
     var onSave: (formAlbum) -> Void
     
+    @FocusState private var isInputFocused: Bool
+    
     @State private var name: String = ""
     @State private var category: String = "Nenhuma"
     
@@ -27,15 +29,43 @@ struct EditAlbumSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Título") {
-                    TextField("Nome do Álbum", text: $name)
-                }
-                Section("Categoria") {
-                    Picker("Categoria", selection: $category) {
-                        ForEach(categories, id: \.self) { cat in
-                            Text(cat).tag(cat)
+                VStack(spacing: 14) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Título", systemImage: "text.cursor")
+                                .font(.callout)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                            
+                            TextField("Dê um título para o álbum...", text: $name)
+                                .focused($isInputFocused)
                         }
-                    }
+                                        .padding(14)
+                                        .background(
+                                            Color(.systemBackground),
+                                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        )
+                                    }
+
+                    
+                Section {
+                        HStack(spacing: 8) {
+                            Label("Categoria", systemImage: "folder")
+                                .font(.callout)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                            
+                            Picker("",selection: $category) {
+                                ForEach(categories, id: \.self) { cat in
+                                    Text(cat).tag(cat)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(.primary)
+                        }.padding(14)
+                        .background(
+                            Color(.systemBackground),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
                 }
             }
             .navigationTitle("Editar Álbum")

@@ -46,6 +46,7 @@ extension Xperience {
 extension Album {
     func toUIModel() -> formAlbum {
         return formAlbum(
+            id: self.id ?? UUID(),
             name: self.title ?? "Sem Nome",
             date: nil,
             category: self.category
