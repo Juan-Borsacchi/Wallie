@@ -87,12 +87,14 @@ struct SelectedAlbumViews: View {
                 }
             }
             
+            ToolbarSpacer(.fixed, placement: .topBarTrailing)
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     isShowingAddExperience = true
                 } label: {
                     Image(systemName: "plus")
-                }
+                }.buttonStyle(.borderedProminent)
+                    .tint(.corTitulo)
             }
         }
         .alert("Excluir Álbum", isPresented: $isShowingDeleteAlbumAlert) {
@@ -114,8 +116,8 @@ struct SelectedAlbumViews: View {
             }
         }
         .sheet(isPresented: $isShowingEditAlbum) {
-            EditAlbumSheet(album: album) { updatedAlbum in
-                viewmodel.addNewAlbum(updatedAlbum)
+            EditAlbumSheet(album: album) { updatedForm in
+                viewmodel.updateAlbum(updatedForm)
             }
         }
         .navigationDestination(isPresented: $isShowingDetail) {

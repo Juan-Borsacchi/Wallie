@@ -61,6 +61,10 @@ class WallieViewModel {
         dataManager.saveAlbum(album)
     }
     
+    func updateAlbum(_ album: formAlbum) {
+            dataManager.saveAlbum(album)
+        }
+    
     func deleteAlbum(_ album: formAlbum) {
         let context = PersistenceController.shared.container.viewContext
         let request: NSFetchRequest<Album> = Album.fetchRequest()

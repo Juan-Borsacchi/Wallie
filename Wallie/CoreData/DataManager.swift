@@ -74,14 +74,49 @@ class DataManager {
     
     func saveAlbum(_ albumUI: formAlbum) {
         let context = PersistenceController.shared.container.viewContext
-        let album = getOrCreateAlbum(withName: albumUI.name, in: context)
+        
+        let request: NSFetchRequest<Album> = Album.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", albumUI.id as CVarArg)
+        
+        let album: Album
+        if let existingAlbum = try? context.fetch(request).first {
+            // Encontrou pelo ID: atualiza o álbum existente (incluindo o título novo!)
+            album = existingAlbum
+        } else {
+            // Se realmente não tem ID no banco, aí sim criamos um novo
+            album = Album(context: context)
+            album.id = albumUI.id
+        }
+        
+        // Atualiza os dados
+        album.title = albumUI.name
         album.category = albumUI.category
         
         do {
             try context.save()
             loadData()
         } catch {
-            print(error.localizedDescription)
+            print("Erro ao salvar/editar álbum: \(error.localizedDescription)")
+        }
+    }
+    
+    func updateAlbum(id: UUID, newName: String, newCategory: String) {
+        let context = PersistenceController.shared.container.viewContext
+        let fetchRequest: NSFetchRequest<Album> = Album.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            if let albumToUpdate = try context.fetch(fetchRequest).first {
+                albumToUpdate.title = newName
+                albumToUpdate.category = newCategory
+                
+                try context.save()
+                loadData()
+            } else {
+                print("Álbum não encontrado para atualização.")
+            }
+        } catch {
+            print("Erro ao atualizar álbum: \(error.localizedDescription)")
         }
     }
     
