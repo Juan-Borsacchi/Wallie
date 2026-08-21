@@ -30,7 +30,7 @@ struct ToolBarViewsTitle: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
-                        .background(.azulProjeto)
+                        .background(.corTitulo)
                         .clipShape(Circle())
                 }
             }
