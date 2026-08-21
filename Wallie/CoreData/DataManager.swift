@@ -74,7 +74,19 @@ class DataManager {
     
     func saveAlbum(_ albumUI: formAlbum) {
         let context = PersistenceController.shared.container.viewContext
-        let album = getOrCreateAlbum(withName: albumUI.name, in: context)
+        
+        let request: NSFetchRequest<Album> = Album.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", albumUI.id as CVarArg)
+        
+        let album: Album
+        if let existingAlbum = try? context.fetch(request).first {
+            album = existingAlbum
+        } else {
+            album = Album(context: context)
+            album.id = albumUI.id
+        }
+        
+        album.title = albumUI.name
         album.category = albumUI.category
         
         do {
