@@ -179,34 +179,51 @@ private struct BookPageContent: View {
             // MARK: Capa azul
 
             if index == -2 {
-
-                Rectangle()
-                    .fill(.blue)
+                
+                Image("livro")
+                    .resizable()
+                    .scaledToFill()
+                   // .scaleEffect(1.1)
+                    .clipShape(.rect(cornerRadius: 20))
+               // Rectangle()
+                 //   .fill(.blue)
 
 
             // MARK: Contra-capa inicial cinza
 
             } else if index == -1 {
 
-                Rectangle()
-                    .fill(.gray)
+                Image("livro")
+                    .resizable()
+                    .scaledToFill()
+                    //.colorInver
+                    .scaleEffect(x: -1, y: 1)
+                    //.scaleEffect(1.1)
+                    .clipShape(.rect(cornerRadius: 20))
 
 
             // MARK: Contra-capa final cinza
 
             } else if index == backCoverLeftIndex {
 
-                Rectangle()
-                    .fill(.gray)
+                Image("livro")
+                    .resizable()
+                    .scaledToFill()
+                   // .scaleEffect(1.1)
+                    .clipShape(.rect(cornerRadius: 20))
 
 
             // MARK: Capa final verde
 
             } else if index == backCoverLeftIndex + 1 {
 
-                Rectangle()
-                    .fill(.green)
-
+                Image("livro")
+                    .resizable()
+                    .scaledToFill()
+                    //.colorInver
+                    .scaleEffect(x: -1, y: 1)
+                    //.scaleEffect(1.1)
+                    .clipShape(.rect(cornerRadius: 20))
 
             // MARK: Experience
 
@@ -222,8 +239,13 @@ private struct BookPageContent: View {
                     
                 }}else if index == experiences.count {
                     
-                    Rectangle()
-                        .fill(.yellow)
+                    Image("PaginaVazia")
+                        .resizable()
+                        .scaledToFill()
+                        //.colorInver
+                      //  .scaleEffect(x: -1, y: 1)
+                       // .scaleEffect(0.9)
+                        .clipShape(.rect(cornerRadius: 20))
                     
               
 
@@ -338,7 +360,7 @@ private struct BookTurningPage: View {
             : .trailing,
             perspective: 0.65
         )
-        .shadow(
+       /*.shadow(
             color: .black.opacity(
                 angle > 5 ? 0.28 : 0
             ),
@@ -347,7 +369,7 @@ private struct BookTurningPage: View {
             ? -5
             : 5,
             y: 4
-        )
+        )*/
     }
 }
 
