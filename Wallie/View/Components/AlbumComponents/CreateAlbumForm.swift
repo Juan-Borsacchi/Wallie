@@ -5,10 +5,14 @@
 //  Created by Vitor Silva Souza on 16/08/26.
 //
 
+//
+//  CreateAlbumForm.swift
+//  Wallie
+//
+
 import SwiftUI
 
 struct CreateAlbumForm: View {
-    
     @Binding var albumName: String
     @Binding var albumDate: Date
     @Binding var includeDate: Bool
@@ -17,30 +21,69 @@ struct CreateAlbumForm: View {
     let categories = ["Nenhuma", "Amigos", "Viagem", "Trabalho", "Outros"]
     
     var body: some View {
-        Form {
-            Section(header: Text("Título")) {
-                TextField("Nome do álbum", text: $albumName)
-            }
-            
-            Section(header: Text("Preferências")) {
-                Toggle("Data", isOn: $includeDate.animation())
+        ScrollView {
+            VStack(spacing: 16) {
                 
-                if includeDate {
-                    DatePicker(
-                        "Selecione a data",
-                        selection: $albumDate,
-                        displayedComponents: [.date]
-                    )
-                    .datePickerStyle(.graphical)
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Título", systemImage: "text.cursor")
+                        .font(.callout)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                    
+                    TextField("Nome do álbum...", text: $albumName)
                 }
+                .padding(16)
+                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 
-                Picker("Categoria", selection: $selectedCategory) {
-                    ForEach(categories, id: \.self) { category in
-                        Text(category).tag(category)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Label("Categoria", systemImage: "folder")
+                            .font(.callout)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Picker("", selection: $selectedCategory) {
+                            ForEach(categories, id: \.self) { category in
+                                Text(category).tag(category)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .tint(.primary)
                     }
                 }
-                .pickerStyle(.menu)
+                .padding(16)
+                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Label("Data", systemImage: "calendar")
+                            .font(.callout)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $includeDate.animation())
+                            .labelsHidden()
+                    }
+                    
+                    if includeDate {
+                        Divider().padding(.vertical, 8)
+                        DatePicker(
+                            "Selecione a data",
+                            selection: $albumDate,
+                            displayedComponents: [.date]
+                        )
+                        .datePickerStyle(.graphical)
+                    }
+                }
+                .padding(16)
+                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
+            .padding()
         }
+        .background(Color(.secondarySystemBackground))
     }
 }

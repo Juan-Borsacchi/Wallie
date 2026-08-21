@@ -12,16 +12,19 @@ class WallieViewModel {
     var displaySheet: Bool = false
     private let dataManager = DataManager.shared
     
-    var experiences: [Experience] {
-        dataManager.xperiences.map { $0.toUIModel() }
+    var experiences: [Experience] = []
+    var albums: [formAlbum] = []
+    var allGallery: [ItemGalery] = []
+    
+    init() {
+        refreshUI()
     }
     
-    var albums: [formAlbum] {
-        dataManager.albums.map { $0.toUIModel() }
-    }
-    
-    var allGallery: [ItemGalery] {
-        dataManager.xperiences.compactMap { xperience in
+    func refreshUI() {
+        dataManager.loadData()
+        self.experiences = dataManager.xperiences.map { $0.toUIModel() }
+        self.albums = dataManager.albums.map { $0.toUIModel() }
+        self.allGallery = dataManager.xperiences.compactMap { xperience in
             guard let coverData = xperience.cover,
                   let uiImage = UIImage(data: coverData),
                   let id = xperience.id else { return nil }
@@ -35,18 +38,14 @@ class WallieViewModel {
         }
     }
     
-    init() {
-        dataManager.loadData()
-    }
-    
     func addNewExperience(_ experience: Experience) {
         dataManager.saveExperience(experience)
-        dataManager.loadData()
+        refreshUI()
     }
     
     func updateExperience(_ experience: Experience) {
         dataManager.saveExperience(experience)
-        dataManager.loadData()
+        refreshUI()
     }
 
     func deleteExperience(_ experience: Experience) {
@@ -56,18 +55,19 @@ class WallieViewModel {
         
         if let item = try? context.fetch(fetchRequest).first {
             dataManager.deleteExperience(item)
-            dataManager.loadData()
+            refreshUI()
         }
     }
     
     func addNewAlbum(_ album: formAlbum) {
         dataManager.saveAlbum(album)
-        dataManager.loadData()
+        refreshUI()
     }
     
     func updateAlbum(_ album: formAlbum) {
-            dataManager.saveAlbum(album)
-        }
+        dataManager.saveAlbum(album)
+        refreshUI()
+    }
     
     func deleteAlbum(_ album: formAlbum) {
         let context = PersistenceController.shared.container.viewContext
@@ -80,12 +80,11 @@ class WallieViewModel {
                     exp.album = nil
                 }
             }
-            
             context.delete(albumToDelete)
             
             do {
                 try context.save()
-                dataManager.loadData()
+                refreshUI()
             } catch {
                 print(error.localizedDescription)
             }

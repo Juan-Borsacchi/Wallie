@@ -73,8 +73,8 @@ struct AlbunsView: View {
                     .padding(16)
                     .padding(.bottom, isEditingMode ? 90 : 20)
                 }
-                // Força o re-render da tela sempre que o vinculo de qualquer experiencia mudar
-                .id(viewmodel.experiences.map { "\($0.id)-\($0.album)" }.hashValue)
+                // Garante a re-renderização imediata quando nomes de álbuns ou vínculos de experiências mudam
+                .id(viewmodel.albums.map { "\($0.id)-\($0.name)" }.joined() + viewmodel.experiences.map { "\($0.id)-\($0.album)" }.joined())
             }
             .onAppear {
                 // Atualiza o DataManager sempre que entrar ou voltar para a aba de Álbuns
