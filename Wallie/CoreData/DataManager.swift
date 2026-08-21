@@ -58,6 +58,24 @@ class DataManager {
             xperience.cover = coverData
         }
         
+        xperience.audio = nil
+        xperience.photos = nil
+        
+        for item in experienceUI.extraItems {
+            switch item.content {
+            case .audio(let url):
+                xperience.audio = try? Data(contentsOf: url)
+                
+            case .images(let uiImages):
+                if !uiImages.isEmpty {
+                    xperience.photos = try? NSKeyedArchiver.archivedData(withRootObject: uiImages, requiringSecureCoding: false)
+                }
+                
+            default:
+                break
+            }
+        }
+        
         if experienceUI.album != "Nenhum" {
             xperience.album = getOrCreateAlbum(withName: experienceUI.album, in: context)
         } else {

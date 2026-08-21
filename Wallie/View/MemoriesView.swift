@@ -170,7 +170,6 @@ struct MemoriesView: View {
                 }
             }
             .overlay(alignment: .bottom) {
-                // Barra Flutuante com Ações de Mover ou Apagar os Itens Selecionados
                 if isEditingMode && !selectedExperienceIDs.isEmpty {
                     HStack(spacing: 20) {
                         Text("\(selectedExperienceIDs.count) selecionado(s)")
@@ -226,7 +225,6 @@ struct MemoriesView: View {
                             .pickerStyle(.menu)
                             
                             Button {
-                                // Fecha a folha de seleção para liberar a abertura do modal de novo álbum
                                 isShowingMoveAlbumSheet = false
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                                     isShowingCreateAlbumSheet = true
@@ -255,7 +253,6 @@ struct MemoriesView: View {
                 CreateAlbumView(existingAlbums: viewmodel.albums) { newAlbum in
                     viewmodel.addNewAlbum(newAlbum)
                     selectedTargetAlbum = newAlbum.name
-                    // Reabre a tela de mover com o novo álbum já selecionado
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                         isShowingMoveAlbumSheet = true
                     }
@@ -311,6 +308,7 @@ struct MemoriesView: View {
                 viewmodel.updateExperience(experience)
             }
         }
+        DataManager.shared.loadData()
         selectedExperienceIDs.removeAll()
         withAnimation { isEditingMode = false }
     }

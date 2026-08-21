@@ -41,10 +41,12 @@ class WallieViewModel {
     
     func addNewExperience(_ experience: Experience) {
         dataManager.saveExperience(experience)
+        dataManager.loadData()
     }
     
     func updateExperience(_ experience: Experience) {
         dataManager.saveExperience(experience)
+        dataManager.loadData()
     }
 
     func deleteExperience(_ experience: Experience) {
@@ -54,11 +56,13 @@ class WallieViewModel {
         
         if let item = try? context.fetch(fetchRequest).first {
             dataManager.deleteExperience(item)
+            dataManager.loadData()
         }
     }
     
     func addNewAlbum(_ album: formAlbum) {
         dataManager.saveAlbum(album)
+        dataManager.loadData()
     }
     
     func updateAlbum(_ album: formAlbum) {

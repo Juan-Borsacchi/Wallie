@@ -79,7 +79,13 @@ struct ExperienceDetailScreen: View {
         .alert("Excluir Experiência", isPresented: $viewModel.isShowingDeleteAlert) {
             Button("Cancelar", role: .cancel) { }
             Button("Excluir", role: .destructive) {
-                viewModel.deleteExperience()
+                if let onDelete = viewModel.onDelete {
+                    onDelete(viewModel.experience)
+                } else {
+                    // Fallback direto caso o onDelete venha nil
+                    let vm = WallieViewModel()
+                    vm.deleteExperience(viewModel.experience)
+                }
                 dismiss()
             }
         } message: {
