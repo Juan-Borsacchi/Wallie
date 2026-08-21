@@ -5,7 +5,6 @@
 //  Created by Juan Gabriel Borsacchi Marques on 20/08/26.
 //
 
-
 import SwiftUI
 import PhotosUI
 import Combine
@@ -61,13 +60,18 @@ final class AddExperienceViewModel: ObservableObject {
     
     @Published var mostrarBarraDeItens = false
     
-    let availableAlbums = ["Nenhum", "Viagem", "Família", "Trabalho"]
+    // MARK: - Lista de Álbuns (Opções Iniciais + Criados)
+    @Published var availableAlbums: [String] = ["Nenhum", "Viagem", "Família", "Trabalho"]
     
     var isSaveDisabled: Bool {
         coverImage == nil || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    init(editing experience: Experience? = nil, onSave: @escaping (Experience) -> Void) {
+    init(
+        editing experience: Experience? = nil,
+        availableAlbums: [String] = [],
+        onSave: @escaping (Experience) -> Void
+    ) {
         self.existingID = experience?.id
         self.onSave = onSave
         
@@ -79,6 +83,13 @@ final class AddExperienceViewModel: ObservableObject {
         self.accentColor = experience?.accentColor
         self.backgroundGradient = experience?.backgroundGradient
         self.itensExtras = experience?.extraItems ?? []
+        
+        // Garante as opções padrões iniciais + os álbuns salvos no app
+        var defaultList = ["Nenhum", "Viagem", "Família", "Trabalho"]
+        for item in availableAlbums where !defaultList.contains(item) {
+            defaultList.append(item)
+        }
+        self.availableAlbums = defaultList
         
         if let data = experience?.images.first, let image = UIImage(data: data) {
             self.coverImage = image
