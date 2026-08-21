@@ -11,6 +11,7 @@ struct DetailPhotoView<Data: RandomAccessCollection, Detail: View, Overlay: View
     
     @Binding var config: PhotoHeroEffectConfig<Data.Element>
     var data: Data
+    
     @ViewBuilder var detail: (Data.Element, Bool, CGSize, @escaping () -> ()) -> Detail
     @ViewBuilder var overlay: (Data.Element?, Bool, CGSize, @escaping () -> ()) -> Overlay
     

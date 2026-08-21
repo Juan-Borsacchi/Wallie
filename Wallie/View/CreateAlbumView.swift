@@ -51,7 +51,6 @@ struct CreateAlbumView: View {
     private func saveAlbumProcess() {
         let trimmedName = albumName.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        // Define o nome final
         let finalName: String
         if trimmedName.isEmpty {
             finalName = generateUniqueDefaultName()
@@ -59,7 +58,6 @@ struct CreateAlbumView: View {
             finalName = trimmedName
         }
         
-        // Verifica se já existe um álbum salvo com este mesmo nome
         if existingAlbums.contains(where: { $0.name.lowercased() == finalName.lowercased() }) {
             showAlertDuplicate = true
             return
@@ -73,7 +71,6 @@ struct CreateAlbumView: View {
         dismiss()
     }
     
-    /// Gera um nome incremental caso o usuário não informe um título (ex: "Novo Álbum 1", "Novo Álbum 2")
     private func generateUniqueDefaultName() -> String {
         let baseName = "Novo Álbum"
         if !existingAlbums.contains(where: { $0.name.lowercased() == baseName.lowercased() }) {

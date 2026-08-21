@@ -11,7 +11,7 @@ struct MoodTagView: View {
     let title: String
     let imageName: String
     let label: String
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)

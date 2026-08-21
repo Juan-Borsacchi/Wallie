@@ -7,7 +7,7 @@
 
 import SwiftUI
 import AVKit
-import Combine
+import Observation
 
 @Observable
 final class ExperienceDetailViewModel {
@@ -27,7 +27,7 @@ final class ExperienceDetailViewModel {
     var playingAudioURL: URL?
     
     private let displayDuration: Double = 5.0
-    private var timerCancellable: AnyCancellable?
+    private var timerTask: Task<Void, Never>?
 
     init(
         experience: Experience,
@@ -42,7 +42,7 @@ final class ExperienceDetailViewModel {
     
     deinit {
         stopAudio()
-        timerCancellable?.cancel()
+        timerTask?.cancel()
     }
 
     var allPhotos: [ExperiencePhoto] {
@@ -73,11 +73,12 @@ final class ExperienceDetailViewModel {
     var hasMood: Bool { experience.quality != nil || experience.emotion != nil }
 
     func startTimer() {
-        timerCancellable = Timer.publish(every: 0.05, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
+        timerTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(0.05))
                 self?.updateProgress()
             }
+        }
     }
 
     private func updateProgress() {

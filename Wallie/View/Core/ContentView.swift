@@ -4,6 +4,7 @@
 //
 //  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
 //
+
 import SwiftUI
 
 struct ContentView: View {
@@ -15,7 +16,7 @@ struct ContentView: View {
         TabView {
             Tab("Momentos", systemImage: "photo.fill.on.rectangle.fill") {
                 NavigationStack {
-                    MomentosHomeView()
+                    MomentsViews()
                 }
                     .tint(nil)
             }
@@ -29,6 +30,7 @@ struct ContentView: View {
                 AlbunsView()
                     .tint(nil)
             }
+            
 //     PRO FUTURO
 //            Tab("Calendário", systemImage: "calendar") {
 //                CalendarView()

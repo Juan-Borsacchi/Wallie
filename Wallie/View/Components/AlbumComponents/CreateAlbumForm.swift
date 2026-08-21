@@ -13,7 +13,7 @@ struct CreateAlbumForm: View {
     @Binding var albumDate: Date
     @Binding var includeDate: Bool
     @Binding var selectedCategory: String
-        
+    
     let categories = ["Nenhuma", "Amigos", "Viagem", "Trabalho", "Outros"]
     
     var body: some View {

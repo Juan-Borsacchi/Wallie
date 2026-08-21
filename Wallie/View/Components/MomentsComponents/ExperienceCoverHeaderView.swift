@@ -11,20 +11,17 @@ struct ExperienceCoverHeaderView: View {
     @Binding var coverImage: UIImage?
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             
-            // Card Principal
             VStack(alignment: .leading, spacing: 12) {
                 
-                // MARK: - Título da Seção com Ícone
                 Label("Capa da Experiência", systemImage: "photo.on.rectangle")
                     .font(.callout)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                 
-                // MARK: - Preview da Imagem
                 if let image = coverImage {
                     ZStack(alignment: .topTrailing) {
                         Image(uiImage: image)
@@ -48,10 +45,8 @@ struct ExperienceCoverHeaderView: View {
                     }
                 }
                 
-                // MARK: - Botões de Seleção (Com Borda/Contorno)
                 HStack(spacing: 12) {
                     
-                    // Botão Galeria com Contorno Sutil
                     Button(action: onSelectPhoto) {
                         Label(
                             coverImage == nil ? "Acessar Galeria" : "Trocar foto",
@@ -68,7 +63,6 @@ struct ExperienceCoverHeaderView: View {
                     }
                     .buttonStyle(.plain)
                     
-                    // Botão Câmera (Destaque em Accent Color ou Contorno de Acento)
                     Button(action: onTakePhoto) {
                         Label(
                             coverImage == nil ? "Tirar foto" : "Tirar outra",
@@ -97,7 +91,6 @@ struct ExperienceCoverHeaderView: View {
                 in: RoundedRectangle(cornerRadius: 16, style: .continuous)
             )
             
-            // MARK: - Legenda Externa
             Text("Campo obrigatório.")
                 .font(.caption)
                 .foregroundStyle(.secondary)

@@ -7,32 +7,32 @@
 
 import SwiftUI
 import PhotosUI
-import Combine
+import Observation
 
 @MainActor
-final class AddExperienceViewModel: ObservableObject {
-    
+@Observable
+final class AddExperienceViewModel {
     let existingID: UUID?
     private let onSave: (Experience) -> Void
     
-    @Published var coverImage: UIImage?
-    @Published var title: String
-    @Published var description: String
-    @Published var includeDate: Bool
-    @Published var date: Date
-    @Published var album: String
-    @Published var itensExtras: [AddItem]
+    var coverImage: UIImage?
+    var title: String
+    var description: String
+    var includeDate: Bool
+    var date: Date
+    var album: String
+    var itensExtras: [AddItem]
     
-    @Published var accentColor: Color?
-    @Published var backgroundGradient: [Color]?
+    var accentColor: Color?
+    var backgroundGradient: [Color]?
     
-    @Published var showCoverPhotoPicker = false
-    @Published var selectedCoverPhotoItems: [PhotosPickerItem] = [] {
+    var showCoverPhotoPicker = false
+    var selectedCoverPhotoItems: [PhotosPickerItem] = [] {
         didSet { carregarCapa(selectedCoverPhotoItems) }
     }
     
-    @Published var showCoverCamera = false
-    @Published var capturedCoverImage: UIImage? {
+    var showCoverCamera = false
+    var capturedCoverImage: UIImage? {
         didSet {
             if let image = capturedCoverImage {
                 withAnimation(.easeInOut(duration: 0.25)) { coverImage = image }
@@ -41,13 +41,13 @@ final class AddExperienceViewModel: ObservableObject {
         }
     }
     
-    @Published var showPhotoPicker = false
-    @Published var selectedPhotoItems: [PhotosPickerItem] = [] {
+    var showPhotoPicker = false
+    var selectedPhotoItems: [PhotosPickerItem] = [] {
         didSet { carregarFotosDosItens(selectedPhotoItems) }
     }
     
-    @Published var showCamera = false
-    @Published var capturedCameraImage: UIImage? {
+    var showCamera = false
+    var capturedCameraImage: UIImage? {
         didSet {
             if let image = capturedCameraImage {
                 withAnimation {
@@ -58,10 +58,8 @@ final class AddExperienceViewModel: ObservableObject {
         }
     }
     
-    @Published var mostrarBarraDeItens = false
-    
-    // MARK: - Lista de Álbuns (Opções Iniciais + Criados)
-    @Published var availableAlbums: [String] = ["Nenhum", "Viagem", "Família", "Trabalho"]
+    var mostrarBarraDeItens = false
+    var availableAlbums: [String] = ["Nenhum", "Viagem", "Família", "Trabalho"]
     
     var isSaveDisabled: Bool {
         coverImage == nil || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -84,7 +82,6 @@ final class AddExperienceViewModel: ObservableObject {
         self.backgroundGradient = experience?.backgroundGradient
         self.itensExtras = experience?.extraItems ?? []
         
-        // Garante as opções padrões iniciais + os álbuns salvos no app
         var defaultList = ["Nenhum", "Viagem", "Família", "Trabalho"]
         for item in availableAlbums where !defaultList.contains(item) {
             defaultList.append(item)

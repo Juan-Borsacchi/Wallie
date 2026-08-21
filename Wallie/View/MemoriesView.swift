@@ -13,7 +13,6 @@ struct MemoriesView: View {
     @State private var selectedMoments: Experience?
     @State private var isShowingDetail = false
     
-    // Filtra e ordena as 5 experiências mais recentes
     var recentExperiences: [Experience] {
         Array(viewmodel.experiences.sorted(by: { $0.date > $1.date }).prefix(5))
     }
@@ -38,7 +37,6 @@ struct MemoriesView: View {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 16) {
                             
-                            // MARK: - Seção A Curto Prazo (Experiências Recentes)
                             MemoriesTitles(
                                 title: "A curto prazo",
                                 subtitle: "Seus momentos mais recentes"
@@ -88,7 +86,6 @@ struct MemoriesView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                             
-                            // MARK: - Seção Todos os Momentos
                             MemoriesTitles(
                                 title: "Todos momentos",
                                 subtitle: "Explore os momentos criados por você"

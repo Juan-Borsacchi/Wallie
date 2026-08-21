@@ -10,7 +10,7 @@ import SwiftUI
 struct ExperienceDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: ExperienceDetailViewModel
-
+    
     init(
         experience: Experience,
         onSave: @escaping (Experience) -> Void,
@@ -24,14 +24,14 @@ struct ExperienceDetailScreen: View {
             )
         )
     }
-
+    
     var body: some View {
         @Bindable var viewModel = viewModel
-
+        
         ZStack(alignment: .bottom) {
             backgroundPhotos
                 .ignoresSafeArea()
-
+            
             if viewModel.allPhotos.count > 1 {
                 VStack {
                     StoryProgressBar(
@@ -45,7 +45,7 @@ struct ExperienceDetailScreen: View {
                 }
                 .ignoresSafeArea()
             }
-
+            
             VStack {
                 Spacer()
                 GlassCardView(title: viewModel.experience.title) {
@@ -63,7 +63,7 @@ struct ExperienceDetailScreen: View {
                     } label: {
                         Label("Editar", systemImage: "pencil")
                     }
-
+                    
                     Button(role: .destructive) {
                         viewModel.isShowingDeleteAlert = true
                     } label: {
@@ -109,7 +109,7 @@ struct ExperienceDetailScreen: View {
             viewModel.stopAudio()
         }
     }
-
+    
     private var backgroundPhotos: some View {
         GeometryReader { proxy in
             if !viewModel.allPhotos.isEmpty {
@@ -135,7 +135,7 @@ struct ExperienceDetailScreen: View {
             }
         }
     }
-
+    
     private var cardContent: some View {
         VStack(alignment: .leading, spacing: 18) {
             if !viewModel.experience.description.isEmpty {
@@ -144,17 +144,17 @@ struct ExperienceDetailScreen: View {
                     .foregroundStyle(.white.opacity(0.9))
                     .fixedSize(horizontal: false, vertical: true)
             }
-
+            
             interactiveSection
-
+            
             Divider().overlay(Color.white.opacity(0.2))
-
+            
             footerSection
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 16)
     }
-
+    
     @ViewBuilder
     private var interactiveSection: some View {
         if viewModel.hasMood && viewModel.hasAudio {
@@ -165,7 +165,7 @@ struct ExperienceDetailScreen: View {
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .frame(height: 64)
-
+                
                 HStack(spacing: 6) {
                     Circle()
                         .fill(viewModel.selectedTab == 0 ? Color.white : Color.white.opacity(0.3))
@@ -182,7 +182,7 @@ struct ExperienceDetailScreen: View {
             audioSection.frame(height: 64)
         }
     }
-
+    
     private var moodSection: some View {
         HStack(spacing: 12) {
             if let quality = viewModel.experience.quality {
@@ -193,7 +193,7 @@ struct ExperienceDetailScreen: View {
             }
         }
     }
-
+    
     private var audioSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             ForEach(viewModel.audioURLs, id: \.self) { url in
@@ -205,7 +205,7 @@ struct ExperienceDetailScreen: View {
             }
         }
     }
-
+    
     private var footerSection: some View {
         HStack(spacing: 16) {
             if viewModel.experience.includeDate {
@@ -219,11 +219,11 @@ struct ExperienceDetailScreen: View {
         .font(.footnote)
         .foregroundStyle(.white.opacity(0.75))
     }
-
+    
     @ViewBuilder
     private func overlayActionView(dragOffset: CGSize, dismiss: @escaping () -> Void) -> some View {
         let interactiveOpacity: CGFloat = 1 - min(abs(dragOffset.height / 30), 1)
-
+        
         VStack {
             HStack {
                 Button(action: dismiss) {

@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct FirstMomentCard: View {
+    
     var body: some View {
-        
         VStack {
             Image("PrimeiroMomento")
                 .resizable()

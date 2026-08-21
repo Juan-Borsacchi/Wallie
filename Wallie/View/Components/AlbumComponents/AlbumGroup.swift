@@ -35,9 +35,9 @@ struct AlbumItem1: View {
 
 struct AlbumItem2: View {
     @Environment(\.colorScheme) var colorSh
-
+    
     let image: UIImage?
-
+    
     var body: some View {
         Group {
             if let img = image  {
@@ -46,7 +46,7 @@ struct AlbumItem2: View {
                     .scaledToFill()
             } else {
                 colorSh == .dark ? Color.black : Color.white
-
+                
             }
         }
         .frame(width: 92, height: 140)
@@ -93,7 +93,7 @@ struct LastImageAlbum: View {
     }
 }
 
-struct AlbumGroup: View {
+struct AlbumGroup: View {    
     let titleAlbum: String
     let images: [UIImage]
     let totalCount: Int
@@ -106,7 +106,7 @@ struct AlbumGroup: View {
         VStack(alignment: .leading) {
             Text(titleAlbum)
                 .font(.custom("Manrope-Bold", size: 22))
-                .foregroundStyle(Color.blue)
+                .foregroundStyle(Color(.corTitulo))
             
             HStack(spacing: -5) {
                 AlbumItem1(image: getImage(at: 0))

@@ -71,7 +71,7 @@ struct MomentCardStack: View {
             let scale = isFocused ? 1 : 1 - (scaleStep * depth)
             let zIndexValue: Double = isIncoming ? Double(items.count) + 5 : Double(items.count) - Double(distance)
             
-            MomentCardFace(experience: item)
+            MomentsCard(experience: item)
                 .frame(width: cardWidth, height: cardHeight)
                 .offset(x: xOffset, y: yOffset)
                 .scaleEffect(scale)
@@ -152,7 +152,7 @@ struct MomentCarousel: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(items) { item in
-                            MomentCardFace(experience: item)
+                            MomentsCard(experience: item)
                                 .frame(width: cardWidth, height: cardWidth * 1.3)
                                 .id(item.id)
                                 .onTapGesture { onTapFocused(item) }

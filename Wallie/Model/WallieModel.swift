@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Foundation
+import UIKit
 
 struct FotoItem: Identifiable {
     let id: String
@@ -25,13 +26,64 @@ struct formAlbum: Identifiable, Hashable {
     var date: Date?
     var category: String?
     
-    // Inicializador explícito para garantir que o Linker o encontre
     init(id: UUID = UUID(), name: String, date: Date? = nil, category: String? = nil) {
         self.id = id
         self.name = name
         self.date = date
         self.category = category
     }
+}
+
+struct AddItem: Identifiable {
+    let id = UUID()
+    let type: AddListModel
+    var content: AddItemContent?
+    var caption: String = ""
+}
+
+struct ExperiencePhoto: Identifiable, PhotoProtocol, Hashable {
+    let id: String
+    let image: UIImage
+}
+
+enum AddListModel: String, CaseIterable, Identifiable {
+    case mood
+    case photo
+    case camera
+    case audio
+    
+    var id: Self { self }
+    
+    var icon: String {
+        switch self {
+        case .mood: "face.smiling"
+        case .photo: "photo"
+        case .camera: "camera"
+        case .audio: "waveform"
+        }
+    }
+}
+
+enum ActiveSheet: Identifiable {
+    case audioRecorder
+    case photoPicker
+    
+    var id: Int {
+        hashValue
+    }
+}
+
+enum AddItemContent {
+    case mood(quality: QualityRating?, emotion: EmotionTag?)
+    case images([UIImage])
+    case audio(URL)
+}
+
+enum DisplayMode {
+    case stack
+    case carousel
+    case book
+
 }
 
 enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
@@ -187,8 +239,6 @@ enum MomentosPalette {
         [.pink.opacity(0.6), .white]
     ]
 }
-
-import SwiftUI
 
 protocol PhotoProtocol: Hashable {
     var id: String { get }

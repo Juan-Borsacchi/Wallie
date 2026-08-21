@@ -36,7 +36,7 @@ struct MemoriesTitles: View {
             Text(subtitle)
                 .font(.custom("Manrope-Regular", size: 16))
                 .foregroundStyle(Color.secondary)
-
+            
             
         }
         .frame(maxWidth: .infinity, alignment: .leading)
