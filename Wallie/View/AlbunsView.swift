@@ -73,9 +73,11 @@ struct AlbunsView: View {
                     .padding(16)
                     .padding(.bottom, isEditingMode ? 90 : 20)
                 }
+                // Força o re-render da tela sempre que o vinculo de qualquer experiencia mudar
+                .id(viewmodel.experiences.map { "\($0.id)-\($0.album)" }.hashValue)
             }
             .onAppear {
-                // Atualiza a busca de dados no CoreData sempre que a tela de álbuns aparece
+                // Atualiza o DataManager sempre que entrar ou voltar para a aba de Álbuns
                 DataManager.shared.loadData()
             }
             .overlay(alignment: .bottom) {
@@ -168,13 +170,14 @@ struct AlbunsView: View {
     }
     
     private func getImagesForAlbum(albumName: String) -> [UIImage] {
-        let albumExperienceIDs = viewmodel.experiences
+        return viewmodel.experiences
             .filter { $0.album == albumName }
-            .map { $0.id }
-        
-        return viewmodel.allGallery
-            .filter { albumExperienceIDs.contains($0.experienceID) }
-            .compactMap { $0.image }
+            .compactMap { exp in
+                if let data = exp.images.first {
+                    return UIImage(data: data)
+                }
+                return nil
+            }
     }
 }
 

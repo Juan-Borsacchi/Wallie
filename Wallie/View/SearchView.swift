@@ -74,10 +74,15 @@ struct SearchView: View {
                         if !filterExperience.isEmpty {
                             Section("Experiências") {
                                 ForEach(filterExperience) { experience in
-                                    NavigationLink(destination: ExperienceDetailScreen(experience: experience, onSave: { updated in
+                                    NavigationLink(destination: ExperienceDetailScreen(
+                                        experience: experience,
+                                        onSave: { updated in
                                             viewmodel.updateExperience(updated)
-                                        
-                                    })) {
+                                        },
+                                        onDelete: { deleted in
+                                            viewmodel.deleteExperience(deleted)
+                                        }
+                                    )){
                                         HStack(spacing: 12) {
                                             if let data = experience.images.first, let uiImage = UIImage(data: data) {
                                                 Image(uiImage: uiImage)

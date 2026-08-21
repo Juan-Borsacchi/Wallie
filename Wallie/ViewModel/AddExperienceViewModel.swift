@@ -80,7 +80,12 @@ final class AddExperienceViewModel {
         self.album = experience?.album ?? "Nenhum"
         self.accentColor = experience?.accentColor
         self.backgroundGradient = experience?.backgroundGradient
-        self.itensExtras = experience?.extraItems ?? []
+        
+        if let exp = experience, exp.extraItems.isEmpty && (exp.quality != nil || exp.emotion != nil) {
+            self.itensExtras = [AddItem(type: .mood, content: .mood(quality: exp.quality, emotion: exp.emotion))]
+        } else {
+            self.itensExtras = experience?.extraItems ?? []
+        }
         
         var defaultList = ["Nenhum", "Viagem", "Família", "Trabalho"]
         for item in availableAlbums where !defaultList.contains(item) {

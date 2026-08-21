@@ -2,8 +2,6 @@
 //  CoreDataExtensions.swift
 //  Wallie
 //
-//  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
-//
 
 import CoreData
 import UIKit
@@ -23,6 +21,26 @@ extension Xperience {
             imgData.append(coverData)
         }
         
+        var items: [AddItem] = []
+        
+        // 1. Reconstrói o item de Humor/Sentimento
+        if qualityVal != nil || emotionVal != nil {
+            items.append(AddItem(type: .mood, content: .mood(quality: qualityVal, emotion: emotionVal)))
+        }
+        
+        // 2. Reconstrói o Áudio gravado se existir no CoreData
+        if let audioBytes = self.audio {
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(self.id?.uuidString ?? UUID().uuidString).m4a")
+            try? audioBytes.write(to: tempURL)
+            items.append(AddItem(type: .audio, content: .audio(tempURL)))
+        }
+        
+        // 3. Reconstrói as Fotos extras se existirem
+        if let photosBytes = self.photos,
+           let uiImages = try? NSKeyedUnarchiver.unarchivedArrayOfObjects(ofClass: UIImage.self, from: photosBytes) {
+            items.append(AddItem(type: .photo, content: .images(uiImages)))
+        }
+        
         return Experience(
             id: self.id ?? UUID(),
             images: imgData,
@@ -33,7 +51,7 @@ extension Xperience {
             album: self.album?.title ?? "Nenhum",
             quality: qualityVal,
             emotion: emotionVal,
-            extraItems: []
+            extraItems: items
         )
     }
 }
