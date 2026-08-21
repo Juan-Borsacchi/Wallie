@@ -2,337 +2,818 @@
 //  BookCard.swift
 //  Wallie
 //
-//  Created by Vitor Silva Souza on 21/08/26.
-//
 
 import SwiftUI
 
-enum BookTurnDirection {
+// MARK: - Direção da virada
+
+private enum BookTurnDirection {
     case forward
     case backward
 }
 
+
+// MARK: - Book View
+
 struct BookView: View {
 
     var experiences: [Experience]
+
     var onTapExperience: ((Experience) -> Void)?
     var onVisibleExperiencesChange: (([Experience]) -> Void)?
 
-    @State private(set) var currentPage: Int = -1
-    @State private(set) var rotation: Double = 0
-    @State private(set) var isTurning = false
-    @State private(set) var turnDirection: BookTurnDirection?
+    // -2 = capa
+    //  0, 2, 4... = páginas das experiências
+    // backCoverLeftIndex = última página especial
+    @State private var currentPage: Int = -3
+
+    @State private var rotation: Double = 0
+    @State private var isTurning = false
+    @State private var turnDirection: BookTurnDirection?
 
     let pageWidth: CGFloat = 180
     let pageHeight: CGFloat = 260
+
     let dragDistance: CGFloat = 250
-    let turnThreshold: Double = 90
+
+
+    // MARK: - Body
 
     var body: some View {
+
         ZStack {
+
+            // MARK: Páginas estáticas
+
             HStack(spacing: 0) {
+
                 BookStaticPage(
                     index: baseLeftIndex,
                     experiences: experiences,
-                    size: CGSize(width: pageWidth, height: pageHeight),
+                    backCoverLeftIndex: backCoverLeftIndex,
+                    size: CGSize(
+                        width: pageWidth,
+                        height: pageHeight
+                    ),
                     onTap: onTapExperience
                 )
-                                
+
                 BookStaticPage(
                     index: baseRightIndex,
                     experiences: experiences,
-                    size: CGSize(width: pageWidth, height: pageHeight),
+                    backCoverLeftIndex: backCoverLeftIndex,
+                    size: CGSize(
+                        width: pageWidth,
+                        height: pageHeight
+                    ),
                     onTap: onTapExperience
                 )
             }
 
-            if isTurning, let direction = turnDirection, let frontIndex = turningFrontIndex {
+
+            // MARK: Página sendo virada
+
+            if isTurning,
+               let direction = turnDirection,
+               let frontIndex = turningFrontIndex {
+
                 BookTurningPage(
                     frontIndex: frontIndex,
                     backIndex: turningBackIndex,
                     experiences: experiences,
+                    backCoverLeftIndex: backCoverLeftIndex,
                     angle: rotation,
                     direction: direction,
-                    size: CGSize(width: pageWidth, height: pageHeight)
+                    size: CGSize(
+                        width: pageWidth,
+                        height: pageHeight
+                    )
                 )
-                .offset(x: direction == .forward ? (pageWidth / 2 + 2.5) : -(pageWidth / 2 + 2.5))
+                .offset(
+                    x: direction == .forward
+                    ? (pageWidth / 2 + 2.5)
+                    : -(pageWidth / 2 + 2.5)
+                )
             }
         }
-        .frame(width: pageWidth * 2 + 5, height: pageHeight)
+        .frame(
+            width: pageWidth * 2 + 5,
+            height: pageHeight
+        )
         .contentShape(Rectangle())
         .gesture(bookGesture)
-        .onAppear(perform: updateVisibleExperiences)
-        .onChange(of: currentPage) { _, _ in updateVisibleExperiences() }
-        .onChange(of: experiences.count) { _, _ in handleExperiencesCountChange() }
+
+        .onAppear {
+            updateVisibleExperiences()
+        }
+
+        .onChange(of: currentPage) { _, _ in
+            updateVisibleExperiences()
+        }
+
+        .onChange(of: experiences.count) { _, _ in
+            handleExperiencesCountChange()
+        }
     }
 }
+
+
+// MARK: - Página estática
 
 private struct BookStaticPage: View {
+
     let index: Int?
+
     let experiences: [Experience]
+
+    let backCoverLeftIndex: Int
+
     let size: CGSize
+
     let onTap: ((Experience) -> Void)?
 
+
     var body: some View {
+
         Group {
-            if let index = index, experiences.indices.contains(index) {
-                MomentsCard(experience: experiences[index])
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        onTap?(experiences[index])
-                    }
+
+            if let index {
+
+                BookPageContent(
+                    index: index,
+                    experiences: experiences,
+                    backCoverLeftIndex: backCoverLeftIndex,
+                    onTap: onTap
+                )
+
             } else {
+
                 Color.clear
             }
         }
-        .frame(width: size.width, height: size.height)
+        .frame(
+            width: size.width,
+            height: size.height
+        )
     }
 }
 
-private struct BookTurningPage: View {
-    let frontIndex: Int
-    let backIndex: Int?
+
+// MARK: - Conteúdo de uma página
+
+private struct BookPageContent: View {
+
+    let index: Int
+
     let experiences: [Experience]
-    let angle: Double
-    let direction: BookTurnDirection
-    let size: CGSize
+
+    let backCoverLeftIndex: Int
+
+    let onTap: ((Experience) -> Void)?
+
 
     var body: some View {
-        ZStack {
-            if experiences.indices.contains(frontIndex) {
-                MomentsCard(experience: experiences[frontIndex])
-                    .frame(width: size.width, height: size.height)
-                    .opacity(angle < 90 ? 1 : 0)
-            }
 
-            if let backIndex = backIndex, experiences.indices.contains(backIndex) {
-                MomentsCard(experience: experiences[backIndex])
-                    .frame(width: size.width, height: size.height)
-                    .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
-                    .opacity(angle >= 90 ? 1 : 0)
+        Group {
+
+            // MARK: Capa azul
+
+            if index == -2 {
+
+                Rectangle()
+                    .fill(.blue)
+
+
+            // MARK: Contra-capa inicial cinza
+
+            } else if index == -1 {
+
+                Rectangle()
+                    .fill(.gray)
+
+
+            // MARK: Contra-capa final cinza
+
+            } else if index == backCoverLeftIndex {
+
+                Rectangle()
+                    .fill(.gray)
+
+
+            // MARK: Capa final verde
+
+            } else if index == backCoverLeftIndex + 1 {
+
+                Rectangle()
+                    .fill(.green)
+
+
+            // MARK: Experience
+
+            } else if experiences.indices.contains(index) {
+                
+                MomentsCard(
+                    experience: experiences[index]
+                )
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    
+                    onTap?(experiences[index])
+                    
+                }}else if index == experiences.count {
+                    
+                    Rectangle()
+                        .fill(.yellow)
+                    
+              
+
+            // MARK: Página vazia
+
             } else {
                 Color.clear
-                    .frame(width: size.width, height: size.height)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .frame(width: size.width, height: size.height)
+    }
+}
+
+
+// MARK: - Página virando
+
+private struct BookTurningPage: View {
+
+    let frontIndex: Int
+
+    let backIndex: Int?
+
+    let experiences: [Experience]
+
+    let backCoverLeftIndex: Int
+
+    let angle: Double
+
+    let direction: BookTurnDirection
+
+    let size: CGSize
+
+
+    var body: some View {
+
+        ZStack {
+
+            // MARK: Frente da página
+
+            BookPageContent(
+                index: frontIndex,
+                experiences: experiences,
+                backCoverLeftIndex: backCoverLeftIndex,
+                onTap: nil
+            )
+            .frame(
+                width: size.width,
+                height: size.height
+            )
+            .opacity(
+                angle < 90 ? 1 : 0
+            )
+
+
+            // MARK: Verso da página
+
+            if let backIndex {
+
+                BookPageContent(
+                    index: backIndex,
+                    experiences: experiences,
+                    backCoverLeftIndex: backCoverLeftIndex,
+                    onTap: nil
+                )
+                .frame(
+                    width: size.width,
+                    height: size.height
+                )
+                .rotation3DEffect(
+                    .degrees(180),
+                    axis: (
+                        x: 0,
+                        y: 1,
+                        z: 0
+                    )
+                )
+                .opacity(
+                    angle >= 90 ? 1 : 0
+                )
+
+            } else {
+
+                Color.clear
+                    .frame(
+                        width: size.width,
+                        height: size.height
+                    )
+            }
+        }
+        .clipShape(
+            RoundedRectangle(
+                cornerRadius: 20,
+                style: .continuous
+            )
+        )
+        .frame(
+            width: size.width,
+            height: size.height
+        )
         .rotation3DEffect(
-            .degrees(direction == .forward ? -angle : angle),
-            axis: (x: 0, y: 1, z: 0),
-            anchor: direction == .forward ? .leading : .trailing,
+            .degrees(
+                direction == .forward
+                ? -angle
+                : angle
+            ),
+            axis: (
+                x: 0,
+                y: 1,
+                z: 0
+            ),
+            anchor: direction == .forward
+            ? .leading
+            : .trailing,
             perspective: 0.65
         )
         .shadow(
-            color: .black.opacity(angle > 5 ? 0.28 : 0),
+            color: .black.opacity(
+                angle > 5 ? 0.28 : 0
+            ),
             radius: 10,
-            x: direction == .forward ? -5 : 5,
+            x: direction == .forward
+            ? -5
+            : 5,
             y: 4
         )
     }
 }
 
+
+// MARK: - Gesture
+
 extension BookView {
-    
+
     private var bookGesture: some Gesture {
-        DragGesture(minimumDistance: 15)
-            .onChanged(handleDragChange)
-            .onEnded(handleDragEnd)
+
+        DragGesture(
+            minimumDistance: 15
+        )
+        .onChanged(
+            handleDragChange
+        )
+        .onEnded(
+            handleDragEnd
+        )
     }
 
-    private func handleDragChange(_ value: DragGesture.Value) {
-        guard !isTurning else { return }
+
+    private func handleDragChange(
+        _ value: DragGesture.Value
+    ) {
+
+        guard !isTurning else {
+            return
+        }
 
         let translation = value.translation.width
 
+
+        // MARK: Próxima página
+
         if translation < -10 {
-            guard canGoForward else { return }
-            startTurn(direction: .forward, translation: -translation)
+
+            guard canGoForward else {
+                return
+            }
+
+            startTurn(
+                direction: .forward,
+                translation: -translation
+            )
+
+
+        // MARK: Página anterior
+
         } else if translation > 10 {
-            guard canGoBack else { return }
-            startTurn(direction: .backward, translation: translation)
+
+            guard canGoBack else {
+                return
+            }
+
+            startTurn(
+                direction: .backward,
+                translation: translation
+            )
         }
     }
 
-    private func startTurn(direction: BookTurnDirection, translation: CGFloat) {
+
+    private func startTurn(
+        direction: BookTurnDirection,
+        translation: CGFloat
+    ) {
+
         turnDirection = direction
+
         isTurning = true
-        let progress = min(max(translation / dragDistance, 0), 1)
+
+        let progress = min(
+            max(
+                translation / dragDistance,
+                0
+            ),
+            1
+        )
+
         rotation = progress * 180
     }
 
-    private func handleDragEnd(_ value: DragGesture.Value) {
-        guard isTurning, let direction = turnDirection else { return }
 
-        let translation = abs(value.translation.width)
-        let progress = min(max(translation / dragDistance, 0), 1)
-        
+    private func handleDragEnd(
+        _ value: DragGesture.Value
+    ) {
+
+        guard isTurning,
+              let direction = turnDirection
+        else {
+            return
+        }
+
+        let translation = abs(
+            value.translation.width
+        )
+
+        let progress = min(
+            max(
+                translation / dragDistance,
+                0
+            ),
+            1
+        )
+
+
         if progress > 0.5 {
-            finishTurn(direction: direction)
+
+            finishTurn(
+                direction: direction
+            )
+
         } else {
+
             cancelTurn()
         }
     }
 
-    private func finishTurn(direction: BookTurnDirection) {
-        withAnimation(.easeInOut(duration: 0.45)) {
+
+    private func finishTurn(
+        direction: BookTurnDirection
+    ) {
+
+        withAnimation(
+            .easeInOut(
+                duration: 0.45
+            )
+        ) {
+
             rotation = 180
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-            let targetPage: Int = {
-                switch direction {
-                case .forward: return isCover ? 0 : currentPage + 2
-                case .backward: return currentPage <= 0 ? -1 : currentPage - 2
-                }
-            }()
+
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + 0.45
+        ) {
+
+            let targetPage: Int
+
+            switch direction {
+
+            case .forward:
+
+                targetPage = currentPage + 2
+
+
+            case .backward:
+
+                targetPage = currentPage - 2
+            }
+
 
             var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                currentPage = targetPage
-            }
 
-            DispatchQueue.main.async {
-                resetTurnState()
+            transaction.disablesAnimations = true
+
+
+            withTransaction(transaction) {
+
+                currentPage = targetPage
+
+                turnDirection = nil
+
+                isTurning = false
+
+                rotation = 0
             }
         }
     }
+
 
     private func cancelTurn() {
-        withAnimation(.easeInOut(duration: 0.30)) {
+
+        withAnimation(
+            .easeInOut(
+                duration: 0.30
+            )
+        ) {
+
             rotation = 0
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
-            resetTurnState()
+
+
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + 0.30
+        ) {
+
+            turnDirection = nil
+
+            isTurning = false
+
+            rotation = 0
         }
-    }
-    
-    private func resetTurnState() {
-        turnDirection = nil
-        isTurning = false
-        rotation = 0
     }
 }
 
+
+// MARK: - Estado do livro
+
 extension BookView {
-    
-    private var isCover: Bool { currentPage == -1 }
-    
-    private var canGoForward: Bool {
-        isCover ? experiences.count >= 2 : currentPage + 2 < experiences.count
+
+
+    // MARK: Última página esquerda
+
+    /*
+     Exemplos:
+
+     0 experiences
+     backCoverLeftIndex = 0
+
+     1 experience
+     backCoverLeftIndex = 2
+
+     2 experiences
+     backCoverLeftIndex = 2
+
+     3 experiences
+     backCoverLeftIndex = 4
+
+     4 experiences
+     backCoverLeftIndex = 4
+     */
+
+    private var backCoverLeftIndex: Int {
+
+        if experiences.isEmpty { // pagina vazia?
+            return 0
+        }
+
+        return (
+            (experiences.count + 1) / 2
+        ) * 2
     }
-    
-    private var canGoBack: Bool { !isCover }
-    
+
+
+    // MARK: Estamos na capa inicial?
+
+    private var isCover: Bool {
+
+        currentPage == -2
+    }
+
+
+    // MARK: Estamos na capa final?
+
+    private var isBackCover: Bool {
+
+        currentPage == backCoverLeftIndex
+    }
+
+
+    // MARK: Pode avançar?
+
+    private var canGoForward: Bool {
+
+        currentPage < backCoverLeftIndex
+    }
+
+
+    // MARK: Pode voltar?
+
+    private var canGoBack: Bool {
+
+        currentPage > -2
+    }
+
+
+    // MARK: Experiences visíveis
+
     private func updateVisibleExperiences() {
+
         let visible: [Experience]
 
-        if experiences.isEmpty {
-            visible = []
-        } else if isCover {
-            visible = [experiences[0]]
-        } else {
-            let first = currentPage
-            let second = currentPage + 1
-            visible = second < experiences.count
-                ? [experiences[first], experiences[second]]
-                : [experiences[first]]
-        }
 
-        onVisibleExperiencesChange?(visible)
-    }
-    
-    private func handleExperiencesCountChange() {
-        if currentPage >= experiences.count {
-            if experiences.isEmpty {
-                currentPage = -1
+        // Capa inicial
+
+        if isCover {
+
+            visible = []
+
+
+        // Capa final
+
+        } else if isBackCover {
+
+            visible = []
+
+
+        // Experiences
+
+        } else {
+
+            let first = currentPage
+
+            let second = currentPage + 1
+
+
+            if experiences.indices.contains(first) {
+
+                if experiences.indices.contains(second) {
+
+                    visible = [
+                        experiences[first],
+                        experiences[second]
+                    ]
+
+                } else {
+
+                    visible = [
+                        experiences[first]
+                    ]
+                }
+
             } else {
-                let lastEvenPage = max(0, (experiences.count - 1) / 2 * 2)
-                currentPage = lastEvenPage
+
+                visible = []
             }
         }
+
+
+        onVisibleExperiencesChange?(
+            visible
+        )
+    }
+
+
+    // MARK: Mudança na quantidade de experiences
+
+    private func handleExperiencesCountChange() {
+
+        if currentPage > backCoverLeftIndex {
+
+            currentPage = backCoverLeftIndex
+        }
+
+
         updateVisibleExperiences()
     }
 }
 
+
+// MARK: - Índices das páginas estáticas
+
 extension BookView {
-    
+
     var baseLeftIndex: Int? {
+
         if !isTurning {
-            return isCover ? nil : currentPage
+            return currentPage
         }
 
-        if turnDirection == .forward {
-            if isCover { return experiences.indices.contains(0) ? 0 : nil }
-            return experiences.indices.contains(currentPage) ? currentPage : nil
-        } else if turnDirection == .backward {
-            let targetPage = currentPage - 2
-            return experiences.indices.contains(targetPage) ? targetPage : nil
+        guard let direction = turnDirection else {
+            return currentPage
         }
-        return nil
+
+        switch direction {
+
+        case .forward:
+            // Mantém a página esquerda atual visível
+            return currentPage
+
+        case .backward:
+            // Revela a página esquerda anterior
+            return currentPage - 2
+        }
     }
+
 
     var baseRightIndex: Int? {
+
         if !isTurning {
-            if isCover { return experiences.indices.contains(0) ? 0 : nil }
-            let index = currentPage + 1
-            return experiences.indices.contains(index) ? index : nil
+            return currentPage + 1
         }
 
-        if turnDirection == .forward {
-            if isCover { return experiences.indices.contains(1) ? 1 : nil }
-            let targetPage = currentPage + 3
-            return experiences.indices.contains(targetPage) ? targetPage : nil
-        } else if turnDirection == .backward {
-            let currentRight = currentPage + 1
-            return experiences.indices.contains(currentRight) ? currentRight : nil
+        guard let direction = turnDirection else {
+            return currentPage + 1
         }
-        return nil
+
+        switch direction {
+
+        case .forward:
+            // A próxima página da direita.
+            // Se estivermos chegando ao final, esse índice pode
+            // ser uma página especial (contra-capa/capa final),
+            // então NÃO verificamos apenas experiences.indices.
+            return currentPage + 3
+
+        case .backward:
+            // Mantém a página direita atual enquanto voltamos
+            return currentPage + 1
+        }
     }
-    
+
+
     var turningFrontIndex: Int? {
-        guard let direction = turnDirection else { return nil }
+
+        guard let direction = turnDirection else {
+            return nil
+        }
+
         switch direction {
+
         case .forward:
-            if isCover { return experiences.indices.contains(0) ? 0 : nil }
-            let index = currentPage + 1
-            return experiences.indices.contains(index) ? index : nil
+            // Página direita atual que está sendo virada
+            return currentPage + 1
+
         case .backward:
-            let index = currentPage
-            return experiences.indices.contains(index) ? index : nil
+            // Página esquerda atual que está sendo virada de volta
+            return currentPage
         }
     }
-    
+
+
     var turningBackIndex: Int? {
-        guard let direction = turnDirection else { return nil }
+
+        guard let direction = turnDirection else {
+            return nil
+        }
+
         switch direction {
+
         case .forward:
-            if isCover { return experiences.indices.contains(0) ? 0 : nil }
-            let index = currentPage + 2
-            return experiences.indices.contains(index) ? index : nil
+            // Verso da página que está virando
+            return currentPage + 2
+
         case .backward:
-            if currentPage == 0 { return experiences.indices.contains(0) ? 0 : nil }
-            let index = currentPage - 1
-            return experiences.indices.contains(index) ? index : nil
+            // Verso da página anterior
+            return currentPage - 1
         }
     }
 }
 
+
+// MARK: - Preview
+
 #Preview {
+
     BookPreviewWrapper()
 }
 
+
 private struct BookPreviewWrapper: View {
+
     @State private var experiences: [Experience] = [
-        .mock, .mock, .mock, .mock
+
+        .mock,
+        .mock,
+        .mock,
+        .mock,
+        .mock
     ]
+
+
     var body: some View {
+
         ZStack {
-            Color.gray.opacity(0.15)
+
+            Color.gray
+                .opacity(0.15)
                 .ignoresSafeArea()
 
-            BookView(experiences: experiences)
+
+            BookView(
+                experiences: experiences
+            )
         }
     }
 }
