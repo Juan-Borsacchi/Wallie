@@ -1,8 +1,6 @@
 //
-//  CoreDataExtensions.swift
+//  DataManager.swift
 //  Wallie
-//
-//  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
 //
 
 import CoreData
@@ -27,10 +25,14 @@ class DataManager {
         fetchAlbums.sortDescriptors = [NSSortDescriptor(keyPath: \Album.title, ascending: true)]
         
         do {
-            self.xperiences = try context.fetch(fetchXperiences)
-            self.albums = try context.fetch(fetchAlbums)
+            // Transformando os resultados diretamente em novos Arrays para forçar a atualização do SwiftUI
+            let fetchedXperiences = try context.fetch(fetchXperiences)
+            let fetchedAlbums = try context.fetch(fetchAlbums)
+            
+            self.xperiences = Array(fetchedXperiences)
+            self.albums = Array(fetchedAlbums)
         } catch {
-            print(error.localizedDescription)
+            print("Erro ao carregar dados: \(error.localizedDescription)")
         }
     }
     
@@ -84,6 +86,7 @@ class DataManager {
         
         do {
             try context.save()
+            context.refreshAllObjects() // Invalida o cache
             loadData()
         } catch {
             print(error.localizedDescription)
@@ -98,20 +101,28 @@ class DataManager {
         
         let album: Album
         if let existingAlbum = try? context.fetch(request).first {
-            // Encontrou pelo ID: atualiza o álbum existente (incluindo o título novo!)
-            album = existingAlbum
+            let oldName = existingAlbum.title
+            
+            existingAlbum.title = albumUI.name
+            existingAlbum.category = albumUI.category
+            
+            // Atualiza os nomes das experiências vinculadas
+            if let oldName = oldName, oldName != albumUI.name,
+               let associatedExperiences = existingAlbum.xperiences as? Set<Xperience> {
+                for exp in associatedExperiences {
+                    exp.album = existingAlbum
+                }
+            }
         } else {
-            // Se realmente não tem ID no banco, aí sim criamos um novo
             album = Album(context: context)
             album.id = albumUI.id
+            album.title = albumUI.name
+            album.category = albumUI.category
         }
-        
-        // Atualiza os dados
-        album.title = albumUI.name
-        album.category = albumUI.category
         
         do {
             try context.save()
+            context.refreshAllObjects() // Invalida o cache
             loadData()
         } catch {
             print("Erro ao salvar/editar álbum: \(error.localizedDescription)")
@@ -129,9 +140,8 @@ class DataManager {
                 albumToUpdate.category = newCategory
                 
                 try context.save()
+                context.refreshAllObjects()
                 loadData()
-            } else {
-                print("Álbum não encontrado para atualização.")
             }
         } catch {
             print("Erro ao atualizar álbum: \(error.localizedDescription)")
@@ -180,6 +190,7 @@ class DataManager {
                 }
                 
                 try context.save()
+                context.refreshAllObjects()
                 loadData()
             }
         } catch {

@@ -19,10 +19,14 @@ struct SelectedAlbumViews: View {
     @State private var isShowingDeleteAlbumAlert = false
     @State private var isShowingEditAlbum = false
     
+    var currentAlbum: formAlbum {
+        viewmodel.albums.first(where: { $0.id == album.id }) ?? album
+    }
+    
     var albumGallery: [ItemGalery] {
         viewmodel.allGallery.filter { item in
             if let exp = viewmodel.experiences.first(where: { $0.id == item.experienceID }) {
-                return exp.album == album.name
+                return exp.album == currentAlbum.name
             }
             return false
         }
@@ -31,14 +35,14 @@ struct SelectedAlbumViews: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
-                Title(title: album.name, subtitle: "")
+                Title(title: currentAlbum.name, subtitle: "")
                 
                 HStack {
-                    if let category = album.category {
+                    if let category = currentAlbum.category {
                         TagCategory(nameCategory: category)
                     }
                     
-                    if let date = album.date {
+                    if let date = currentAlbum.date {
                         TagDate(dateSelected: date)
                     }
                 }
@@ -100,23 +104,23 @@ struct SelectedAlbumViews: View {
         .alert("Excluir Álbum", isPresented: $isShowingDeleteAlbumAlert) {
             Button("Cancelar", role: .cancel) { }
             Button("Excluir", role: .destructive) {
-                viewmodel.deleteAlbum(album)
+                viewmodel.deleteAlbum(currentAlbum)
                 dismiss()
             }
         } message: {
-            Text("Tem certeza que deseja excluir o álbum '\(album.name)'?")
+            Text("Tem certeza que deseja excluir o álbum '\(currentAlbum.name)'?")
         }
         .sheet(isPresented: $isShowingAddExperience) {
             AddExperienceView(
                 availableAlbums: viewmodel.albums.map { $0.name }
             ) { newExperience in
                 var experienceAdd = newExperience
-                experienceAdd.album = album.name
+                experienceAdd.album = currentAlbum.name
                 viewmodel.addNewExperience(experienceAdd)
             }
         }
         .sheet(isPresented: $isShowingEditAlbum) {
-            EditAlbumSheet(album: album) { updatedForm in
+            EditAlbumSheet(album: currentAlbum) { updatedForm in
                 viewmodel.updateAlbum(updatedForm)
             }
         }
