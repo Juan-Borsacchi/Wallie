@@ -73,18 +73,21 @@ final class ExperienceDetailViewModel {
     var hasMood: Bool { experience.quality != nil || experience.emotion != nil }
 
     func startTimer() {
-        timerTask = Task { @MainActor [weak self] in
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(0.05))
-                self?.updateProgress()
+            timerTask?.cancel()
+            timerTask = Task { @MainActor [weak self] in
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                    
+                    guard let self = self, !self.isShowingEdit, !self.isShowingDeleteAlert else { continue }
+                    self.updateProgress()
+                }
             }
         }
-    }
 
     private func updateProgress() {
         guard !allPhotos.isEmpty, !config.showFullScreenCover else { return }
         
-        let step = 0.05 / displayDuration
+        let step = 0.1 / displayDuration
         if progress + step >= 1.0 {
             progress = 0.0
             selectedImageIndex = (selectedImageIndex + 1) % allPhotos.count
