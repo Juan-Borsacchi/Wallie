@@ -13,7 +13,6 @@ struct MemoriesView: View {
     @State private var selectedMoments: Experience?
     @State private var isShowingDetail = false
     
-    // MARK: - Estados de Seleção Múltipla e Ações em Lote
     @State private var isEditingMode = false
     @State private var selectedExperienceIDs: Set<UUID> = []
     @State private var isShowingDeleteAlert = false
@@ -54,7 +53,6 @@ struct MemoriesView: View {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 20) {
                             
-                            // Seção: A curto prazo
                             MemoriesTitles(
                                 title: "A curto prazo",
                                 subtitle: "Seus momentos mais recentes"
@@ -72,7 +70,7 @@ struct MemoriesView: View {
                                             let isSelected = selectedExperienceIDs.contains(experience.id)
                                             
                                             VStack(alignment: .leading, spacing: 8) {
-                                                ZStack(alignment: .topTrailing) {
+                                                ZStack(alignment: .bottomTrailing) {
                                                     if let data = experience.images.first, let uiImage = UIImage(data: data) {
                                                         Image(uiImage: uiImage)
                                                             .resizable()
@@ -87,13 +85,16 @@ struct MemoriesView: View {
                                                     }
                                                     
                                                     if isEditingMode {
-                                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle.fill")
+                                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                                                             .font(.title3)
-                                                            .foregroundStyle(isSelected ? Color.accentColor : .white.opacity(0.6))
-                                                            .background(Circle().fill(Color.black.opacity(0.2)))
+                                                            .foregroundStyle(isSelected ? Color.accentColor : Color.white)
+                                                            .background(Circle().fill(isSelected ? Color.white : Color.black.opacity(0.3)).padding(2))
+                                                            .shadow(color: .black.opacity(0.2), radius: 2)
                                                             .padding(8)
                                                     }
                                                 }
+                                                .scaleEffect(isEditingMode && isSelected ? 0.9 : 1.0)
+                                                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
                                                 
                                                 Text(experience.title.isEmpty ? "Sem título" : experience.title)
                                                     .font(.caption.weight(.bold))
@@ -101,8 +102,6 @@ struct MemoriesView: View {
                                                     .foregroundStyle(.primary)
                                             }
                                             .frame(width: 135)
-                                            .scaleEffect(isSelected ? 0.95 : 1.0)
-                                            .animation(.easeInOut(duration: 0.2), value: isSelected)
                                             .contentShape(Rectangle())
                                             .onTapGesture {
                                                 if isEditingMode {
@@ -121,7 +120,6 @@ struct MemoriesView: View {
                             Divider()
                                 .padding(.horizontal, 16)
                             
-                            // Seção: Todos os Momentos
                             MemoriesTitles(
                                 title: "Todos momentos",
                                 subtitle: "Explore os momentos criados por você"
@@ -134,19 +132,20 @@ struct MemoriesView: View {
                             ) { item in
                                 let isSelected = selectedExperienceIDs.contains(item.experienceID)
                                 
-                                ZStack(alignment: .topTrailing) {
+                                ZStack(alignment: .bottomTrailing) {
                                     ImageView(item, isExpanded: false)
                                     
                                     if isEditingMode {
-                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle.fill")
+                                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                                             .font(.title3)
-                                            .foregroundStyle(isSelected ? Color.accentColor : .white.opacity(0.6))
-                                            .background(Circle().fill(Color.black.opacity(0.2)))
+                                            .foregroundStyle(isSelected ? Color.accentColor : Color.white)
+                                            .background(Circle().fill(isSelected ? Color.white : Color.black.opacity(0.3)).padding(2))
+                                            .shadow(color: .black.opacity(0.2), radius: 2)
                                             .padding(8)
                                     }
                                 }
-                                .scaleEffect(isSelected ? 0.96 : 1.0)
-                                .animation(.easeInOut(duration: 0.2), value: isSelected)
+                                .scaleEffect(isEditingMode && isSelected ? 0.92 : 1.0)
+                                .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     if isEditingMode {
@@ -165,46 +164,44 @@ struct MemoriesView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .padding(.bottom, isEditingMode ? 90 : 20)
+                        .padding(.bottom, 20)
                     }
                 }
             }
-            .overlay(alignment: .bottom) {
-                if isEditingMode && !selectedExperienceIDs.isEmpty {
-                    HStack(spacing: 20) {
-                        Text("\(selectedExperienceIDs.count) selecionado(s)")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.primary)
-                        
-                        Spacer()
-                        
-                        Button {
-                            isShowingMoveAlbumSheet = true
-                        } label: {
-                            Label("Mover", systemImage: "folder.badge.plus")
-                                .font(.subheadline.weight(.semibold))
+            .toolbar {
+                            if isEditingMode {
+                                ToolbarItemGroup(placement: .bottomBar) {
+                                    Button {
+                                        isShowingMoveAlbumSheet = true
+                                    } label: {
+                                        Image(systemName: "folder")
+                                            .font(.system(size: 18))
+                                    }
+                                    .disabled(selectedExperienceIDs.isEmpty)
+                                    
+                                    Spacer()
+                                    
+                                    Text(selectedExperienceIDs.isEmpty ? "Selecione Itens" : "\(selectedExperienceIDs.count) Selecionados")
+                                        .font(.footnote.weight(.semibold))
+                                        .fixedSize()
+                                        .contentTransition(.numericText())
+                                        .padding(.horizontal)
+                                    
+                                    Spacer()
+                                    
+                                    Button(role: .destructive) {
+                                        isShowingDeleteAlert = true
+                                    } label: {
+                                        Image(systemName: "trash")
+                                            .font(.system(size: 18))
+                                            .foregroundStyle(selectedExperienceIDs.isEmpty ? Color.secondary : Color.red)
+                                    }
+                                    .disabled(selectedExperienceIDs.isEmpty)
+                                }
+                            }
                         }
-                        .buttonStyle(.borderedProminent)
-                        .tint(Color.accentColor)
-                        
-                        Button(role: .destructive) {
-                            isShowingDeleteAlert = true
-                        } label: {
-                            Image(systemName: "trash")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .tint(.red)
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 12)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-            }
+            .toolbar(isEditingMode ? .hidden : .visible, for: .tabBar)
+            
             .alert("Excluir experiências", isPresented: $isShowingDeleteAlert) {
                 Button("Cancelar", role: .cancel) { }
                 Button("Excluir (\(selectedExperienceIDs.count))", role: .destructive) {
@@ -215,25 +212,52 @@ struct MemoriesView: View {
             }
             .sheet(isPresented: $isShowingMoveAlbumSheet) {
                 NavigationStack {
-                    Form {
-                        Section("Mover itens selecionados para:") {
-                            Picker("Álbum", selection: $selectedTargetAlbum) {
-                                ForEach(viewmodel.albums.map { $0.name }, id: \.self) { albumName in
-                                    Text(albumName).tag(albumName)
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Label("Destino", systemImage: "folder")
+                                        .font(.callout)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    Picker("", selection: $selectedTargetAlbum) {
+                                        Text("Nenhum").tag("Nenhum")
+                                        ForEach(viewmodel.albums.map { $0.name }, id: \.self) { albumName in
+                                            Text(albumName).tag(albumName)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .tint(.primary)
                                 }
                             }
-                            .pickerStyle(.menu)
+                            .padding(16)
+                            .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                             
+                            // Card de Criar Novo Álbum
                             Button {
                                 isShowingMoveAlbumSheet = false
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                                     isShowingCreateAlbumSheet = true
                                 }
                             } label: {
-                                Label("Criar novo álbum...", systemImage: "plus")
+                                HStack {
+                                    Image(systemName: "plus")
+                                    Text("Criar novo álbum...")
+                                }
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.accentColor)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(16)
+                                .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                             }
                         }
+                        .padding()
                     }
+                    .background(Color(.secondarySystemBackground))
                     .navigationTitle("Mover para Álbum")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
@@ -248,6 +272,8 @@ struct MemoriesView: View {
                         }
                     }
                 }
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.medium, .large])
             }
             .sheet(isPresented: $isShowingCreateAlbumSheet) {
                 CreateAlbumView(existingAlbums: viewmodel.albums) { newAlbum in
@@ -257,6 +283,7 @@ struct MemoriesView: View {
                         isShowingMoveAlbumSheet = true
                     }
                 }
+                .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $isShowingAddExperience) {
                 AddExperienceView(
@@ -282,7 +309,6 @@ struct MemoriesView: View {
         }
     }
     
-    // MARK: - Funções Auxiliares
     private func toggleSelection(for id: UUID) {
         if selectedExperienceIDs.contains(id) {
             selectedExperienceIDs.remove(id)
@@ -308,7 +334,6 @@ struct MemoriesView: View {
                 viewmodel.updateExperience(experience)
             }
         }
-        DataManager.shared.loadData()
         selectedExperienceIDs.removeAll()
         withAnimation { isEditingMode = false }
     }
@@ -329,9 +354,4 @@ extension MemoriesView {
             .cornerRadius(isExpanded ? 0 : 14)
             .clipped()
     }
-}
-
-#Preview {
-    MemoriesView()
-        .environment(WallieViewModel())
 }

@@ -5,11 +5,6 @@
 //  Created by Vitor Silva Souza on 16/08/26.
 //
 
-//
-//  CreateAlbumForm.swift
-//  Wallie
-//
-
 import SwiftUI
 
 struct CreateAlbumForm: View {

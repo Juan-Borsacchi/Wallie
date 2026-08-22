@@ -32,19 +32,7 @@ struct ExperienceDetailScreen: View {
             backgroundPhotos
                 .ignoresSafeArea()
             
-            if viewModel.allPhotos.count > 1 {
-                VStack {
-                    StoryProgressBar(
-                        count: viewModel.allPhotos.count,
-                        selectedIndex: viewModel.selectedImageIndex,
-                        progress: viewModel.progress
-                    )
-                    .padding(.top, 60)
-                    .padding(.horizontal, 16)
-                    Spacer()
-                }
-                .ignoresSafeArea()
-            }
+            DetailProgressContainer(viewModel: viewModel)
             
             VStack {
                 Spacer()
@@ -82,7 +70,6 @@ struct ExperienceDetailScreen: View {
                 if let onDelete = viewModel.onDelete {
                     onDelete(viewModel.experience)
                 } else {
-                    // Fallback direto caso o onDelete venha nil
                     let vm = WallieViewModel()
                     vm.deleteExperience(viewModel.experience)
                 }
@@ -245,6 +232,26 @@ struct ExperienceDetailScreen: View {
         .padding(16)
         .compositingGroup()
         .opacity(interactiveOpacity)
+    }
+}
+
+private struct DetailProgressContainer: View {
+    var viewModel: ExperienceDetailViewModel
+    
+    var body: some View {
+        if viewModel.allPhotos.count > 1 {
+            VStack {
+                StoryProgressBar(
+                    count: viewModel.allPhotos.count,
+                    selectedIndex: viewModel.selectedImageIndex,
+                    progress: viewModel.progress
+                )
+                .padding(.top, 60)
+                .padding(.horizontal, 16)
+                Spacer()
+            }
+            .ignoresSafeArea()
+        }
     }
 }
 

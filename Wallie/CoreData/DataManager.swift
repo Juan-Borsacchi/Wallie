@@ -25,7 +25,6 @@ class DataManager {
         fetchAlbums.sortDescriptors = [NSSortDescriptor(keyPath: \Album.title, ascending: true)]
         
         do {
-            // Transformando os resultados diretamente em novos Arrays para forçar a atualização do SwiftUI
             let fetchedXperiences = try context.fetch(fetchXperiences)
             let fetchedAlbums = try context.fetch(fetchAlbums)
             
@@ -63,19 +62,25 @@ class DataManager {
         xperience.audio = nil
         xperience.photos = nil
         
+        var allExtraImages: [UIImage] = []
+        
         for item in experienceUI.extraItems {
             switch item.content {
             case .audio(let url):
                 xperience.audio = try? Data(contentsOf: url)
                 
             case .images(let uiImages):
-                if !uiImages.isEmpty {
-                    xperience.photos = try? NSKeyedArchiver.archivedData(withRootObject: uiImages, requiringSecureCoding: false)
-                }
+                allExtraImages.append(contentsOf: uiImages)
                 
             default:
                 break
             }
+        }
+        
+        if !allExtraImages.isEmpty {
+            xperience.photos = try? NSKeyedArchiver.archivedData(withRootObject: allExtraImages, requiringSecureCoding: false)
+        } else {
+            xperience.photos = nil
         }
         
         if experienceUI.album != "Nenhum" {
@@ -86,7 +91,7 @@ class DataManager {
         
         do {
             try context.save()
-            context.refreshAllObjects() // Invalida o cache
+            context.refreshAllObjects()
             loadData()
         } catch {
             print(error.localizedDescription)
@@ -106,7 +111,6 @@ class DataManager {
             existingAlbum.title = albumUI.name
             existingAlbum.category = albumUI.category
             
-            // Atualiza os nomes das experiências vinculadas
             if let oldName = oldName, oldName != albumUI.name,
                let associatedExperiences = existingAlbum.xperiences as? Set<Xperience> {
                 for exp in associatedExperiences {
@@ -122,7 +126,7 @@ class DataManager {
         
         do {
             try context.save()
-            context.refreshAllObjects() // Invalida o cache
+            context.refreshAllObjects()
             loadData()
         } catch {
             print("Erro ao salvar/editar álbum: \(error.localizedDescription)")
@@ -159,7 +163,6 @@ class DataManager {
         let newAlbum = Album(context: context)
         newAlbum.id = UUID()
         newAlbum.title = name
-        newAlbum.category = "Nenhuma"
         return newAlbum
     }
     

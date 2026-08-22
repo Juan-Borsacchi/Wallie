@@ -13,6 +13,8 @@ struct AddExperienceView: View {
     @State private var viewModel: AddExperienceViewModel
     @FocusState private var isInputFocused: Bool
     
+    @State private var isShowingCreateAlbum = false
+    
     init(
         editing experience: Experience? = nil,
         availableAlbums: [String] = [],
@@ -33,7 +35,7 @@ struct AddExperienceView: View {
                         ExperienceCoverHeaderView(
                             coverImage: $viewModel.coverImage,
                             onSelectPhoto: { viewModel.showCoverPhotoPicker = true },
-                            onTakePhoto: { viewModel.showCoverCamera = true }
+                            onTakePhoto: { viewModel.activeSheet = .coverCamera }
                         )
                         .id("top")
                         
@@ -70,13 +72,26 @@ struct AddExperienceView: View {
                 maxSelectionCount: 10,
                 matching: .images
             )
-            .sheet(isPresented: $viewModel.showCoverCamera) {
-                CameraPickerView(selectedImage: $viewModel.capturedCoverImage)
-                    .ignoresSafeArea()
-            }
-            .sheet(isPresented: $viewModel.showCamera) {
-                CameraPickerView(selectedImage: $viewModel.capturedCameraImage)
-                    .ignoresSafeArea()
+            .sheet(item: $viewModel.activeSheet) { sheetType in
+                switch sheetType {
+                case .coverCamera:
+                    CameraPickerView(selectedImage: $viewModel.capturedCoverImage)
+                        .ignoresSafeArea()
+                    
+                case .extraCamera:
+                    CameraPickerView(selectedImage: $viewModel.capturedCameraImage)
+                        .ignoresSafeArea()
+                    
+                case .createAlbum:
+                    CreateAlbumView(
+                        existingAlbums: viewModel.availableAlbums.map { formAlbum(name: $0) }
+                    ) { novoAlbum in
+                        viewModel.availableAlbums.append(novoAlbum.name)
+                        viewModel.album = novoAlbum.name
+                    }
+                    .presentationDragIndicator(.visible)
+                    .presentationDetents([.large])
+                }
             }
         }
     }
@@ -131,7 +146,8 @@ struct AddExperienceView: View {
             
             AlbumSelectionMenu(
                 album: $viewModel.album,
-                availableAlbums: viewModel.availableAlbums
+                availableAlbums: viewModel.availableAlbums,
+                onCreateNewAlbum: { viewModel.activeSheet = .createAlbum }
             )
         }
         .padding(.horizontal, 16)

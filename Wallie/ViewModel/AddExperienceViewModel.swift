@@ -9,6 +9,14 @@ import SwiftUI
 import PhotosUI
 import Observation
 
+enum ExperienceSheetType: Identifiable {
+    case coverCamera
+    case extraCamera
+    case createAlbum
+    
+    var id: Self { self }
+}
+
 @MainActor
 @Observable
 final class AddExperienceViewModel {
@@ -31,7 +39,8 @@ final class AddExperienceViewModel {
         didSet { carregarCapa(selectedCoverPhotoItems) }
     }
     
-    var showCoverCamera = false
+    var activeSheet: ExperienceSheetType?
+    
     var capturedCoverImage: UIImage? {
         didSet {
             if let image = capturedCoverImage {
@@ -46,12 +55,17 @@ final class AddExperienceViewModel {
         didSet { carregarFotosDosItens(selectedPhotoItems) }
     }
     
-    var showCamera = false
     var capturedCameraImage: UIImage? {
         didSet {
             if let image = capturedCameraImage {
                 withAnimation {
-                    itensExtras.append(AddItem(type: .camera, content: .images([image])))
+                    if let index = itensExtras.firstIndex(where: { $0.type == .photo }),
+                       case .images(var existingImages) = itensExtras[index].content {
+                        existingImages.append(image)
+                        itensExtras[index].content = .images(existingImages)
+                    } else {
+                        itensExtras.append(AddItem(type: .photo, content: .images([image])))
+                    }
                 }
                 capturedCameraImage = nil
             }
@@ -101,19 +115,23 @@ final class AddExperienceViewModel {
     }
         
     func adicionarItem(_ tipo: AddListModel) {
-        withAnimation {
-            switch tipo {
-            case .mood:
-                itensExtras.append(AddItem(type: .mood, content: .mood(quality: nil, emotion: nil)))
-            case .photo:
-                showPhotoPicker = true
-            case .camera:
-                showCamera = true
-            case .audio:
-                itensExtras.append(AddItem(type: .audio))
+            withAnimation {
+                switch tipo {
+                case .mood:
+                    if !itensExtras.contains(where: { $0.type == .mood }) {
+                        itensExtras.append(AddItem(type: .mood, content: .mood(quality: nil, emotion: nil)))
+                    }
+                case .photo:
+                    showPhotoPicker = true
+                case .camera:
+                    activeSheet = .extraCamera
+                case .audio:
+                    if !itensExtras.contains(where: { $0.type == .audio }) {
+                        itensExtras.append(AddItem(type: .audio))
+                    }
+                }
             }
         }
-    }
     
     func salvarExperiencia() {
         var imagesData: [Data] = []
@@ -175,11 +193,21 @@ final class AddExperienceViewModel {
                 }
             }
             if !loadedImages.isEmpty {
-                withAnimation {
-                    self.itensExtras.append(AddItem(type: .photo, content: .images(loadedImages)))
+                await MainActor.run {
+                    withAnimation {
+                        if let index = self.itensExtras.firstIndex(where: { $0.type == .photo }),
+                           case .images(var existingImages) = self.itensExtras[index].content {
+                            existingImages.append(contentsOf: loadedImages)
+                            self.itensExtras[index].content = .images(existingImages)
+                        } else {
+                            self.itensExtras.append(AddItem(type: .photo, content: .images(loadedImages)))
+                        }
+                    }
                 }
             }
-            self.selectedPhotoItems.removeAll()
+            await MainActor.run {
+                self.selectedPhotoItems.removeAll()
+            }
         }
     }
 }
