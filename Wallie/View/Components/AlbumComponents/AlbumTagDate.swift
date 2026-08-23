@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TagDate: View {
+struct AlbumTagDate: View {
     @Environment(\.colorScheme) private var colorScheme
     var dateSelected: Date
     
@@ -35,5 +35,5 @@ struct TagDate: View {
 }
 
 #Preview {
-    TagDate(dateSelected: Date())
+    AlbumTagDate(dateSelected: Date())
 }

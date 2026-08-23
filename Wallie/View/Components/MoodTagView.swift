@@ -38,3 +38,7 @@ struct MoodTagView: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
+
+#Preview {
+    MoodTagView(title: "1", imageName: "2", label: "3")
+}

@@ -43,3 +43,16 @@ struct GlassCardView<Content: View>: View {
         .padding(.bottom, 16)
     }
 }
+
+#Preview {
+    ZStack {
+        Color.indigo
+            .ignoresSafeArea()
+        
+        GlassCardView(title: "text") {
+            Text("text")
+                .foregroundStyle(.white)
+                .padding()
+        }
+    }
+}

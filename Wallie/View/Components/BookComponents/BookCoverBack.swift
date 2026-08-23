@@ -1,5 +1,5 @@
 //
-//  BookCover.swift
+//  BookCoverBack.swift
 //  Wallie
 //
 //  Created by Felipe Colares Cardoso on 22/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct BookCover: View {
+struct BookCoverBack: View {
     
     @State private var gradientRotation: Double = 0
     
@@ -18,30 +18,27 @@ struct BookCover: View {
                     cornerRadius: 20,
                     style: .continuous
                 )
-                .fill(.verdeEscuro)
+                .fill(.gray)
                 
                 ForEach(0..<5, id: \.self) { index in
-                    
                     RoundedRectangle(
                         cornerRadius: 20 - CGFloat(index * 2),
                         style: .continuous
                     )
                     .stroke(
-                        
                         AngularGradient(
                             colors: [
-                                .verdeEscuro,
+                                .gray,
                                 .white,
-                                .verdeEscuro,
+                                .gray,
                                 .white,
-                                .verdeEscuro,
-                                .verdeEscuro
+                                .gray,
+                                .gray
                             ],
                             center: .center,
                             startAngle: .degrees(gradientRotation),
                             endAngle: .degrees(gradientRotation + 360)
                         ),
-                        
                         lineWidth: 1.5
                     )
                     .padding(CGFloat(index * 7))
@@ -54,21 +51,20 @@ struct BookCover: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.verdeEscuro,
-                            Color.verdeProjeto,
-                            Color.verdeProjeto,
-                            Color.verdeProjeto,
-                            Color.verdeProjeto,
-                            Color.verdeProjeto,
-                            Color.verdeEscuro,
+                            Color.gray,
+                            Color.gray,
+                            Color.gray,
+                            Color.gray,
+                            Color.gray,
+                            Color.gray,
+                            Color.gray,
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
-                    
                 )
                 .frame(
-                    width: geometry.size.width * 0.69,
+                    width: geometry.size.width * 0.72,
                     height: geometry.size.height * 0.78
                 )
                 
@@ -79,6 +75,7 @@ struct BookCover: View {
                         width: 100,
                         height: 100
                     )
+                    .opacity(0.5)
             }
             .clipShape(
                 RoundedRectangle(
@@ -100,10 +97,8 @@ struct BookCover: View {
     }
 }
 
-
 #Preview {
-    
-    BookCover()
+    BookCoverBack()
         .frame(width: 210, height: 280)
         .padding()
 }

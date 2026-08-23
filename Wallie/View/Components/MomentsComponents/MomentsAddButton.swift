@@ -22,3 +22,7 @@ struct MomentsAddButton: View {
         .padding(.horizontal, 16)
     }
 }
+
+#Preview {
+    MomentsAddButton(action : {})
+}

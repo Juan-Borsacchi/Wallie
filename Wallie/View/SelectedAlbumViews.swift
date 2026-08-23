@@ -39,11 +39,11 @@ struct SelectedAlbumViews: View {
                 
                 HStack {
                     if let category = currentAlbum.category {
-                        TagCategory(nameCategory: category)
+                        AlbumTagCategory(nameCategory: category)
                     }
                     
                     if let date = currentAlbum.date {
-                        TagDate(dateSelected: date)
+                        AlbumTagDate(dateSelected: date)
                     }
                 }
                 .padding(.bottom, 16)
@@ -119,7 +119,7 @@ struct SelectedAlbumViews: View {
             }
         }
         .sheet(isPresented: $isShowingEditAlbum) {
-            EditAlbumSheet(album: currentAlbum) { updatedForm in
+            AlbumEditSheet(album: currentAlbum) { updatedForm in
                 viewmodel.updateAlbum(updatedForm)
             }
         }

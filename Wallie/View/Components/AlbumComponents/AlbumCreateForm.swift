@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CreateAlbumForm: View {
+struct AlbumCreateForm: View {
     @Binding var albumName: String
     @Binding var albumDate: Date
     @Binding var includeDate: Bool

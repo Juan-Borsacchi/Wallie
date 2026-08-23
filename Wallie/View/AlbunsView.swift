@@ -130,7 +130,7 @@ struct AlbunsView: View {
     @ViewBuilder
     private func albumCardContent(for album: formAlbum, experiences: [Experience], images: [UIImage]) -> some View {
         if experiences.isEmpty {
-            EmptyAlbum(emptyAlbumTitle: album.name)
+            AlbumEmpty(emptyAlbumTitle: album.name)
                 .frame(maxWidth: .infinity, alignment: .leading)
         } else {
             AlbumGroup(

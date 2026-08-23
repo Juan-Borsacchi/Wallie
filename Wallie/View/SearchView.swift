@@ -42,7 +42,7 @@ struct SearchView: View {
                     ContentUnavailableView(
                         "",
                         systemImage: "",
-                        description: Text("Clique na barra abaixo e busque por momentos, álbuns ou categorias."))
+                        description: Text("Toque na barra abaixo e busque por momentos, álbuns ou categorias."))
                 } else if filterExperience.isEmpty && filterAlbums.isEmpty {
                     ContentUnavailableView.search(text: query)
                 } else {
@@ -116,7 +116,7 @@ struct SearchView: View {
             }
             .navigationTitle("Pesquisar")
         }
-        .searchable(text: $query, prompt: "Explore seus momentos e álbuns")
+        .searchable(text: $query, prompt: "Toque para pesquisar")
     }
 }
 

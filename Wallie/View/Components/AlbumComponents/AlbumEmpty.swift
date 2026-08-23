@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct EmptyAlbum: View {
+struct AlbumEmpty: View {
     let emptyAlbumTitle: String
     
     var body: some View {
@@ -30,5 +30,5 @@ struct EmptyAlbum: View {
 }
 
 #Preview {
-    EmptyAlbum(emptyAlbumTitle: "Festa de Família")
+    AlbumEmpty(emptyAlbumTitle: "Festa de Família")
 }

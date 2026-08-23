@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct EditAlbumSheet: View {
+struct AlbumEditSheet: View {
     @Environment(\.dismiss) var dismiss
     let album: formAlbum
     var onSave: (formAlbum) -> Void

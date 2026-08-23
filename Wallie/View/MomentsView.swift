@@ -145,7 +145,7 @@ struct MomentsMainContentView: View {
     var body: some View {
         Group {
             if viewmodel.experiences.isEmpty {
-                FirstMomentCard()
+                MomentFirstCard()
                     .onTapGesture {
                         onAddExperience()
                     }

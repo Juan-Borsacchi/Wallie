@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TagCategory: View {
+struct AlbumTagCategory: View {
     @Environment(\.colorScheme) private var colorScheme
     var nameCategory: String
     
@@ -29,5 +29,5 @@ struct TagCategory: View {
 }
 
 #Preview {
-    TagCategory(nameCategory: "Categoria")
+    AlbumTagCategory(nameCategory: "Categoria")
 }
