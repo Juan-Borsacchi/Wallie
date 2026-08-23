@@ -2,6 +2,8 @@
 //  DataManager.swift
 //  Wallie
 //
+//  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
+//
 
 import CoreData
 import UIKit
@@ -81,7 +83,7 @@ class DataManager {
         } else {
             xperience.photos = nil
         }
-
+        
         if !allAudioData.isEmpty {
             xperience.audio = try? NSKeyedArchiver.archivedData(withRootObject: allAudioData, requiringSecureCoding: true)
         } else {

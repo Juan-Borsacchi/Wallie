@@ -18,7 +18,7 @@ struct MomentsAddButton: View {
                 .padding(8)
         }
         .buttonStyle(.glassProminent)
-        .tint(.verdeProjeto)
+        .tint(.colorAddMoment)
         .padding(.horizontal, 16)
     }
 }

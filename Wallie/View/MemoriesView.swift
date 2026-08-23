@@ -353,3 +353,8 @@ extension MemoriesView {
             .clipped()
     }
 }
+
+#Preview {
+    MemoriesView()
+        .environment(WallieViewModel())
+}

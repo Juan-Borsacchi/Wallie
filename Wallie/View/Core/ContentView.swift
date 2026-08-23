@@ -36,7 +36,7 @@ struct ContentView: View {
                 SearchView()
             }
         }
-        .tint(.verdeProjeto)
+        .tint(.colorTabBar)
         .onChange(of: selectedTab) { _, _ in
             DataManager.shared.loadData()
         }

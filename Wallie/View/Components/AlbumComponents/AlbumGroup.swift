@@ -93,7 +93,7 @@ struct LastImageAlbum: View {
     }
 }
 
-struct AlbumGroup: View {    
+struct AlbumGroup: View {
     let titleAlbum: String
     let images: [UIImage]
     let totalCount: Int

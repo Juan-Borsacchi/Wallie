@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct TagDate: View {
+    @Environment(\.colorScheme) private var colorScheme
     var dateSelected: Date
     
     var formatoData: DateFormatter {
@@ -20,12 +21,16 @@ struct TagDate: View {
         VStack {
             Text(formatoData.string(from: dateSelected))
                 .font(.custom("Manrope-Bold", size: 17))
-                .foregroundStyle(Color.white)
+                .foregroundStyle(colorScheme == .dark ? .white : .primary)
         }
         .padding(.horizontal, 16)
         .frame(height: 32)
-        .background(.verdeProjeto)
+        .background(colorScheme == .dark ? .black : .white)
         .cornerRadius(20)
+        .overlay(
+            Capsule()
+                .strokeBorder(Color(.separator), lineWidth: 2)
+        )
     }
 }
 

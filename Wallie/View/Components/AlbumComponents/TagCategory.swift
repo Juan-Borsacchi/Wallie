@@ -8,18 +8,23 @@
 import SwiftUI
 
 struct TagCategory: View {
+    @Environment(\.colorScheme) private var colorScheme
     var nameCategory: String
     
     var body: some View {
         VStack {
             Text(nameCategory)
                 .font(.custom("Manrope-Bold", size: 17))
-                .foregroundStyle(Color.white)
+                .foregroundStyle(colorScheme == .dark ? .white : .primary )
         }
         .padding(.horizontal, 16)
         .frame(height: 32)
-        .background(.azulProjeto)
+        .background(colorScheme == .dark ? .black : .white)
         .cornerRadius(20)
+        .overlay(
+            Capsule()
+                .strokeBorder(Color(.separator), lineWidth: 2)
+        )
     }
 }
 
