@@ -12,7 +12,7 @@ struct MomentsViews: View {
     
     @State private var displayMode: DisplayMode = .carousel
     @State private var focusedExperience: Experience?
-    @State private var visibleBookExperiences: [Experience] = []
+    @State private var visibleBookExperiences: [Experience?] = []
     
     @State private var isShowingAddExperience = false
     @State private var selectedExperienceID: UUID?
@@ -138,7 +138,7 @@ struct MomentsMainContentView: View {
     let displayMode: DisplayMode
     
     @Binding var focusedExperience: Experience?
-    @Binding var visibleBookExperiences: [Experience]
+    @Binding var visibleBookExperiences: [Experience?]
     
     let onAddExperience: () -> Void
     let onTapExperience: (Experience) -> Void
@@ -171,9 +171,9 @@ struct MomentsMainContentView: View {
                         experiences: viewmodel.experiences,
                         onTapExperience: onTapExperience,
                         onVisibleExperiencesChange: { visible in
-                            visibleBookExperiences = visible
-                            focusedExperience = visible.first
-                        }
+                        visibleBookExperiences = visible
+                        focusedExperience = visible.compactMap { $0 }.first
+                                                }
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }

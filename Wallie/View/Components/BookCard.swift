@@ -20,7 +20,7 @@ struct BookView: View {
     var experiences: [Experience]
 
     var onTapExperience: ((Experience) -> Void)?
-    var onVisibleExperiencesChange: (([Experience]) -> Void)?
+    var onVisibleExperiencesChange: (([Experience?]) -> Void)?
 
     // -2 = capa
     //  0, 2, 4... = páginas das experiências
@@ -38,83 +38,115 @@ struct BookView: View {
 
 
     // MARK: - Body
-
     var body: some View {
-
-        ZStack {
-
-            // MARK: Páginas estáticas
-
-            HStack(spacing: 0) {
-
-                BookStaticPage(
-                    index: baseLeftIndex,
-                    experiences: experiences,
-                    backCoverLeftIndex: backCoverLeftIndex,
-                    size: CGSize(
-                        width: pageWidth,
-                        height: pageHeight
-                    ),
-                    onTap: onTapExperience
-                )
-
-                BookStaticPage(
-                    index: baseRightIndex,
-                    experiences: experiences,
-                    backCoverLeftIndex: backCoverLeftIndex,
-                    size: CGSize(
-                        width: pageWidth,
-                        height: pageHeight
-                    ),
-                    onTap: onTapExperience
-                )
-            }
-
-
-            // MARK: Página sendo virada
-
-            if isTurning,
-               let direction = turnDirection,
-               let frontIndex = turningFrontIndex {
-
-                BookTurningPage(
-                    frontIndex: frontIndex,
-                    backIndex: turningBackIndex,
-                    experiences: experiences,
-                    backCoverLeftIndex: backCoverLeftIndex,
-                    angle: rotation,
-                    direction: direction,
-                    size: CGSize(
-                        width: pageWidth,
-                        height: pageHeight
+        
+        ZStack{
+            
+                Rectangle()
+                    .fill(.verdeEscuro)
+                    .frame(maxWidth: 28, maxHeight: 255)
+                    .cornerRadius(5)
+            VStack{
+                Text("Deslize para os lados para virar as páginas.")
+                    .frame(width: 120)
+                    .offset(y: -20)
+                    .foregroundStyle(.black)
+                Image(systemName: "book")
+                    .font(.largeTitle)
+                    .foregroundStyle(.black)
+                    
+                Image(systemName: "hand.point.up.left.fill")
+                    .font(.largeTitle)
+                    .foregroundStyle(.black)
+                    .offset(y: -20)
+                    .phaseAnimator([-18.0, 36.0]) { content, xOffset in
+                                        content
+                                            .offset(x: xOffset)
+                                    } animation: { _ in
+                                        // Define como é a transição entre os valores
+                                        .easeInOut(duration: 0.8)
+                                    }
+                
+            }.padding(.leading, -160)
+            
+               
+            
+            
+            
+            ZStack {
+                
+                // MARK: Páginas estáticas
+                
+                HStack(spacing: 0) {
+                    
+                    BookStaticPage(
+                        index: baseLeftIndex,
+                        experiences: experiences,
+                        backCoverLeftIndex: backCoverLeftIndex,
+                        size: CGSize(
+                            width: pageWidth,
+                            height: pageHeight
+                        ),
+                        onTap: onTapExperience
                     )
-                )
-                .offset(
-                    x: direction == .forward
-                    ? (pageWidth / 2 + 2.5)
-                    : -(pageWidth / 2 + 2.5)
-                )
+                    
+                    BookStaticPage(
+                        index: baseRightIndex,
+                        experiences: experiences,
+                        backCoverLeftIndex: backCoverLeftIndex,
+                        size: CGSize(
+                            width: pageWidth,
+                            height: pageHeight
+                        ),
+                        onTap: onTapExperience
+                    )
+                }
+                
+                
+                // MARK: Página sendo virada
+                
+                if isTurning,
+                   let direction = turnDirection,
+                   let frontIndex = turningFrontIndex {
+                    
+                    BookTurningPage(
+                        frontIndex: frontIndex,
+                        backIndex: turningBackIndex,
+                        experiences: experiences,
+                        backCoverLeftIndex: backCoverLeftIndex,
+                        angle: rotation,
+                        direction: direction,
+                        size: CGSize(
+                            width: pageWidth,
+                            height: pageHeight
+                        )
+                    )
+                    .offset(
+                        x: direction == .forward
+                        ? (pageWidth / 2 + 2.5)
+                        : -(pageWidth / 2 + 2.5)
+                    )
+                }
             }
-        }
-        .frame(
-            width: pageWidth * 2 + 5,
-            height: pageHeight
-        )
-        .contentShape(Rectangle())
-        .gesture(bookGesture)
-
-        .onAppear {
-            updateVisibleExperiences()
-        }
-
-        .onChange(of: currentPage) { _, _ in
-            updateVisibleExperiences()
-        }
-
-        .onChange(of: experiences.count) { _, _ in
-            handleExperiencesCountChange()
-        }
-    }
+            .frame(
+                width: pageWidth * 2 + 5,
+                height: pageHeight
+            )
+            .contentShape(Rectangle())
+            .gesture(bookGesture)
+            
+            .onAppear {
+                updateVisibleExperiences()
+            }
+            
+            .onChange(of: currentPage) { _, _ in
+                updateVisibleExperiences()
+            }
+            
+            .onChange(of: experiences.count) { _, _ in
+                handleExperiencesCountChange()
+            }
+        }}
 }
 
 
@@ -582,7 +614,6 @@ extension BookView {
 extension BookView {
 
 
-     
     /*
      
 
@@ -649,60 +680,18 @@ extension BookView {
     // MARK: Experiences visíveis
 
     private func updateVisibleExperiences() {
-
-        let visible: [Experience]
-
-
-        // Capa inicial
-
-        if isCover {
-
-            visible = []
-
-
-        // Capa final
-
-        } else if isBackCover {
-
-            visible = []
-
-
-        // Experiences
-
-        } else {
-
-            let first = currentPage
-
-            let second = currentPage + 1
-
-
-            if experiences.indices.contains(first) {
-
-                if experiences.indices.contains(second) {
-
-                    visible = [
-                        experiences[first],
-                        experiences[second]
-                    ]
-
-                } else {
-
-                    visible = [
-                        experiences[first]
-                    ]
-                }
-
+            // Se o livro estiver totalmente fechado no início ou no fim, nenhuma página é mostrada
+            if isCover || isBackCover {
+                onVisibleExperiencesChange?([nil, nil])
             } else {
-
-                visible = []
+                // Verifica separadamente a página da ESQUERDA e a página da DIREITA
+                let leftExp = experiences.indices.contains(currentPage) ? experiences[currentPage] : nil
+                let rightExp = experiences.indices.contains(currentPage + 1) ? experiences[currentPage + 1] : nil
+                
+                // Retorna sempre 2 elementos marcando a posição (esquerda, direita)
+                onVisibleExperiencesChange?([leftExp, rightExp])
             }
         }
-
-
-        onVisibleExperiencesChange?(
-            visible
-        )
-    }
 
 
     // MARK: Mudança na quantidade de experiences
@@ -723,6 +712,7 @@ extension BookView {
 // MARK: - Índices das páginas estáticas
 
 extension BookView {
+
 
     var baseLeftIndex: Int? {
 
