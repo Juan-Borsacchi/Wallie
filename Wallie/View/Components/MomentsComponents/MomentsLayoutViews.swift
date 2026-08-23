@@ -152,8 +152,21 @@ struct MomentCarousel: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 16) {
                         ForEach(items) { item in
+                            // Opção 1 (Recomendada): Passar para o MomentsCard se é item único
+                            // MomentsCard(experience: item, isSingleItem: items.count == 1)
+                            
                             MomentsCard(experience: item)
+                                // Opção 2: Desce o CARD INTEIRO em 20 pixels se houver apenas 1
+                                // .offset(y: items.count == 1 ? 20 : 0)
                                 .frame(width: cardWidth, height: cardWidth * 1.3)
+                            
+                                // EFEITO DE ESCALA: Deixa os cards laterais menores (85% do tamanho)
+                                .scrollTransition(axis: .horizontal) { content, phase in
+                                    content
+                                        .scaleEffect(phase.isIdentity ? 1.0 : 0.85)
+                                        // Opcional: você também pode brincar com opacidade se quiser
+                                        // .opacity(phase.isIdentity ? 1.0 : 0.7)
+                                }
                                 .id(item.id)
                                 .onTapGesture { onTapFocused(item) }
                         }
@@ -166,7 +179,7 @@ struct MomentCarousel: View {
             }
             .frame(height: 280)
             
-            if items.count > 1 {
+            if items.count > 1 { //dots do carousel !
                 HStack(spacing: 6) {
                     ForEach(items) { item in
                         Circle()
@@ -174,6 +187,7 @@ struct MomentCarousel: View {
                             .frame(width: 6, height: 6)
                     }
                 }
+                .padding(.top, 50)
             }
         }
         .onChange(of: scrolledID) { _, newID in

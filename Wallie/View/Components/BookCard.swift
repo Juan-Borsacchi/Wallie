@@ -179,7 +179,9 @@ private struct BookPageContent: View {
             // MARK: Capa azul
 
             if index == -2 {
-                
+             
+                BookCover()
+                /*
                 Image("livro")
                     .resizable()
                     .scaledToFill()
@@ -187,12 +189,15 @@ private struct BookPageContent: View {
                     .clipShape(.rect(cornerRadius: 20))
                // Rectangle()
                  //   .fill(.blue)
-
+*/
 
             // MARK: Contra-capa inicial cinza
 
             } else if index == -1 {
-
+                
+                
+                BookCoverBack()
+                /*
                 Image("livro")
                     .resizable()
                     .scaledToFill()
@@ -201,22 +206,26 @@ private struct BookPageContent: View {
                     //.scaleEffect(1.1)
                     .clipShape(.rect(cornerRadius: 20))
 
-
+                    */
             // MARK: Contra-capa final cinza
 
             } else if index == backCoverLeftIndex {
 
-                Image("livro")
+                
+                BookCoverBack()
+                /*Image("livro")
                     .resizable()
                     .scaledToFill()
                    // .scaleEffect(1.1)
                     .clipShape(.rect(cornerRadius: 20))
-
+                 */
 
             // MARK: Capa final verde
 
             } else if index == backCoverLeftIndex + 1 {
-
+                
+                BookCover()
+                /*
                 Image("livro")
                     .resizable()
                     .scaledToFill()
@@ -224,7 +233,7 @@ private struct BookPageContent: View {
                     .scaleEffect(x: -1, y: 1)
                     //.scaleEffect(1.1)
                     .clipShape(.rect(cornerRadius: 20))
-
+                    */
             // MARK: Experience
 
             } else if experiences.indices.contains(index) {
@@ -243,7 +252,7 @@ private struct BookPageContent: View {
                         .resizable()
                         .scaledToFill()
                         //.colorInver
-                      //  .scaleEffect(x: -1, y: 1)
+                        .scaleEffect(y: 1.05)
                        // .scaleEffect(0.9)
                         .clipShape(.rect(cornerRadius: 20))
                     
@@ -573,10 +582,9 @@ extension BookView {
 extension BookView {
 
 
-    // MARK: Última página esquerda
-
+     
     /*
-     Exemplos:
+     
 
      0 experiences
      backCoverLeftIndex = 0

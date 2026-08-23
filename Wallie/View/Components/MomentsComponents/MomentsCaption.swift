@@ -25,14 +25,18 @@ struct MomentsCaption: View {
     let displayMode: DisplayMode
     let focusedExperience: Experience?
     let visibleBookExperiences: [Experience]
-
+    var isSingleItem: Bool = false
+    
     var body: some View {
         switch displayMode {
-        case .stack, .carousel:
+        case .stack:
             if let experience = focusedExperience {
                 ExperienceCaptionText(experience: experience)
             }
-            
+        case .carousel:
+            if let experience = focusedExperience {
+                ExperienceCaptionText(experience: experience)
+            }
         case .book:
             if visibleBookExperiences.count == 1, let experience = visibleBookExperiences.first {
                 ExperienceCaptionText(experience: experience)
