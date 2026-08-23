@@ -24,15 +24,15 @@ class WallieViewModel {
         dataManager.loadData()
         self.experiences = dataManager.xperiences.map { $0.toUIModel() }
         self.albums = dataManager.albums.map { $0.toUIModel() }
+        
         self.allGallery = dataManager.xperiences.compactMap { xperience in
             guard let coverData = xperience.cover,
-                  let uiImage = UIImage(data: coverData),
                   let id = xperience.id else { return nil }
             
             return ItemGalery(
                 id: id.uuidString,
                 title: xperience.title ?? "",
-                image: uiImage,
+                imageData: coverData,
                 experienceID: id
             )
         }

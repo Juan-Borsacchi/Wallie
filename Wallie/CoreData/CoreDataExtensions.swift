@@ -6,7 +6,6 @@
 import CoreData
 import UIKit
 import SwiftUI
-import Combine
 
 extension Xperience {
     func toUIModel() -> Experience {
@@ -23,22 +22,31 @@ extension Xperience {
         
         var items: [AddItem] = []
         
-        // 1. Reconstrói o item de Humor/Sentimento
         if qualityVal != nil || emotionVal != nil {
             items.append(AddItem(type: .mood, content: .mood(quality: qualityVal, emotion: emotionVal)))
         }
         
-        // 2. Reconstrói o Áudio gravado se existir no CoreData
         if let audioBytes = self.audio {
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(self.id?.uuidString ?? UUID().uuidString).m4a")
-            try? audioBytes.write(to: tempURL)
-            items.append(AddItem(type: .audio, content: .audio(tempURL)))
+            if let audioArray = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSArray.self, from: audioBytes) as? [Data] {
+                for audioData in audioArray {
+                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(UUID().uuidString).m4a")
+                    try? audioData.write(to: tempURL)
+                    items.append(AddItem(type: .audio, content: .audio(tempURL)))
+                }
+            } else {
+                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(self.id?.uuidString ?? UUID().uuidString).m4a")
+                try? audioBytes.write(to: tempURL)
+                items.append(AddItem(type: .audio, content: .audio(tempURL)))
+            }
         }
         
-        // 3. Reconstrói as Fotos extras se existirem
         if let photosBytes = self.photos,
-           let uiImages = try? NSKeyedUnarchiver.unarchivedArrayOfObjects(ofClass: UIImage.self, from: photosBytes) {
-            items.append(AddItem(type: .photo, content: .images(uiImages)))
+           let dataArray = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSArray.self, from: photosBytes) as? [Data] {
+            
+            let uiImages = dataArray.compactMap { UIImage(data: $0) }
+            if !uiImages.isEmpty {
+                items.append(AddItem(type: .photo, content: .images(uiImages)))
+            }
         }
         
         return Experience(
@@ -61,7 +69,7 @@ extension Album {
         return formAlbum(
             id: self.id ?? UUID(),
             name: self.title ?? "Sem Nome",
-            date: nil,
+            date: self.date,
             category: self.category
         )
     }

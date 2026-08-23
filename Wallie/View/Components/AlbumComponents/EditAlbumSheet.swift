@@ -14,60 +14,66 @@ struct EditAlbumSheet: View {
     
     @FocusState private var isInputFocused: Bool
     
-    @State private var name: String = ""
-    @State private var category: String = "Nenhuma"
+    @State private var name: String
+    @State private var category: String
+    @State private var includeDate: Bool
+    @State private var date: Date
     
     let categories = ["Nenhuma", "Amigos", "Viagem", "Trabalho", "Outros"]
     
     init(album: formAlbum, onSave: @escaping (formAlbum) -> Void) {
         self.album = album
         self.onSave = onSave
+        
         _name = State(initialValue: album.name)
         _category = State(initialValue: album.category ?? "Nenhuma")
+        _includeDate = State(initialValue: album.date != nil)
+        _date = State(initialValue: album.date ?? Date())
     }
     
     var body: some View {
+        
         NavigationStack {
-            Form {
-                VStack(spacing: 14) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Label("Título", systemImage: "text.cursor")
-                                .font(.callout)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.primary)
-                            
-                            TextField("Dê um título para o álbum...", text: $name)
-                                .focused($isInputFocused)
-                        }
-                                        .padding(14)
-                                        .background(
-                                            Color(.systemBackground),
-                                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        )
-                                    }
-
+            ScrollView {
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Título", systemImage: "text.cursor")
+                            .font(.callout)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                        
+                        TextField("Dê um título para o álbum...", text: $name)
+                            .focused($isInputFocused)
+                    }
+                    .padding(16)
+                    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     
-                Section {
-                        HStack(spacing: 8) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
                             Label("Categoria", systemImage: "folder")
                                 .font(.callout)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.primary)
                             
-                            Picker("",selection: $category) {
+                            Spacer()
+                            
+                            Picker("", selection: $category) {
                                 ForEach(categories, id: \.self) { cat in
                                     Text(cat).tag(cat)
                                 }
                             }
                             .pickerStyle(.menu)
                             .tint(.primary)
-                        }.padding(14)
-                        .background(
-                            Color(.systemBackground),
-                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        )
+                        }
+                    }
+                    .padding(16)
+                    .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    
+                    DateSelectionRow(includeDate: $includeDate, date: $date)
                 }
+                .padding()
             }
+            .background(Color(.secondarySystemBackground))
             .navigationTitle("Editar Álbum")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -79,6 +85,9 @@ struct EditAlbumSheet: View {
                         var updated = album
                         updated.name = name
                         updated.category = category == "Nenhuma" ? nil : category
+                        
+                        updated.date = includeDate ? date : nil
+                        
                         onSave(updated)
                         dismiss()
                     }

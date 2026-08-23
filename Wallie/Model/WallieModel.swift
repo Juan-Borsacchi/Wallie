@@ -56,10 +56,10 @@ enum AddListModel: String, CaseIterable, Identifiable {
     
     var icon: String {
         switch self {
-        case .mood: "face.smiling"
-        case .photo: "photo"
-        case .camera: "camera"
-        case .audio: "waveform"
+        case .mood: return "face.smiling"
+        case .photo: return "photo"
+        case .camera: return "camera"
+        case .audio: return "waveform"
         }
     }
 }
@@ -83,7 +83,6 @@ enum DisplayMode {
     case stack
     case carousel
     case book
-
 }
 
 enum QualityRating: String, CaseIterable, Identifiable, Codable, Hashable {
@@ -142,7 +141,6 @@ enum EmotionTag: String, CaseIterable, Identifiable, Codable, Hashable {
     }
 }
 
-
 struct Experience: Identifiable {
     let id: UUID
     var images: [Data]
@@ -159,7 +157,6 @@ struct Experience: Identifiable {
     var backgroundGradient: [Color]?
     
     var extraItems: [AddItem]
-    
     var isPlaceholder: Bool
     
     init(
@@ -247,8 +244,13 @@ protocol PhotoProtocol: Hashable {
 struct ItemGalery: Identifiable, PhotoProtocol {
     var id: String = UUID().uuidString
     var title: String
-    var image: UIImage?
+    var imageData: Data?
     var experienceID: UUID
+    
+    var image: UIImage? {
+        guard let data = imageData else { return nil }
+        return UIImage(data: data)
+    }
 }
 
 struct PinGalleryItem: Identifiable, PhotoProtocol {
@@ -260,9 +262,9 @@ struct PinGalleryItem: Identifiable, PhotoProtocol {
 
 extension ItemGalery {
     var calculatedHeight: CGFloat {
-        guard let image = image else { return 200 }
+        guard let img = image else { return 200 }
         
-        let aspectRatio = image.size.height / image.size.width
+        let aspectRatio = img.size.height / img.size.width
         let screenWidth = UIScreen.main.bounds.width
         
         let columnsCount: CGFloat = 2
@@ -279,9 +281,11 @@ extension ItemGalery {
 var sampleExperienceID = UUID()
 var sampleItems: [ItemGalery] = {
     (1...7).map { i in
-        ItemGalery(
+        let imgData = UIImage(named: "foto\(i)")?.jpegData(compressionQuality: 0.8)
+        
+        return ItemGalery(
             title: "Title \(i)",
-            image: UIImage(named: "foto\(i)"),
+            imageData: imgData,
             experienceID: sampleExperienceID
         )
     }

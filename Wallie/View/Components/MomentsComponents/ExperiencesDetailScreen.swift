@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ExperienceDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(WallieViewModel.self) private var globalVM
     @State private var viewModel: ExperienceDetailViewModel
     
     init(
@@ -70,8 +71,7 @@ struct ExperienceDetailScreen: View {
                 if let onDelete = viewModel.onDelete {
                     onDelete(viewModel.experience)
                 } else {
-                    let vm = WallieViewModel()
-                    vm.deleteExperience(viewModel.experience)
+                    globalVM.deleteExperience(viewModel.experience)
                 }
                 dismiss()
             }
