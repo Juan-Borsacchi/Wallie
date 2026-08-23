@@ -5,15 +5,11 @@
 
 import SwiftUI
 
-// MARK: - Direção da virada
-
 private enum BookTurnDirection {
     case forward
     case backward
 }
 
-
-// MARK: - Book View
 
 struct BookView: View {
 
@@ -22,9 +18,6 @@ struct BookView: View {
     var onTapExperience: ((Experience) -> Void)?
     var onVisibleExperiencesChange: (([Experience?]) -> Void)?
 
-    // -2 = capa
-    //  0, 2, 4... = páginas das experiências
-    // backCoverLeftIndex = última página especial
     @State private var currentPage: Int = -3
 
     @State private var rotation: Double = 0
@@ -36,8 +29,6 @@ struct BookView: View {
 
     let dragDistance: CGFloat = 250
 
-
-    // MARK: - Body
     var body: some View {
         
         ZStack{
@@ -63,7 +54,6 @@ struct BookView: View {
                                         content
                                             .offset(x: xOffset)
                                     } animation: { _ in
-                                        // Define como é a transição entre os valores
                                         .easeInOut(duration: 0.8)
                                     }
                 
@@ -74,9 +64,7 @@ struct BookView: View {
             
             
             ZStack {
-                
-                // MARK: Páginas estáticas
-                
+                                
                 HStack(spacing: 0) {
                     
                     BookStaticPage(
@@ -102,9 +90,7 @@ struct BookView: View {
                     )
                 }
                 
-                
-                // MARK: Página sendo virada
-                
+                            
                 if isTurning,
                    let direction = turnDirection,
                    let frontIndex = turningFrontIndex {
@@ -150,8 +136,6 @@ struct BookView: View {
 }
 
 
-// MARK: - Página estática
-
 private struct BookStaticPage: View {
 
     let index: Int?
@@ -191,7 +175,6 @@ private struct BookStaticPage: View {
 }
 
 
-// MARK: - Conteúdo de uma página
 
 private struct BookPageContent: View {
 
@@ -208,65 +191,22 @@ private struct BookPageContent: View {
 
         Group {
 
-            // MARK: Capa azul
-
             if index == -2 {
              
                 BookCover()
-                /*
-                Image("livro")
-                    .resizable()
-                    .scaledToFill()
-                   // .scaleEffect(1.1)
-                    .clipShape(.rect(cornerRadius: 20))
-               // Rectangle()
-                 //   .fill(.blue)
-*/
-
-            // MARK: Contra-capa inicial cinza
-
+               
             } else if index == -1 {
                 
                 
                 BookCoverBack()
-                /*
-                Image("livro")
-                    .resizable()
-                    .scaledToFill()
-                    //.colorInver
-                    .scaleEffect(x: -1, y: 1)
-                    //.scaleEffect(1.1)
-                    .clipShape(.rect(cornerRadius: 20))
-
-                    */
-            // MARK: Contra-capa final cinza
 
             } else if index == backCoverLeftIndex {
 
                 
                 BookCoverBack()
-                /*Image("livro")
-                    .resizable()
-                    .scaledToFill()
-                   // .scaleEffect(1.1)
-                    .clipShape(.rect(cornerRadius: 20))
-                 */
-
-            // MARK: Capa final verde
-
             } else if index == backCoverLeftIndex + 1 {
                 
                 BookCover()
-                /*
-                Image("livro")
-                    .resizable()
-                    .scaledToFill()
-                    //.colorInver
-                    .scaleEffect(x: -1, y: 1)
-                    //.scaleEffect(1.1)
-                    .clipShape(.rect(cornerRadius: 20))
-                    */
-            // MARK: Experience
 
             } else if experiences.indices.contains(index) {
                 
@@ -283,24 +223,15 @@ private struct BookPageContent: View {
                     Image("PaginaVazia")
                         .resizable()
                         .scaledToFill()
-                        //.colorInver
                         .scaleEffect(y: 1.05)
-                       // .scaleEffect(0.9)
                         .clipShape(.rect(cornerRadius: 20))
                     
-              
-
-            // MARK: Página vazia
-
             } else {
                 Color.clear
             }
         }
     }
 }
-
-
-// MARK: - Página virando
 
 private struct BookTurningPage: View {
 
@@ -323,8 +254,6 @@ private struct BookTurningPage: View {
 
         ZStack {
 
-            // MARK: Frente da página
-
             BookPageContent(
                 index: frontIndex,
                 experiences: experiences,
@@ -338,9 +267,6 @@ private struct BookTurningPage: View {
             .opacity(
                 angle < 90 ? 1 : 0
             )
-
-
-            // MARK: Verso da página
 
             if let backIndex {
 
@@ -401,21 +327,10 @@ private struct BookTurningPage: View {
             : .trailing,
             perspective: 0.65
         )
-       /*.shadow(
-            color: .black.opacity(
-                angle > 5 ? 0.28 : 0
-            ),
-            radius: 10,
-            x: direction == .forward
-            ? -5
-            : 5,
-            y: 4
-        )*/
+
     }
 }
 
-
-// MARK: - Gesture
 
 extension BookView {
 
@@ -443,9 +358,6 @@ extension BookView {
 
         let translation = value.translation.width
 
-
-        // MARK: Próxima página
-
         if translation < -10 {
 
             guard canGoForward else {
@@ -456,9 +368,6 @@ extension BookView {
                 direction: .forward,
                 translation: -translation
             )
-
-
-        // MARK: Página anterior
 
         } else if translation > 10 {
 
@@ -608,34 +517,11 @@ extension BookView {
     }
 }
 
-
-// MARK: - Estado do livro
-
 extension BookView {
-
-
-    /*
-     
-
-     0 experiences
-     backCoverLeftIndex = 0
-
-     1 experience
-     backCoverLeftIndex = 2
-
-     2 experiences
-     backCoverLeftIndex = 2
-
-     3 experiences
-     backCoverLeftIndex = 4
-
-     4 experiences
-     backCoverLeftIndex = 4
-     */
 
     private var backCoverLeftIndex: Int {
 
-        if experiences.isEmpty { // pagina vazia?
+        if experiences.isEmpty {
             return 0
         }
 
@@ -645,7 +531,6 @@ extension BookView {
     }
 
 
-    // MARK: Estamos na capa inicial?
 
     private var isCover: Bool {
 
@@ -653,15 +538,11 @@ extension BookView {
     }
 
 
-    // MARK: Estamos na capa final?
-
     private var isBackCover: Bool {
 
         currentPage == backCoverLeftIndex
     }
 
-
-    // MARK: Pode avançar?
 
     private var canGoForward: Bool {
 
@@ -669,32 +550,24 @@ extension BookView {
     }
 
 
-    // MARK: Pode voltar?
-
     private var canGoBack: Bool {
 
         currentPage > -2
     }
 
 
-    // MARK: Experiences visíveis
-
     private func updateVisibleExperiences() {
-            // Se o livro estiver totalmente fechado no início ou no fim, nenhuma página é mostrada
             if isCover || isBackCover {
                 onVisibleExperiencesChange?([nil, nil])
             } else {
-                // Verifica separadamente a página da ESQUERDA e a página da DIREITA
                 let leftExp = experiences.indices.contains(currentPage) ? experiences[currentPage] : nil
                 let rightExp = experiences.indices.contains(currentPage + 1) ? experiences[currentPage + 1] : nil
                 
-                // Retorna sempre 2 elementos marcando a posição (esquerda, direita)
                 onVisibleExperiencesChange?([leftExp, rightExp])
             }
         }
 
 
-    // MARK: Mudança na quantidade de experiences
 
     private func handleExperiencesCountChange() {
 
@@ -709,7 +582,6 @@ extension BookView {
 }
 
 
-// MARK: - Índices das páginas estáticas
 
 extension BookView {
 
@@ -727,11 +599,9 @@ extension BookView {
         switch direction {
 
         case .forward:
-            // Mantém a página esquerda atual visível
             return currentPage
 
         case .backward:
-            // Revela a página esquerda anterior
             return currentPage - 2
         }
     }
@@ -750,14 +620,9 @@ extension BookView {
         switch direction {
 
         case .forward:
-            // A próxima página da direita.
-            // Se estivermos chegando ao final, esse índice pode
-            // ser uma página especial (contra-capa/capa final),
-            // então NÃO verificamos apenas experiences.indices.
             return currentPage + 3
 
         case .backward:
-            // Mantém a página direita atual enquanto voltamos
             return currentPage + 1
         }
     }
@@ -772,11 +637,9 @@ extension BookView {
         switch direction {
 
         case .forward:
-            // Página direita atual que está sendo virada
             return currentPage + 1
 
         case .backward:
-            // Página esquerda atual que está sendo virada de volta
             return currentPage
         }
     }
@@ -791,18 +654,14 @@ extension BookView {
         switch direction {
 
         case .forward:
-            // Verso da página que está virando
             return currentPage + 2
 
         case .backward:
-            // Verso da página anterior
             return currentPage - 1
         }
     }
 }
 
-
-// MARK: - Preview
 
 #Preview {
 

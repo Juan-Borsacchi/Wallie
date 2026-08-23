@@ -1,5 +1,5 @@
 //
-//  MomentsViews.swift
+//  MomentsView.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 21/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MomentsViews: View {
+struct MomentsView: View {
     @Environment(WallieViewModel.self) var viewmodel
     
     @State private var displayMode: DisplayMode = .carousel
@@ -47,8 +47,8 @@ struct MomentsViews: View {
                     )
                     .padding(.top, captionTopSpacing)
                 }
-               
-               
+                
+                
             }.padding(.top, 20)
             Spacer()
             
@@ -103,18 +103,17 @@ struct MomentsViews: View {
     }
     
     private var captionTopSpacing: CGFloat {
-            let isSingleExperience = viewmodel.experiences.count == 1
-            
-            switch displayMode {
-            case .carousel:
-                // Se for único, retorna 26 (6 + 20 pixels mais pra baixo). Se não, retorna 6.
-                return isSingleExperience ? 46 : 6
-            case .stack:
-                return 6
-            case .book:
-                return 8
-            }
+        let isSingleExperience = viewmodel.experiences.count == 1
+        
+        switch displayMode {
+        case .carousel:
+            return isSingleExperience ? 46 : 6
+        case .stack:
+            return 6
+        case .book:
+            return 8
         }
+    }
     
     @ViewBuilder
     private var detailDestinationView: some View {
@@ -171,9 +170,9 @@ struct MomentsMainContentView: View {
                         experiences: viewmodel.experiences,
                         onTapExperience: onTapExperience,
                         onVisibleExperiencesChange: { visible in
-                        visibleBookExperiences = visible
-                        focusedExperience = visible.compactMap { $0 }.first
-                                                }
+                            visibleBookExperiences = visible
+                            focusedExperience = visible.compactMap { $0 }.first
+                        }
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }
@@ -184,6 +183,6 @@ struct MomentsMainContentView: View {
 }
 
 #Preview {
-    MomentsViews()
+    MomentsView()
         .environment(WallieViewModel())
 }

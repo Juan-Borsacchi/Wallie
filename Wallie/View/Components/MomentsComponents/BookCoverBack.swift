@@ -17,16 +17,11 @@ struct BookCoverBack: View {
 
             ZStack {
 
-                // MARK: Fundo da capa
-
                 RoundedRectangle(
                     cornerRadius: 20,
                     style: .continuous
                 )
                 .fill(.gray)
-
-
-                // MARK: Strokes externos animados
 
                 ForEach(0..<5, id: \.self) { index in
 
@@ -55,9 +50,6 @@ struct BookCoverBack: View {
                     .padding(CGFloat(index * 7))
                 }
 
-
-                // MARK: Retângulo central
-
                 RoundedRectangle(
                     cornerRadius: 18,
                     style: .continuous
@@ -83,9 +75,6 @@ struct BookCoverBack: View {
                     width: geometry.size.width * 0.72,
                     height: geometry.size.height * 0.78
                 )
-
-
-                // MARK: Logo
 
                 Image("OnlyLogo")
                     .resizable()

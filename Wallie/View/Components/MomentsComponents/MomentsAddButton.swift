@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MomentsAddButton: View {
     let action: () -> Void
-
+    
     var body: some View {
         Button(action: action) {
             Label("Adicionar experiência", systemImage: "plus.circle.fill")

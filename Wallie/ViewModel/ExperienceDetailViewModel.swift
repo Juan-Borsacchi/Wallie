@@ -28,7 +28,7 @@ final class ExperienceDetailViewModel {
     
     private let displayDuration: Double = 5.0
     private var timerTask: Task<Void, Never>?
-
+    
     init(
         experience: Experience,
         onSave: @escaping (Experience) -> Void,
@@ -44,7 +44,7 @@ final class ExperienceDetailViewModel {
         stopAudio()
         timerTask?.cancel()
     }
-
+    
     var allPhotos: [ExperiencePhoto] {
         var photos: [ExperiencePhoto] = []
         for (index, data) in experience.images.enumerated() {
@@ -71,19 +71,19 @@ final class ExperienceDetailViewModel {
     
     var hasAudio: Bool { !audioURLs.isEmpty }
     var hasMood: Bool { experience.quality != nil || experience.emotion != nil }
-
+    
     func startTimer() {
-            timerTask?.cancel()
-            timerTask = Task { @MainActor [weak self] in
-                while !Task.isCancelled {
-                    try? await Task.sleep(nanoseconds: 100_000_000)
-                    
-                    guard let self = self, !self.isShowingEdit, !self.isShowingDeleteAlert else { continue }
-                    self.updateProgress()
-                }
+        timerTask?.cancel()
+        timerTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                
+                guard let self = self, !self.isShowingEdit, !self.isShowingDeleteAlert else { continue }
+                self.updateProgress()
             }
         }
-
+    }
+    
     private func updateProgress() {
         guard !allPhotos.isEmpty, !config.showFullScreenCover else { return }
         
@@ -95,7 +95,7 @@ final class ExperienceDetailViewModel {
             progress += step
         }
     }
-
+    
     func toggleAudioPlay(url: URL) {
         if isPlayingAudio && playingAudioURL == url {
             stopAudio()
@@ -106,12 +106,12 @@ final class ExperienceDetailViewModel {
             isPlayingAudio = true
         }
     }
-
+    
     func stopAudio() {
         audioPlayer?.pause()
         isPlayingAudio = false
     }
-
+    
     func deleteExperience() {
         onDelete?(experience)
     }

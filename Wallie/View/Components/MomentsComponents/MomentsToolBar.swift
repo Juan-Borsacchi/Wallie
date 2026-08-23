@@ -11,14 +11,14 @@ struct MomentsToolBar: View {
     let hasExperiences: Bool
     let displayModeIcon: String
     let onCycleMode: () -> Void
-
+    
     var body: some View {
         HStack {
             Title(title: "Momentos", subtitle: "")
                 .foregroundStyle(.white)
-
+            
             Spacer()
-
+            
             if hasExperiences {
                 Button {
                     withAnimation(.easeInOut(duration: 0.35)) {

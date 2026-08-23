@@ -10,14 +10,14 @@ import SwiftUI
 struct ContentView: View {
     @Environment(WallieViewModel.self) var viewmodel
     @State private var selectedTab: Int = 0
- 
+    
     var body: some View {
         @Bindable var bindableViewmodel = viewmodel
         
         TabView(selection: $selectedTab) {
             Tab("Momentos", systemImage: "photo.fill.on.rectangle.fill", value: 0) {
                 NavigationStack {
-                    MomentsViews()
+                    MomentsView()
                 }
                 .tint(nil)
             }

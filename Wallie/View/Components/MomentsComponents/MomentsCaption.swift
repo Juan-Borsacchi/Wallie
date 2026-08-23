@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ExperienceCaptionText: View {
     let experience: Experience
-
+    
     var body: some View {
         Text(experience.title.isEmpty ? "Sem título" : experience.title)
             .font(.title3.bold())
@@ -28,10 +28,8 @@ struct MomentsCaption: View {
     var isSingleItem: Bool = false
     
     var body: some View {
-        // ZStack com alinhamento no topo
         ZStack(alignment: .top) {
             
-            // CONTEÚDO REAL:
             switch displayMode {
             case .stack:
                 if let experience = focusedExperience {
@@ -42,7 +40,6 @@ struct MomentsCaption: View {
                     ExperienceCaptionText(experience: experience)
                 }
             case .book:
-                // No modo livro sempre teremos o array com tamanho 2
                 if visibleBookExperiences.count == 2 {
                     HStack(spacing: 16) {
                         
@@ -65,10 +62,6 @@ struct MomentsCaption: View {
                 }
             }
         }
-        // SOLUÇÃO DEFINITIVA:
-        // Travamos a altura do container em exatos 70 pontos.
-        // Seja vazio, com 1 linha ou com 2 linhas, ele nunca vai encolher nem crescer,
-        // garantindo que o livro fique congelado no centro da tela.
         .frame(height: 70, alignment: .top)
     }
 }

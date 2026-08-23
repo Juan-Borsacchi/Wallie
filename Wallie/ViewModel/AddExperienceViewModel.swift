@@ -105,7 +105,7 @@ final class AddExperienceViewModel {
             self.coverImage = nil
         }
     }
-        
+    
     func adicionarItem(_ tipo: AddListModel) {
         withAnimation {
             switch tipo {

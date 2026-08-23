@@ -99,7 +99,7 @@ struct SelectedAlbumViews: View {
                     Image(systemName: "plus")
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.corTitulo)
+                .tint(.colorTitle)
             }
         }
         .alert("Excluir Álbum", isPresented: $isShowingDeleteAlbumAlert) {

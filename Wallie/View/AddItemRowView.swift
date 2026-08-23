@@ -265,7 +265,7 @@ struct AudioWaveformView: View {
             ForEach(0..<samples.count, id: \.self) { index in
                 Capsule()
                     .fill(barColor)
-                    .frame(height: max(4, samples[index] * 40)) // Altura dinâmica com valor mínimo
+                    .frame(height: max(4, samples[index] * 40))
             }
         }
         .frame(height: 50)
@@ -358,7 +358,6 @@ struct AudioRecorderSheetView: View {
             elapsedTime = 0
             withAnimation { isRecording = true }
             
-            // Timer para atualizar tempo e capturar o volume do microfone
             timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
                 guard let recorder = audioRecorder, recorder.isRecording else { return }
                 recorder.updateMeters()

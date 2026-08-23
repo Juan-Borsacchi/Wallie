@@ -14,7 +14,7 @@ struct EmptyAlbum: View {
         VStack(alignment: .leading){
             Text(emptyAlbumTitle)
                 .font(.custom("Manrope-Bold", size: 22))
-                .foregroundStyle(Color.blue)
+                .foregroundStyle(Color(.colorTitle))
             
             HStack {
                 Label("Adicione sua primeira experiência", systemImage: "plus.circle.fill")

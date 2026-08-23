@@ -32,7 +32,7 @@ struct MemoriesTitles: View {
         VStack(alignment: .leading) {
             Text(title)
                 .font(.custom("Manrope-Bold", size: 22))
-                .foregroundStyle(Color.corTitulo)
+                .foregroundStyle(Color.colorTitle)
             Text(subtitle)
                 .font(.custom("Manrope-Regular", size: 16))
                 .foregroundStyle(Color.secondary)
