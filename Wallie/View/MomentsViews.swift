@@ -12,7 +12,7 @@ struct MomentsViews: View {
     
     @State private var displayMode: DisplayMode = .carousel
     @State private var focusedExperience: Experience?
-    @State private var visibleBookExperiences: [Experience] = []
+    @State private var visibleBookExperiences: [Experience?] = []
     
     @State private var isShowingAddExperience = false
     @State private var selectedExperienceID: UUID?
@@ -38,16 +38,18 @@ struct MomentsViews: View {
                 onAddExperience: { isShowingAddExperience = true },
                 onTapExperience: handleTap
             )
-            
-            if !viewmodel.experiences.isEmpty {
-                MomentsCaption(
-                    displayMode: displayMode,
-                    focusedExperience: focusedExperience,
-                    visibleBookExperiences: visibleBookExperiences
-                )
-                .padding(.top, captionTopSpacing)
-            }
-            
+            ZStack{
+                if !viewmodel.experiences.isEmpty {
+                    MomentsCaption(
+                        displayMode: displayMode,
+                        focusedExperience: focusedExperience,
+                        visibleBookExperiences: visibleBookExperiences
+                    )
+                    .padding(.top, captionTopSpacing)
+                }
+               
+               
+            }.padding(.top, 20)
             Spacer()
             
             MomentsAddButton {
@@ -94,20 +96,25 @@ struct MomentsViews: View {
     
     private var displayModeIcon: String {
         switch displayMode {
-        case .stack:    return "rectangle.on.rectangle"
-        case .carousel: return "book.closed"
-        case .book:     return "square.stack.3d.up"
+        case .stack:    return "square.2.layers.3d.fill"
+        case .carousel: return "book.fill"
+        case .book:     return "app.shadow"
         }
     }
     
     private var captionTopSpacing: CGFloat {
-        switch displayMode {
-        case .stack, .carousel:
-            return 16
-        case .book:
-            return 8
+            let isSingleExperience = viewmodel.experiences.count == 1
+            
+            switch displayMode {
+            case .carousel:
+                // Se for único, retorna 26 (6 + 20 pixels mais pra baixo). Se não, retorna 6.
+                return isSingleExperience ? 46 : 6
+            case .stack:
+                return 6
+            case .book:
+                return 8
+            }
         }
-    }
     
     @ViewBuilder
     private var detailDestinationView: some View {
@@ -131,7 +138,7 @@ struct MomentsMainContentView: View {
     let displayMode: DisplayMode
     
     @Binding var focusedExperience: Experience?
-    @Binding var visibleBookExperiences: [Experience]
+    @Binding var visibleBookExperiences: [Experience?]
     
     let onAddExperience: () -> Void
     let onTapExperience: (Experience) -> Void
@@ -164,9 +171,9 @@ struct MomentsMainContentView: View {
                         experiences: viewmodel.experiences,
                         onTapExperience: onTapExperience,
                         onVisibleExperiencesChange: { visible in
-                            visibleBookExperiences = visible
-                            focusedExperience = visible.first
-                        }
+                        visibleBookExperiences = visible
+                        focusedExperience = visible.compactMap { $0 }.first
+                                                }
                     )
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                 }

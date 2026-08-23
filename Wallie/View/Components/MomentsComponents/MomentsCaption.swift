@@ -24,27 +24,51 @@ struct ExperienceCaptionText: View {
 struct MomentsCaption: View {
     let displayMode: DisplayMode
     let focusedExperience: Experience?
-    let visibleBookExperiences: [Experience]
-
+    let visibleBookExperiences: [Experience?]
+    var isSingleItem: Bool = false
+    
     var body: some View {
-        switch displayMode {
-        case .stack, .carousel:
-            if let experience = focusedExperience {
-                ExperienceCaptionText(experience: experience)
-            }
+        // ZStack com alinhamento no topo
+        ZStack(alignment: .top) {
             
-        case .book:
-            if visibleBookExperiences.count == 1, let experience = visibleBookExperiences.first {
-                ExperienceCaptionText(experience: experience)
-            } else if visibleBookExperiences.count >= 2 {
-                HStack(spacing: 16) {
-                    ForEach(visibleBookExperiences, id: \.id) { experience in
-                        ExperienceCaptionText(experience: experience)
-                            .frame(maxWidth: .infinity)
-                    }
+            // CONTEÚDO REAL:
+            switch displayMode {
+            case .stack:
+                if let experience = focusedExperience {
+                    ExperienceCaptionText(experience: experience)
                 }
-                .padding(.horizontal, 24)
+            case .carousel:
+                if let experience = focusedExperience {
+                    ExperienceCaptionText(experience: experience)
+                }
+            case .book:
+                // No modo livro sempre teremos o array com tamanho 2
+                if visibleBookExperiences.count == 2 {
+                    HStack(spacing: 16) {
+                        
+                        if let leftExp = visibleBookExperiences[0] {
+                            ExperienceCaptionText(experience: leftExp)
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Color.clear.frame(maxWidth: .infinity)
+                        }
+                        
+                        if let rightExp = visibleBookExperiences[1] {
+                            ExperienceCaptionText(experience: rightExp)
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Color.clear.frame(maxWidth: .infinity)
+                        }
+                        
+                    }
+                    .padding(.horizontal, 24)
+                }
             }
         }
+        // SOLUÇÃO DEFINITIVA:
+        // Travamos a altura do container em exatos 70 pontos.
+        // Seja vazio, com 1 linha ou com 2 linhas, ele nunca vai encolher nem crescer,
+        // garantindo que o livro fique congelado no centro da tela.
+        .frame(height: 70, alignment: .top)
     }
 }
