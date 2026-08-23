@@ -73,7 +73,6 @@ final class AddExperienceViewModel {
     }
     
     var mostrarBarraDeItens = false
-    var availableAlbums: [String] = ["Nenhum", "Viagem", "Família", "Trabalho"]
     
     var isSaveDisabled: Bool {
         coverImage == nil || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -81,7 +80,6 @@ final class AddExperienceViewModel {
     
     init(
         editing experience: Experience? = nil,
-        availableAlbums: [String] = [],
         onSave: @escaping (Experience) -> Void
     ) {
         self.existingID = experience?.id
@@ -101,12 +99,6 @@ final class AddExperienceViewModel {
             self.itensExtras = experience?.extraItems ?? []
         }
         
-        var defaultList = ["Nenhum", "Viagem", "Família", "Trabalho"]
-        for item in availableAlbums where !defaultList.contains(item) {
-            defaultList.append(item)
-        }
-        self.availableAlbums = defaultList
-        
         if let data = experience?.images.first, let image = UIImage(data: data) {
             self.coverImage = image
         } else {
@@ -115,23 +107,23 @@ final class AddExperienceViewModel {
     }
         
     func adicionarItem(_ tipo: AddListModel) {
-            withAnimation {
-                switch tipo {
-                case .mood:
-                    if !itensExtras.contains(where: { $0.type == .mood }) {
-                        itensExtras.append(AddItem(type: .mood, content: .mood(quality: nil, emotion: nil)))
-                    }
-                case .photo:
-                    showPhotoPicker = true
-                case .camera:
-                    activeSheet = .extraCamera
-                case .audio:
-                    if !itensExtras.contains(where: { $0.type == .audio }) {
-                        itensExtras.append(AddItem(type: .audio))
-                    }
+        withAnimation {
+            switch tipo {
+            case .mood:
+                if !itensExtras.contains(where: { $0.type == .mood }) {
+                    itensExtras.append(AddItem(type: .mood, content: .mood(quality: nil, emotion: nil)))
+                }
+            case .photo:
+                showPhotoPicker = true
+            case .camera:
+                activeSheet = .extraCamera
+            case .audio:
+                if !itensExtras.contains(where: { $0.type == .audio }) {
+                    itensExtras.append(AddItem(type: .audio))
                 }
             }
         }
+    }
     
     func salvarExperiencia() {
         var imagesData: [Data] = []

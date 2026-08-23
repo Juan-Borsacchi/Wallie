@@ -35,6 +35,8 @@ struct DateSelectionRow: View {
     }
 }
 
+import SwiftUI
+
 struct AlbumSelectionMenu: View {
     @Binding var album: String
     let availableAlbums: [String]
@@ -49,6 +51,17 @@ struct AlbumSelectionMenu: View {
             }
             
             Divider()
+            
+            Button {
+                album = "Nenhum"
+            } label: {
+                HStack {
+                    Text("Nenhum")
+                    if album == "Nenhum" {
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
             
             ForEach(availableAlbums, id: \.self) { option in
                 Button {

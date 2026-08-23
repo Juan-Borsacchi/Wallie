@@ -169,37 +169,37 @@ struct MemoriesView: View {
                 }
             }
             .toolbar {
-                            if isEditingMode {
-                                ToolbarItemGroup(placement: .bottomBar) {
-                                    Button {
-                                        isShowingMoveAlbumSheet = true
-                                    } label: {
-                                        Image(systemName: "folder")
-                                            .font(.system(size: 18))
-                                    }
-                                    .disabled(selectedExperienceIDs.isEmpty)
-                                    
-                                    Spacer()
-                                    
-                                    Text(selectedExperienceIDs.isEmpty ? "Selecione Itens" : "\(selectedExperienceIDs.count) Selecionados")
-                                        .font(.footnote.weight(.semibold))
-                                        .fixedSize()
-                                        .contentTransition(.numericText())
-                                        .padding(.horizontal)
-                                    
-                                    Spacer()
-                                    
-                                    Button(role: .destructive) {
-                                        isShowingDeleteAlert = true
-                                    } label: {
-                                        Image(systemName: "trash")
-                                            .font(.system(size: 18))
-                                            .foregroundStyle(selectedExperienceIDs.isEmpty ? Color.secondary : Color.red)
-                                    }
-                                    .disabled(selectedExperienceIDs.isEmpty)
-                                }
-                            }
+                if isEditingMode {
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Button {
+                            isShowingMoveAlbumSheet = true
+                        } label: {
+                            Image(systemName: "folder")
+                                .font(.system(size: 18))
                         }
+                        .disabled(selectedExperienceIDs.isEmpty)
+                        
+                        Spacer()
+                        
+                        Text(selectedExperienceIDs.isEmpty ? "Selecione Itens" : "\(selectedExperienceIDs.count) Selecionados")
+                            .font(.footnote.weight(.semibold))
+                            .fixedSize()
+                            .contentTransition(.numericText())
+                            .padding(.horizontal)
+                        
+                        Spacer()
+                        
+                        Button(role: .destructive) {
+                            isShowingDeleteAlert = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.system(size: 18))
+                                .foregroundStyle(selectedExperienceIDs.isEmpty ? Color.secondary : Color.red)
+                        }
+                        .disabled(selectedExperienceIDs.isEmpty)
+                    }
+                }
+            }
             .toolbar(isEditingMode ? .hidden : .visible, for: .tabBar)
             
             .alert("Excluir experiências", isPresented: $isShowingDeleteAlert) {
@@ -224,10 +224,11 @@ struct MemoriesView: View {
                                     
                                     Spacer()
                                     
+                                    // AQUI: O Picker agora observa os álbuns do banco globalmente e faz Cast para String forte.
                                     Picker("", selection: $selectedTargetAlbum) {
-                                        Text("Nenhum").tag("Nenhum")
-                                        ForEach(viewmodel.albums.map { $0.name }, id: \.self) { albumName in
-                                            Text(albumName).tag(albumName)
+                                        Text("Nenhum").tag("Nenhum" as String)
+                                        ForEach(viewmodel.albums, id: \.id) { album in
+                                            Text(album.name).tag(album.name as String)
                                         }
                                     }
                                     .pickerStyle(.menu)
@@ -237,7 +238,6 @@ struct MemoriesView: View {
                             .padding(16)
                             .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                             
-                            // Card de Criar Novo Álbum
                             Button {
                                 isShowingMoveAlbumSheet = false
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
@@ -277,7 +277,7 @@ struct MemoriesView: View {
             }
             .sheet(isPresented: $isShowingCreateAlbumSheet) {
                 CreateAlbumView(existingAlbums: viewmodel.albums) { newAlbum in
-                    viewmodel.addNewAlbum(newAlbum)
+                    viewmodel.addNewAlbum(newAlbum) // Salva no banco de dados!
                     selectedTargetAlbum = newAlbum.name
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                         isShowingMoveAlbumSheet = true
@@ -286,9 +286,7 @@ struct MemoriesView: View {
                 .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $isShowingAddExperience) {
-                AddExperienceView(
-                    availableAlbums: viewmodel.albums.map { $0.name }
-                ) { newExperience in
+                AddExperienceView { newExperience in
                     viewmodel.addNewExperience(newExperience)
                 }
             }

@@ -5,11 +5,6 @@
 //  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
 //
 
-//
-//  ContentView.swift
-//  Wallie
-//
-
 import SwiftUI
 
 struct ContentView: View {
@@ -36,12 +31,6 @@ struct ContentView: View {
                 AlbunsView()
                     .tint(nil)
             }
-            
-//     PRO FUTURO
-//            Tab("Calendário", systemImage: "calendar") {
-//                CalendarView()
-//                    .tint(nil)
-//            }
             
             Tab(value: 3, role: .search) {
                 SearchView()

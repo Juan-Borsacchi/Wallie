@@ -10,6 +10,7 @@ import PhotosUI
 
 struct AddExperienceView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(WallieViewModel.self) private var globalVM
     @State private var viewModel: AddExperienceViewModel
     @FocusState private var isInputFocused: Bool
     
@@ -17,12 +18,10 @@ struct AddExperienceView: View {
     
     init(
         editing experience: Experience? = nil,
-        availableAlbums: [String] = [],
         onSave: @escaping (Experience) -> Void
     ) {
         _viewModel = State(initialValue: AddExperienceViewModel(
             editing: experience,
-            availableAlbums: availableAlbums,
             onSave: onSave
         ))
     }
@@ -84,9 +83,9 @@ struct AddExperienceView: View {
                     
                 case .createAlbum:
                     CreateAlbumView(
-                        existingAlbums: viewModel.availableAlbums.map { formAlbum(name: $0) }
+                        existingAlbums: globalVM.albums
                     ) { novoAlbum in
-                        viewModel.availableAlbums.append(novoAlbum.name)
+                        globalVM.addNewAlbum(novoAlbum)
                         viewModel.album = novoAlbum.name
                     }
                     .presentationDragIndicator(.visible)
@@ -146,7 +145,7 @@ struct AddExperienceView: View {
             
             AlbumSelectionMenu(
                 album: $viewModel.album,
-                availableAlbums: viewModel.availableAlbums,
+                availableAlbums: globalVM.albums.map { $0.name },
                 onCreateNewAlbum: { viewModel.activeSheet = .createAlbum }
             )
         }
@@ -207,7 +206,8 @@ struct AddExperienceView: View {
 }
 
 #Preview {
-    AddExperienceView(availableAlbums: ["Viagem", "Família"]) { experience in
+    AddExperienceView { experience in
         print(experience.title)
     }
+    .environment(WallieViewModel())
 }

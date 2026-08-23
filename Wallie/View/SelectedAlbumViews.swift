@@ -97,8 +97,9 @@ struct SelectedAlbumViews: View {
                     isShowingAddExperience = true
                 } label: {
                     Image(systemName: "plus")
-                }.buttonStyle(.borderedProminent)
-                    .tint(.corTitulo)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.corTitulo)
             }
         }
         .alert("Excluir Álbum", isPresented: $isShowingDeleteAlbumAlert) {
@@ -111,9 +112,7 @@ struct SelectedAlbumViews: View {
             Text("Tem certeza que deseja excluir o álbum '\(currentAlbum.name)'?")
         }
         .sheet(isPresented: $isShowingAddExperience) {
-            AddExperienceView(
-                availableAlbums: viewmodel.albums.map { $0.name }
-            ) { newExperience in
+            AddExperienceView { newExperience in
                 var experienceAdd = newExperience
                 experienceAdd.album = currentAlbum.name
                 viewmodel.addNewExperience(experienceAdd)
