@@ -22,7 +22,7 @@ class WallieViewModel {
     
     var recentMoments: [Experience] {
         let calendar = Calendar.current
-        guard let expireRecent = calendar.date(byAdding: .second, value: -60, to: currentTime) else {
+        guard let expireRecent = calendar.date(byAdding: .day, value: -7, to: currentTime) else {
             return experiences
         }
         return experiences.filter { $0.date >= expireRecent }

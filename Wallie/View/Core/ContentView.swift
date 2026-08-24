@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.colorScheme) var colorScheme
     @Environment(WallieViewModel.self) var viewmodel
     @State private var selectedTab: Int = 0
     
@@ -36,7 +37,7 @@ struct ContentView: View {
                 SearchView()
             }
         }
-        .tint(.colorTabBar)
+        .tint(colorScheme == .dark ? .verdeProjeto : .verdeEscuro)
         .onChange(of: selectedTab) { _, _ in
             DataManager.shared.loadData()
         }

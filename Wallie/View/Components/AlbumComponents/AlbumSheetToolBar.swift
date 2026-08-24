@@ -28,7 +28,9 @@ struct AlbumSheetToolBar: ToolbarContent {
             Button(action: confirmAction) {
                 Image(systemName: "checkmark")
             }
-        }        
+            .buttonStyle(.glassProminent)
+            .tint(.verdeProjeto)
+        }
         
     }
 }

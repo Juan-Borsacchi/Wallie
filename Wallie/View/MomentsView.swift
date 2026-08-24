@@ -50,12 +50,12 @@ struct MomentsView: View {
                 
                 
             }.padding(.top, 20)
-            Spacer()
+//            Spacer()
             
             MomentsAddButton {
                 isShowingAddExperience = true
             }
-            .padding(.bottom, 30)
+            .padding(.bottom, 8)
             
         }
         .background {

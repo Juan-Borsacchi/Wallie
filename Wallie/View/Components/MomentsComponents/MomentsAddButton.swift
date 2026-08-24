@@ -20,6 +20,7 @@ struct MomentsAddButton: View {
         .buttonStyle(.glassProminent)
         .tint(.colorAddMoment)
         .padding(.horizontal, 16)
+        .padding(.bottom, 80)
     }
 }
 
