@@ -1,0 +1,116 @@
+{
+  "color-space-for-untagged-svg-colors" : "display-p3",
+  "fill" : {
+    "linear-gradient" : [
+      "gray:1.00000,1.00000",
+      "gray:0.89691,1.00000"
+    ],
+    "orientation" : {
+      "start" : {
+        "x" : 0.5,
+        "y" : 1
+      },
+      "stop" : {
+        "x" : 0.5,
+        "y" : 0
+      }
+    }
+  },
+  "groups" : [
+    {
+      "layers" : [
+
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.3
+      }
+    },
+    {
+      "layers" : [
+        {
+          "blend-mode" : "normal",
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "srgb:0.57255,0.88235,1.00000,0.80000"
+              }
+            }
+          ],
+          "glass" : true,
+          "hidden" : false,
+          "image-name" : "Rectangle 3.svg",
+          "name" : "Rectangle 3",
+          "opacity" : 1,
+          "position" : {
+            "scale" : 0.3,
+            "translation-in-points" : [
+              -103.67219103734556,
+              -48.76889568785191
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "srgb:0.82797,0.92075,0.50787,0.80000"
+              }
+            }
+          ],
+          "image-name" : "Rectangle 4.svg",
+          "name" : "Rectangle 4",
+          "position" : {
+            "scale" : 0.3,
+            "translation-in-points" : [
+              -22.84438207469111,
+              -10.153343531777864
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "srgb:0.26039,0.44912,0.52079,0.80000"
+              }
+            }
+          ],
+          "image-name" : "Rectangle 5.svg",
+          "name" : "Rectangle 5",
+          "position" : {
+            "scale" : 0.3,
+            "translation-in-points" : [
+              59.327808962654444,
+              44.23110431214809
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.3
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : [
+      "iOS",
+      "macOS"
+    ]
+  }
+}

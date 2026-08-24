@@ -6,81 +6,48 @@
 //
 
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
-
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(WallieViewModel.self) var viewmodel
+    @State private var selectedTab: Int = 0
+    
     var body: some View {
-        NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
-                    }
+        @Bindable var bindableViewmodel = viewmodel
+        
+        TabView(selection: $selectedTab) {
+            Tab("Momentos", systemImage: "photo.fill.on.rectangle.fill", value: 0) {
+                NavigationStack {
+                    MomentsView()
                 }
-                .onDelete(perform: deleteItems)
+                .tint(nil)
             }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
+            
+            Tab("Memórias", systemImage: "square.grid.3x3.square", value: 1) {
+                MemoriesView()
+                    .tint(nil)
             }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            
+            Tab("Álbuns", systemImage: "rectangle.stack", value: 2) {
+                AlbunsView()
+                    .tint(nil)
+            }
+            
+            Tab(value: 3, role: .search) {
+                SearchView()
             }
         }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+        .tint(colorScheme == .dark ? .verdeProjeto : .verdeEscuro)
+        .onChange(of: selectedTab) { _, _ in
+            DataManager.shared.loadData()
+        }
+        .sheet(isPresented: $bindableViewmodel.displaySheet) {
+            Text("Teste")
         }
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
-
 #Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView()
+        .environment(WallieViewModel())
 }
