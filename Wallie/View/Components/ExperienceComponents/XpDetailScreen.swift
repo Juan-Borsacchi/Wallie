@@ -42,6 +42,7 @@ struct XpDetailScreen: View {
                 }
             }
         }
+        .ignoresSafeArea(edges: .top)
         .toolbarBackground(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .toolbar {
@@ -190,7 +191,7 @@ struct XpDetailScreen: View {
     private var audioSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             ForEach(viewModel.audioURLs, id: \.self) { url in
-                AudioPlayerRow(
+                XpAudioPlayer(
                     url: url,
                     isPlaying: viewModel.isPlayingAudio && viewModel.playingAudioURL == url,
                     onTogglePlay: { viewModel.toggleAudioPlay(url: url) }

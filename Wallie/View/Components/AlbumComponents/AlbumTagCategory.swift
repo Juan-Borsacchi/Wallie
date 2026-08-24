@@ -14,7 +14,7 @@ struct AlbumTagCategory: View {
     var body: some View {
         VStack {
             Text(nameCategory)
-                .font(.custom("Manrope-Bold", size: 17))
+                .font(.custom("Manrope-Regular", size: 17))
                 .foregroundStyle(colorScheme == .dark ? .white : .primary )
         }
         .padding(.horizontal, 16)
@@ -23,7 +23,7 @@ struct AlbumTagCategory: View {
         .cornerRadius(20)
         .overlay(
             Capsule()
-                .strokeBorder(Color(.separator), lineWidth: 2)
+                .strokeBorder(Color(.separator), lineWidth: 1)
         )
     }
 }

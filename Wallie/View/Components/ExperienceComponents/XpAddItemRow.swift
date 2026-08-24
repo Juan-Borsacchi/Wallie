@@ -112,7 +112,7 @@ struct XpAddItemRow: View {
             }
             
         case .camera:
-            CameraCaptureRow(image: singleImageBinding)
+            XpCameraCapture(image: singleImageBinding)
             
         case .audio:
             if let audioURL = audioBinding.wrappedValue {
@@ -169,28 +169,37 @@ struct XpAddItemRow: View {
     }
     
     private var imagesBinding: Binding<[UIImage]> {
-        Binding(
-            get: {
-                if case .images(let valores) = item.content { return valores }
-                return []
-            },
-            set: { novasImagens in
-                item.content = novasImagens.isEmpty ? nil : .images(novasImagens)
-            }
-        )
-    }
+            Binding(
+                get: {
+                    if case .images(let valoresData) = item.content {
+                        return valoresData.compactMap { UIImage(data: $0) }
+                    }
+                    return []
+                },
+                set: { novasImagens in
+                    let datas = novasImagens.compactMap { $0.jpegData(compressionQuality: 0.8) }
+                    item.content = datas.isEmpty ? nil : .images(datas)
+                }
+            )
+        }
     
     private var singleImageBinding: Binding<UIImage?> {
-        Binding(
-            get: {
-                if case .images(let valores) = item.content { return valores.first }
-                return nil
-            },
-            set: { novoValor in
-                item.content = novoValor.map { .images([$0]) }
-            }
-        )
-    }
+            Binding(
+                get: {
+                    if case .images(let valoresData) = item.content, let firstData = valoresData.first {
+                        return UIImage(data: firstData)
+                    }
+                    return nil
+                },
+                set: { novoValor in
+                    if let image = novoValor, let data = image.jpegData(compressionQuality: 0.8) {
+                        item.content = .images([data])
+                    } else {
+                        item.content = nil
+                    }
+                }
+            )
+        }
     
     private var audioBinding: Binding<URL?> {
         Binding(

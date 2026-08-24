@@ -53,9 +53,11 @@ final class ExperienceDetailViewModel {
             }
         }
         for (itemIndex, item) in experience.extraItems.enumerated() {
-            if case let .images(uiImages) = item.content {
-                for (imgIndex, img) in uiImages.enumerated() {
-                    photos.append(ExperiencePhoto(id: "extra-\(itemIndex)-\(imgIndex)", image: img))
+            if case let .images(dataArray) = item.content {
+                for (imgIndex, data) in dataArray.enumerated() {
+                    if let img = UIImage(data: data) {
+                        photos.append(ExperiencePhoto(id: "extra-\(itemIndex)-\(imgIndex)", image: img))
+                    }
                 }
             }
         }

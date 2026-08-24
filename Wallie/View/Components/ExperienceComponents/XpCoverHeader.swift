@@ -17,7 +17,7 @@ struct XpCoverHeader: View {
             
             VStack(alignment: .leading, spacing: 12) {
                 
-                Label("Capa da Experiência", systemImage: "")
+                Label("Capa da Experiência", systemImage: "camera.fill")
                     .font(.callout)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)

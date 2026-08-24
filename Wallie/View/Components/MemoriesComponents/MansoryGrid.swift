@@ -92,10 +92,4 @@ struct MasonryGrid<Data: RandomAccessCollection, GridItem: View, Detail: View, O
         
         return colData
     }
-    
-    func onSelectionChanged(_ perform: @escaping (Data.Element?) -> Void) -> Self {
-        var copy = self
-        copy.onSelectionChanged = perform
-        return copy
-    }
 }

@@ -33,7 +33,7 @@ struct SelectedAlbumView: View {
     }
     
     var body: some View {
-        ScrollView {
+        VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading) {
                 Title(title: currentAlbum.name, subtitle: "")
                 
@@ -47,29 +47,30 @@ struct SelectedAlbumView: View {
                     }
                 }
                 .padding(.bottom, 16)
-                
-                MasonryGrid(
-                    columnsCount: 2,
-                    data: albumGallery,
-                    heightProvider: { $0.calculatedHeight }
-                ) { item in
-                    ImageView(item, isExpanded: false)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            if let experienceOpen = viewmodel.experiences.first(where: { $0.id == item.experienceID }) {
-                                self.selectedMoments = experienceOpen
-                                self.isShowingDetail = true
-                            }
-                        }
-                } detail: { _, _, _, _ in
-                    EmptyView()
-                } overlay: { _, _, _, _ in
-                    EmptyView()
-                }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal)
+            .padding(.top, 16)
+            
+            MasonryGrid(
+                columnsCount: 2,
+                data: albumGallery,
+                heightProvider: { $0.calculatedHeight }
+            ) { item in
+                ImageView(item, isExpanded: false)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if let experienceOpen = viewmodel.experiences.first(where: { $0.id == item.experienceID }) {
+                            self.selectedMoments = experienceOpen
+                            self.isShowingDetail = true
+                        }
+                    }
+            } detail: { _, _, _, _ in
+                EmptyView()
+            } overlay: { _, _, _, _ in
+                EmptyView()
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -97,9 +98,10 @@ struct SelectedAlbumView: View {
                     isShowingAddExperience = true
                 } label: {
                     Image(systemName: "plus")
+                        .foregroundStyle(.white)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.colorTitle)
+                .tint(.colorAddButton)
             }
         }
         .alert("Excluir Álbum", isPresented: $isShowingDeleteAlbumAlert) {

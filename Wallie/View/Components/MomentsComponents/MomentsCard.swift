@@ -51,32 +51,6 @@ struct MomentsCard: View {
             )
         }
     }
-    
-    private func ratingBadge(_ quality: QualityRating) -> some View {
-        HStack(spacing: 5) {
-            Text(quality.imageName)
-            Text(quality.label)
-                .lineLimit(1)
-        }
-        .font(.caption2.weight(.bold))
-        .foregroundStyle(.white)
-        .padding(.horizontal, 9)
-        .padding(.vertical, 6)
-        .background(.black.opacity(0.52), in: Capsule())
-    }
-    
-    private func emotionBadge(_ emotion: EmotionTag) -> some View {
-        HStack(spacing: 5) {
-            Text(emotion.imageName)
-            Text(emotion.label)
-                .lineLimit(1)
-        }
-        .font(.caption2.weight(.bold))
-        .foregroundStyle(.white)
-        .padding(.horizontal, 9)
-        .padding(.vertical, 6)
-        .background(.black.opacity(0.52), in: Capsule())
-    }
 }
 
 #Preview("Placeholder") {

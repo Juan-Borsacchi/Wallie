@@ -9,17 +9,6 @@ import SwiftUI
 import Foundation
 import UIKit
 
-struct FotoItem: Identifiable {
-    let id: String
-    let image: UIImage
-}
-
-struct Post: Identifiable {
-    let id = UUID()
-    let color: Color
-    let height: CGFloat
-}
-
 struct formAlbum: Identifiable, Hashable {
     var id: UUID = UUID()
     var name: String
@@ -75,7 +64,7 @@ enum ActiveSheet: Identifiable {
 
 enum AddItemContent {
     case mood(quality: QualityRating?, emotion: EmotionTag?)
-    case images([UIImage])
+    case images([Data])
     case audio(URL)
 }
 
@@ -207,34 +196,6 @@ struct Experience: Identifiable {
 enum MomentosPalette {
     static let accentFront = Color(red: 0.30, green: 0.36, blue: 0.12)
     static let accentSoft = Color(red: 0.62, green: 0.72, blue: 0.30)
-    
-    static let sky = LinearGradient(
-        colors: [
-            Color(red: 0.30, green: 0.52, blue: 0.78),
-            Color(red: 0.80, green: 0.85, blue: 0.82),
-            Color(red: 0.46, green: 0.56, blue: 0.34)
-        ],
-        startPoint: .top,
-        endPoint: .bottom
-    )
-    
-    static let pillGradient = LinearGradient(
-        colors: [accentSoft, accentFront],
-        startPoint: .leading,
-        endPoint: .trailing
-    )
-    
-    static let colorSwatches: [Color] = [
-        .gray, .cyan, .green, .yellow, .orange, .pink, .purple, .blue
-    ]
-    
-    static let backgroundSwatches: [[Color]] = [
-        [.purple, .pink],
-        [.blue, .cyan],
-        [.orange, .yellow, .pink],
-        [.indigo, .purple, .pink],
-        [.pink.opacity(0.6), .white]
-    ]
 }
 
 protocol PhotoProtocol: Hashable {
@@ -251,13 +212,6 @@ struct ItemGalery: Identifiable, PhotoProtocol {
         guard let data = imageData else { return nil }
         return UIImage(data: data)
     }
-}
-
-struct PinGalleryItem: Identifiable, PhotoProtocol {
-    var id: String = UUID().uuidString
-    var title: String
-    var imageName: String
-    var customHeight: CGFloat
 }
 
 extension ItemGalery {
@@ -277,16 +231,3 @@ extension ItemGalery {
         return dynamicColumnWidth * aspectRatio
     }
 }
-
-var sampleExperienceID = UUID()
-var sampleItems: [ItemGalery] = {
-    (1...7).map { i in
-        let imgData = UIImage(named: "foto\(i)")?.jpegData(compressionQuality: 0.8)
-        
-        return ItemGalery(
-            title: "Title \(i)",
-            imageData: imgData,
-            experienceID: sampleExperienceID
-        )
-    }
-}()

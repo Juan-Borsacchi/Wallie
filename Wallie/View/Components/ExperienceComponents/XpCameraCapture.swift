@@ -1,5 +1,5 @@
 //
-//  CameraCaptureRow.swift
+//  XpCameraCapture.swift
 //  Wallie
 //
 //  Created by Juan Gabriel Borsacchi Marques on 18/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CameraCaptureRow: View {
+struct XpCameraCapture: View {
     @Binding var image: UIImage?
     @State private var mostrarCamera = false
     

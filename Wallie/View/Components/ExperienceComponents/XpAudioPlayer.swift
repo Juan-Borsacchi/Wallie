@@ -1,5 +1,5 @@
 //
-//  AudioPlayerRow.swift
+//  XpAudioPlayer.swift
 //  Wallie
 //
 //  Created by Juan Gabriel Borsacchi Marques on 20/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AudioPlayerRow: View {
+struct XpAudioPlayer: View {
     let url: URL
     let isPlaying: Bool
     let onTogglePlay: () -> Void

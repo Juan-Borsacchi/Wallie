@@ -29,25 +29,33 @@ extension Xperience {
         }
         
         if let audioBytes = self.audio {
-            if let audioArray = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSArray.self, from: audioBytes) as? [Data] {
-                for audioData in audioArray {
-                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(UUID().uuidString).m4a")
-                    try? audioData.write(to: tempURL)
+            if let audioArray = try? NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSArray.self, NSData.self], from: audioBytes) as? [Data] {
+                for (index, audioData) in audioArray.enumerated() {
+                    let experienceID = self.id?.uuidString ?? "unknown"
+                    let fileName = "audio_\(experienceID)_\(index).m4a"
+                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+                    
+                    if !FileManager.default.fileExists(atPath: tempURL.path) {
+                        try? audioData.write(to: tempURL)
+                    }
                     items.append(AddItem(type: .audio, content: .audio(tempURL)))
                 }
             } else {
-                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(self.id?.uuidString ?? UUID().uuidString).m4a")
-                try? audioBytes.write(to: tempURL)
+                let experienceID = self.id?.uuidString ?? "unknown"
+                let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(experienceID).m4a")
+                
+                if !FileManager.default.fileExists(atPath: tempURL.path) {
+                    try? audioBytes.write(to: tempURL)
+                }
                 items.append(AddItem(type: .audio, content: .audio(tempURL)))
             }
         }
         
         if let photosBytes = self.photos,
-           let dataArray = try? NSKeyedUnarchiver.unarchivedObject(ofClass: NSArray.self, from: photosBytes) as? [Data] {
+           let dataArray = try? NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSArray.self, NSData.self], from: photosBytes) as? [Data] {
             
-            let uiImages = dataArray.compactMap { UIImage(data: $0) }
-            if !uiImages.isEmpty {
-                items.append(AddItem(type: .photo, content: .images(uiImages)))
+            if !dataArray.isEmpty {
+                items.append(AddItem(type: .photo, content: .images(dataArray)))
             }
         }
         

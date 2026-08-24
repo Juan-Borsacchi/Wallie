@@ -69,9 +69,9 @@ class DataManager {
             case .audio(let url):
                 if let audioData = try? Data(contentsOf: url) {
                     allAudioData.append(audioData)
+                    try? FileManager.default.removeItem(at: url)
                 }
-            case .images(let uiImages):
-                let datas = uiImages.compactMap { $0.jpegData(compressionQuality: 0.8) }
+            case .images(let datas):
                 allExtraImagesData.append(contentsOf: datas)
             default:
                 break
@@ -142,25 +142,6 @@ class DataManager {
         }
     }
     
-    func updateAlbum(id: UUID, newName: String, newCategory: String) {
-        let context = PersistenceController.shared.container.viewContext
-        let fetchRequest: NSFetchRequest<Album> = Album.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        
-        do {
-            if let albumToUpdate = try context.fetch(fetchRequest).first {
-                albumToUpdate.title = newName
-                albumToUpdate.category = newCategory
-                
-                try context.save()
-                context.refreshAllObjects()
-                loadData()
-            }
-        } catch {
-            print(error.localizedDescription)
-        }
-    }
-    
     private func getOrCreateAlbum(withName name: String, in context: NSManagedObjectContext) -> Album {
         let request: NSFetchRequest<Album> = Album.fetchRequest()
         request.predicate = NSPredicate(format: "title == %@", name)
@@ -187,26 +168,4 @@ class DataManager {
         }
     }
     
-    func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
-        let context = PersistenceController.shared.container.viewContext
-        let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-        
-        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        
-        do {
-            if let experienceToUpdate = try context.fetch(fetchRequest).first {
-                experienceToUpdate.title = newTitle
-                
-                if let cover = newCover, let imageData = cover.jpegData(compressionQuality: 0.8) {
-                    experienceToUpdate.cover = imageData
-                }
-                
-                try context.save()
-                context.refreshAllObjects()
-                loadData()
-            }
-        } catch {
-            print(error.localizedDescription)
-        }
-    }
 }

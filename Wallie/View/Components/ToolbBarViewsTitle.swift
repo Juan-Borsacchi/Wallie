@@ -95,10 +95,10 @@ struct ToolBarViewsTitle: View {
                 
                 Button(action: onAdd) {
                     Image(systemName: "plus")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 22, weight: .regular))
                         .foregroundColor(.white)
-                        .frame(width: 38, height: 38)
-                        .background(Color.colorAddButton)
+                        .frame(width: 44, height: 44)
+                        .background(.colorAddButton)
                         .clipShape(Circle())
                 }
             }
