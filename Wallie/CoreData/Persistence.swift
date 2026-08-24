@@ -5,42 +5,32 @@
 //  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
 //
 
-import CoreData
+import SwiftData
+import Foundation
 
 struct PersistenceController {
     static let shared = PersistenceController()
     
+    let modelContainer: ModelContainer
+    
     @MainActor
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
-        let viewContext = result.container.viewContext
-        for _ in 0..<10 {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-        }
-        do {
-            try viewContext.save()
-        } catch {
-            let nsError = error as NSError
-            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-        }
+        let context = result.modelContainer.mainContext
+        
         return result
     }()
     
-    let container: NSPersistentContainer
-    
     init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "Wallie")
-        if inMemory {
-            container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        do {
+            let schema = Schema([
+                Xperience.self,
+                Album.self
+            ])
+            let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: inMemory)
+            modelContainer = try ModelContainer(for: schema, configurations: [configuration])
+        } catch {
+            fatalError("Falha ao criar o ModelContainer do SwiftData: \(error)")
         }
-        
-        container.loadPersistentStores { (storeDescription, error) in
-            if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
-            }
-        }
-        
-        container.viewContext.automaticallyMergesChangesFromParent = true
     }
 }

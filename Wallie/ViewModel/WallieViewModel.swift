@@ -4,8 +4,7 @@
 //
 
 import SwiftUI
-import Observation
-import CoreData
+import SwiftData
 
 @Observable
 class WallieViewModel {
@@ -26,12 +25,13 @@ class WallieViewModel {
         self.albums = dataManager.albums.map { $0.toUIModel() }
         self.allGallery = dataManager.xperiences.compactMap { xperience in
             guard let coverData = xperience.cover,
-                  let uiImage = UIImage(data: coverData),
-                  let id = xperience.id else { return nil }
+                  let uiImage = UIImage(data: coverData) else { return nil }
+            
+            let id = xperience.id
             
             return ItemGalery(
                 id: id.uuidString,
-                title: xperience.title ?? "",
+                title: xperience.title,
                 image: uiImage,
                 experienceID: id
             )
@@ -49,12 +49,9 @@ class WallieViewModel {
     }
 
     func deleteExperience(_ experience: Experience) {
-        let context = PersistenceController.shared.container.viewContext
-        let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", experience.id as CVarArg)
-        
-        if let item = try? context.fetch(fetchRequest).first {
-            dataManager.deleteExperience(item)
+        // Encontra o objeto Xperience correspondente na lista gerenciada pelo DataManager
+        if let itemToDelete = dataManager.xperiences.first(where: { $0.id == experience.id }) {
+            dataManager.deleteExperience(itemToDelete)
             refreshUI()
         }
     }
@@ -70,23 +67,28 @@ class WallieViewModel {
     }
     
     func deleteAlbum(_ album: formAlbum) {
-        let context = PersistenceController.shared.container.viewContext
-        let request: NSFetchRequest<Album> = Album.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", album.id as CVarArg)
+        // Usa o ModelContext do PersistenceController para buscar e deletar o álbum de forma limpa
+        let context = PersistenceController.shared.modelContainer.mainContext
+        let targetID = album.id
+        let descriptor = FetchDescriptor<Album>(
+            predicate: #Predicate { $0.id == targetID }
+        )
         
-        if let albumToDelete = try? context.fetch(request).first {
-            if let associatedExperiences = albumToDelete.xperiences as? Set<Xperience> {
+        if let albumToDelete = try? context.fetch(descriptor).first {
+            // Remove o vínculo das experiências associadas (caso a regra não seja cascade)
+            if let associatedExperiences = albumToDelete.xperiences {
                 for exp in associatedExperiences {
                     exp.album = nil
                 }
             }
+            
             context.delete(albumToDelete)
             
             do {
                 try context.save()
                 refreshUI()
             } catch {
-                print(error.localizedDescription)
+                print("Erro ao deletar álbum: \(error.localizedDescription)")
             }
         }
     }

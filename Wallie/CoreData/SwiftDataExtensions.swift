@@ -1,12 +1,12 @@
 //
-//  CoreDataExtensions.swift
+//  SwiftDataExtensions.swift
 //  Wallie
 //
+//  Created by Tais Akemi Kawaguti on 24/08/26.
+//
 
-import CoreData
 import UIKit
 import SwiftUI
-import Combine
 
 extension Xperience {
     func toUIModel() -> Experience {
@@ -23,31 +23,28 @@ extension Xperience {
         
         var items: [AddItem] = []
         
-        // 1. Reconstrói o item de Humor/Sentimento
         if qualityVal != nil || emotionVal != nil {
             items.append(AddItem(type: .mood, content: .mood(quality: qualityVal, emotion: emotionVal)))
         }
         
-        // 2. Reconstrói o Áudio gravado se existir no CoreData
         if let audioBytes = self.audio {
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(self.id?.uuidString ?? UUID().uuidString).m4a")
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("audio_\(self.id.uuidString).m4a")
             try? audioBytes.write(to: tempURL)
             items.append(AddItem(type: .audio, content: .audio(tempURL)))
         }
         
-        // 3. Reconstrói as Fotos extras se existirem
         if let photosBytes = self.photos,
            let uiImages = try? NSKeyedUnarchiver.unarchivedArrayOfObjects(ofClass: UIImage.self, from: photosBytes) {
             items.append(AddItem(type: .photo, content: .images(uiImages)))
         }
         
         return Experience(
-            id: self.id ?? UUID(),
+            id: self.id,
             images: imgData,
-            title: self.title ?? "Sem Título",
-            description: self.descriptions ?? "",
-            includeDate: self.timestamp != nil,
-            date: self.timestamp ?? Date(),
+            title: self.title,
+            description: self.descriptions,
+            includeDate: true, // No SwiftData timestamp costuma ser obrigatório ou tratado diretamente
+            date: self.timestamp,
             album: self.album?.title ?? "Nenhum",
             quality: qualityVal,
             emotion: emotionVal,
@@ -59,8 +56,8 @@ extension Xperience {
 extension Album {
     func toUIModel() -> formAlbum {
         return formAlbum(
-            id: self.id ?? UUID(),
-            name: self.title ?? "Sem Nome",
+            id: self.id,
+            name: self.title,
             date: nil,
             category: self.category
         )
