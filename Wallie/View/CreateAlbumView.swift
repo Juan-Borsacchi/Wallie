@@ -23,7 +23,7 @@ struct CreateAlbumView: View {
     
     var body: some View {
         NavigationStack {
-            CreateAlbumForm(
+            AlbumCreateForm(
                 albumName: $albumName,
                 albumDate: $albumDate,
                 includeDate: $includeDate,
@@ -31,7 +31,7 @@ struct CreateAlbumView: View {
             )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolBarCreateSheetAlbum(
+                AlbumSheetToolBar(
                     cancelAction: {
                         dismiss()
                     },

@@ -59,12 +59,14 @@ final class AddExperienceViewModel {
         didSet {
             if let image = capturedCameraImage {
                 withAnimation {
-                    if let index = itensExtras.firstIndex(where: { $0.type == .photo }),
-                       case .images(var existingImages) = itensExtras[index].content {
-                        existingImages.append(image)
-                        itensExtras[index].content = .images(existingImages)
-                    } else {
-                        itensExtras.append(AddItem(type: .photo, content: .images([image])))
+                    if let data = image.jpegData(compressionQuality: 0.8) {
+                        if let index = itensExtras.firstIndex(where: { $0.type == .photo }),
+                           case .images(var existingData) = itensExtras[index].content {
+                            existingData.append(data)
+                            itensExtras[index].content = .images(existingData)
+                        } else {
+                            itensExtras.append(AddItem(type: .photo, content: .images([data])))
+                        }
                     }
                 }
                 capturedCameraImage = nil
@@ -72,16 +74,12 @@ final class AddExperienceViewModel {
         }
     }
     
-    var mostrarBarraDeItens = false
-    var availableAlbums: [String] = ["Nenhum", "Viagem", "Família", "Trabalho"]
-    
     var isSaveDisabled: Bool {
         coverImage == nil || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
     init(
         editing experience: Experience? = nil,
-        availableAlbums: [String] = [],
         onSave: @escaping (Experience) -> Void
     ) {
         self.existingID = experience?.id
@@ -101,37 +99,33 @@ final class AddExperienceViewModel {
             self.itensExtras = experience?.extraItems ?? []
         }
         
-        var defaultList = ["Nenhum", "Viagem", "Família", "Trabalho"]
-        for item in availableAlbums where !defaultList.contains(item) {
-            defaultList.append(item)
-        }
-        self.availableAlbums = defaultList
-        
         if let data = experience?.images.first, let image = UIImage(data: data) {
             self.coverImage = image
         } else {
             self.coverImage = nil
         }
     }
-        
+    
     func adicionarItem(_ tipo: AddListModel) {
-            withAnimation {
-                switch tipo {
-                case .mood:
-                    if !itensExtras.contains(where: { $0.type == .mood }) {
-                        itensExtras.append(AddItem(type: .mood, content: .mood(quality: nil, emotion: nil)))
-                    }
-                case .photo:
-                    showPhotoPicker = true
-                case .camera:
-                    activeSheet = .extraCamera
-                case .audio:
-                    if !itensExtras.contains(where: { $0.type == .audio }) {
-                        itensExtras.append(AddItem(type: .audio))
-                    }
+        withAnimation {
+            switch tipo {
+            case .mood:
+                if !itensExtras.contains(where: { $0.type == .mood }) {
+                    itensExtras.append(AddItem(type: .mood, content: .mood(quality: nil, emotion: nil)))
+                }
+            case .photo:
+                showPhotoPicker = true
+            case .camera:
+                if !itensExtras.contains(where: { $0.type == .camera }) {
+                    itensExtras.append(AddItem(type: .camera))
+                }
+            case .audio:
+                if !itensExtras.contains(where: { $0.type == .audio }) {
+                    itensExtras.append(AddItem(type: .audio))
                 }
             }
         }
+    }
     
     func salvarExperiencia() {
         var imagesData: [Data] = []
@@ -184,30 +178,35 @@ final class AddExperienceViewModel {
     
     private func carregarFotosDosItens(_ items: [PhotosPickerItem]) {
         guard !items.isEmpty else { return }
+        
         Task {
-            var loadedImages: [UIImage] = []
-            for item in items {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    loadedImages.append(image)
+            let processedData = await Task.detached {
+                var tempLoadedData: [Data] = []
+                
+                for item in items {
+                    if let data = try? await item.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data),
+                       let compressedData = uiImage.jpegData(compressionQuality: 0.8) {
+                        tempLoadedData.append(compressedData)
+                    }
                 }
+                return tempLoadedData
             }
-            if !loadedImages.isEmpty {
-                await MainActor.run {
-                    withAnimation {
-                        if let index = self.itensExtras.firstIndex(where: { $0.type == .photo }),
-                           case .images(var existingImages) = self.itensExtras[index].content {
-                            existingImages.append(contentsOf: loadedImages)
-                            self.itensExtras[index].content = .images(existingImages)
-                        } else {
-                            self.itensExtras.append(AddItem(type: .photo, content: .images(loadedImages)))
-                        }
+                .value
+            
+            if !processedData.isEmpty {
+                withAnimation {
+                    if let index = self.itensExtras.firstIndex(where: { $0.type == .photo }),
+                       case .images(var existingData) = self.itensExtras[index].content {
+                        existingData.append(contentsOf: processedData)
+                        self.itensExtras[index].content = .images(existingData)
+                    } else {
+                        self.itensExtras.append(AddItem(type: .photo, content: .images(processedData)))
                     }
                 }
             }
-            await MainActor.run {
-                self.selectedPhotoItems.removeAll()
-            }
+            
+            self.selectedPhotoItems.removeAll()
         }
     }
 }

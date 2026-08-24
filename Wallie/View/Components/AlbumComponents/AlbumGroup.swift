@@ -1,5 +1,5 @@
 //
-//  Album.swift
+//  AlbumGroup.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 14/08/26.
@@ -93,7 +93,7 @@ struct LastImageAlbum: View {
     }
 }
 
-struct AlbumGroup: View {    
+struct AlbumGroup: View {
     let titleAlbum: String
     let images: [UIImage]
     let totalCount: Int
@@ -106,7 +106,7 @@ struct AlbumGroup: View {
         VStack(alignment: .leading) {
             Text(titleAlbum)
                 .font(.custom("Manrope-Bold", size: 22))
-                .foregroundStyle(Color(.corTitulo))
+                .foregroundStyle(Color(.colorTitle))
             
             HStack(spacing: -5) {
                 AlbumItem1(image: getImage(at: 0))

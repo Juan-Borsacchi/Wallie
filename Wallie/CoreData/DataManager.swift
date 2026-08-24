@@ -2,6 +2,8 @@
 //  DataManager.swift
 //  Wallie
 //
+//  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
+//
 
 import CoreData
 import UIKit
@@ -31,7 +33,7 @@ class DataManager {
             self.xperiences = Array(fetchedXperiences)
             self.albums = Array(fetchedAlbums)
         } catch {
-            print("Erro ao carregar dados: \(error.localizedDescription)")
+            print(error.localizedDescription)
         }
     }
     
@@ -52,6 +54,7 @@ class DataManager {
         xperience.title = experienceUI.title
         xperience.descriptions = experienceUI.description
         xperience.timestamp = experienceUI.date
+        xperience.includeDate = experienceUI.includeDate
         xperience.sensation = experienceUI.quality?.rawValue
         xperience.feelings = experienceUI.emotion?.rawValue
         
@@ -59,28 +62,33 @@ class DataManager {
             xperience.cover = coverData
         }
         
-        xperience.audio = nil
-        xperience.photos = nil
-        
-        var allExtraImages: [UIImage] = []
+        var allExtraImagesData: [Data] = []
+        var allAudioData: [Data] = []
         
         for item in experienceUI.extraItems {
             switch item.content {
             case .audio(let url):
-                xperience.audio = try? Data(contentsOf: url)
-                
-            case .images(let uiImages):
-                allExtraImages.append(contentsOf: uiImages)
-                
+                if let audioData = try? Data(contentsOf: url) {
+                    allAudioData.append(audioData)
+                    try? FileManager.default.removeItem(at: url)
+                }
+            case .images(let datas):
+                allExtraImagesData.append(contentsOf: datas)
             default:
                 break
             }
         }
         
-        if !allExtraImages.isEmpty {
-            xperience.photos = try? NSKeyedArchiver.archivedData(withRootObject: allExtraImages, requiringSecureCoding: false)
+        if !allExtraImagesData.isEmpty {
+            xperience.photos = try? NSKeyedArchiver.archivedData(withRootObject: allExtraImagesData, requiringSecureCoding: true)
         } else {
             xperience.photos = nil
+        }
+        
+        if !allAudioData.isEmpty {
+            xperience.audio = try? NSKeyedArchiver.archivedData(withRootObject: allAudioData, requiringSecureCoding: true)
+        } else {
+            xperience.audio = nil
         }
         
         if experienceUI.album != "Nenhum" {
@@ -110,6 +118,7 @@ class DataManager {
             
             existingAlbum.title = albumUI.name
             existingAlbum.category = albumUI.category
+            existingAlbum.date = albumUI.date
             
             if let oldName = oldName, oldName != albumUI.name,
                let associatedExperiences = existingAlbum.xperiences as? Set<Xperience> {
@@ -122,6 +131,7 @@ class DataManager {
             album.id = albumUI.id
             album.title = albumUI.name
             album.category = albumUI.category
+            album.date = albumUI.date
         }
         
         do {
@@ -129,26 +139,7 @@ class DataManager {
             context.refreshAllObjects()
             loadData()
         } catch {
-            print("Erro ao salvar/editar álbum: \(error.localizedDescription)")
-        }
-    }
-    
-    func updateAlbum(id: UUID, newName: String, newCategory: String) {
-        let context = PersistenceController.shared.container.viewContext
-        let fetchRequest: NSFetchRequest<Album> = Album.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        
-        do {
-            if let albumToUpdate = try context.fetch(fetchRequest).first {
-                albumToUpdate.title = newName
-                albumToUpdate.category = newCategory
-                
-                try context.save()
-                context.refreshAllObjects()
-                loadData()
-            }
-        } catch {
-            print("Erro ao atualizar álbum: \(error.localizedDescription)")
+            print(error.localizedDescription)
         }
     }
     
@@ -178,26 +169,4 @@ class DataManager {
         }
     }
     
-    func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
-        let context = PersistenceController.shared.container.viewContext
-        let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-        
-        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        
-        do {
-            if let experienceToUpdate = try context.fetch(fetchRequest).first {
-                experienceToUpdate.title = newTitle
-                
-                if let cover = newCover, let imageData = cover.jpegData(compressionQuality: 0.8) {
-                    experienceToUpdate.cover = imageData
-                }
-                
-                try context.save()
-                context.refreshAllObjects()
-                loadData()
-            }
-        } catch {
-            print(error.localizedDescription)
-        }
-    }
 }

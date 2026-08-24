@@ -2,6 +2,8 @@
 //  AlbunsView.swift
 //  Wallie
 //
+//  Created by Vitor Silva Souza on 15/08/26.
+//
 
 import SwiftUI
 
@@ -113,7 +115,7 @@ struct AlbunsView: View {
                 Text("Tem certeza que deseja apagar os \(selectedAlbumIDs.count) álbuns selecionados? As experiências associadas permanecerão salvas em suas memórias.")
             }
             .navigationDestination(for: formAlbum.self) { album in
-                SelectedAlbumViews(album: album)
+                SelectedAlbumView(album: album)
             }
             .sheet(isPresented: $displaySheet) {
                 CreateAlbumView(existingAlbums: viewmodel.albums, onSave: { newAlbum in
@@ -128,7 +130,7 @@ struct AlbunsView: View {
     @ViewBuilder
     private func albumCardContent(for album: formAlbum, experiences: [Experience], images: [UIImage]) -> some View {
         if experiences.isEmpty {
-            EmptyAlbum(emptyAlbumTitle: album.name)
+            AlbumEmpty(emptyAlbumTitle: album.name)
                 .frame(maxWidth: .infinity, alignment: .leading)
         } else {
             AlbumGroup(

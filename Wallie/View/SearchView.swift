@@ -42,7 +42,7 @@ struct SearchView: View {
                     ContentUnavailableView(
                         "",
                         systemImage: "",
-                        description: Text("Clique na barra abaixo e busque por momentos, álbuns ou categorias."))
+                        description: Text("Toque na barra abaixo e busque por momentos, álbuns ou categorias."))
                 } else if filterExperience.isEmpty && filterAlbums.isEmpty {
                     ContentUnavailableView.search(text: query)
                 } else {
@@ -50,7 +50,7 @@ struct SearchView: View {
                         if !filterAlbums.isEmpty {
                             Section("Álbuns") {
                                 ForEach(filterAlbums) { album in
-                                    NavigationLink(destination: SelectedAlbumViews(album: album)) {
+                                    NavigationLink(destination: SelectedAlbumView(album: album)) {
                                         HStack {
                                             Image(systemName: "rectangle.stack.fill")
                                                 .foregroundStyle(.blue)
@@ -74,7 +74,7 @@ struct SearchView: View {
                         if !filterExperience.isEmpty {
                             Section("Experiências") {
                                 ForEach(filterExperience) { experience in
-                                    NavigationLink(destination: ExperienceDetailScreen(
+                                    NavigationLink(destination: XpDetailScreen(
                                         experience: experience,
                                         onSave: { updated in
                                             viewmodel.updateExperience(updated)
@@ -116,7 +116,7 @@ struct SearchView: View {
             }
             .navigationTitle("Pesquisar")
         }
-        .searchable(text: $query, prompt: "Explore seus momentos e álbuns")
+        .searchable(text: $query, prompt: "Toque para pesquisar")
     }
 }
 

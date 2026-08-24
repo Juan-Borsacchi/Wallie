@@ -2,6 +2,8 @@
 //  WallieViewModel.swift
 //  Wallie
 //
+//  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
+//
 
 import SwiftUI
 import Observation
@@ -16,23 +18,36 @@ class WallieViewModel {
     var albums: [formAlbum] = []
     var allGallery: [ItemGalery] = []
     
+    var currentTime = Date()
+    
+    var recentMoments: [Experience] {
+        let calendar = Calendar.current
+        guard let expireRecent = calendar.date(byAdding: .second, value: -60, to: currentTime) else {
+            return experiences
+        }
+        return experiences.filter { $0.date >= expireRecent }
+    }
+    
     init() {
         refreshUI()
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.currentTime = Date()
+        }
     }
     
     func refreshUI() {
         dataManager.loadData()
         self.experiences = dataManager.xperiences.map { $0.toUIModel() }
         self.albums = dataManager.albums.map { $0.toUIModel() }
+        
         self.allGallery = dataManager.xperiences.compactMap { xperience in
             guard let coverData = xperience.cover,
-                  let uiImage = UIImage(data: coverData),
                   let id = xperience.id else { return nil }
             
             return ItemGalery(
                 id: id.uuidString,
                 title: xperience.title ?? "",
-                image: uiImage,
+                imageData: coverData,
                 experienceID: id
             )
         }

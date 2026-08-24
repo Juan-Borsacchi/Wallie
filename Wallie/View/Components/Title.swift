@@ -1,5 +1,5 @@
 //
-//  Untitled.swift
+//  Title.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 15/08/26.
@@ -32,7 +32,7 @@ struct MemoriesTitles: View {
         VStack(alignment: .leading) {
             Text(title)
                 .font(.custom("Manrope-Bold", size: 22))
-                .foregroundStyle(Color.corTitulo)
+                .foregroundStyle(Color.colorTitle)
             Text(subtitle)
                 .font(.custom("Manrope-Regular", size: 16))
                 .foregroundStyle(Color.secondary)
@@ -40,9 +40,8 @@ struct MemoriesTitles: View {
             
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
+        .padding(.horizontal, 16)
     }
-    
 }
 
 struct AlertMemories: View {

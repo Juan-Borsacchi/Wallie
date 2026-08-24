@@ -2,6 +2,8 @@
 //  MemoriesView.swift
 //  Wallie
 //
+//  Created by Vitor Silva Souza on 15/08/26.
+//
 
 import SwiftUI
 
@@ -21,7 +23,7 @@ struct MemoriesView: View {
     @State private var selectedTargetAlbum: String = "Nenhum"
     
     var recentExperiences: [Experience] {
-        Array(viewmodel.experiences.sorted(by: { $0.date > $1.date }).prefix(5))
+        Array(viewmodel.recentMoments.sorted(by: { $0.date > $1.date }).prefix(5))
     }
     
     var body: some View {
@@ -29,7 +31,7 @@ struct MemoriesView: View {
             VStack(spacing: 0) {
                 ToolBarViewsTitle(
                     title: "Memórias",
-                    subtitle: "Explore seus momentos favoritos",
+                    subtitle: "",
                     showEditButton: !viewmodel.allGallery.isEmpty,
                     isEditingMode: isEditingMode,
                     onAdd: { isShowingAddExperience = true },
@@ -53,17 +55,12 @@ struct MemoriesView: View {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 20) {
                             
-                            MemoriesTitles(
-                                title: "A curto prazo",
-                                subtitle: "Seus momentos mais recentes"
-                            )
-                            
-                            if recentExperiences.isEmpty {
-                                Text("Nenhuma experiência recente encontrada.")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal, 16)
-                            } else {
+                            if !recentExperiences.isEmpty {
+                                MemoriesTitles(
+                                    title: "A curto prazo",
+                                    subtitle: "Seus momentos mais recentes"
+                                )
+                                
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 14) {
                                         ForEach(recentExperiences) { experience in
@@ -115,17 +112,17 @@ struct MemoriesView: View {
                                     }
                                     .padding(.horizontal, 16)
                                 }
+                                
+                                Divider()
+                                    .padding(.horizontal, 16)
                             }
-                            
-                            Divider()
-                                .padding(.horizontal, 16)
                             
                             MemoriesTitles(
                                 title: "Todos momentos",
                                 subtitle: "Explore os momentos criados por você"
                             )
                             
-                            MasonryGridView(
+                            MasonryGrid(
                                 columnsCount: 2,
                                 data: viewmodel.allGallery,
                                 heightProvider: { $0.calculatedHeight }
@@ -164,44 +161,44 @@ struct MemoriesView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 16)
+                        .animation(.easeInOut, value: recentExperiences.isEmpty)
                     }
                 }
             }
             .toolbar {
-                            if isEditingMode {
-                                ToolbarItemGroup(placement: .bottomBar) {
-                                    Button {
-                                        isShowingMoveAlbumSheet = true
-                                    } label: {
-                                        Image(systemName: "folder")
-                                            .font(.system(size: 18))
-                                    }
-                                    .disabled(selectedExperienceIDs.isEmpty)
-                                    
-                                    Spacer()
-                                    
-                                    Text(selectedExperienceIDs.isEmpty ? "Selecione Itens" : "\(selectedExperienceIDs.count) Selecionados")
-                                        .font(.footnote.weight(.semibold))
-                                        .fixedSize()
-                                        .contentTransition(.numericText())
-                                        .padding(.horizontal)
-                                    
-                                    Spacer()
-                                    
-                                    Button(role: .destructive) {
-                                        isShowingDeleteAlert = true
-                                    } label: {
-                                        Image(systemName: "trash")
-                                            .font(.system(size: 18))
-                                            .foregroundStyle(selectedExperienceIDs.isEmpty ? Color.secondary : Color.red)
-                                    }
-                                    .disabled(selectedExperienceIDs.isEmpty)
-                                }
-                            }
+                if isEditingMode {
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Button {
+                            isShowingMoveAlbumSheet = true
+                        } label: {
+                            Image(systemName: "folder")
+                                .font(.system(size: 18))
                         }
+                        .disabled(selectedExperienceIDs.isEmpty)
+                        
+                        Spacer()
+                        
+                        Text(selectedExperienceIDs.isEmpty ? "Selecione Itens" : "\(selectedExperienceIDs.count) Selecionados")
+                            .font(.footnote.weight(.semibold))
+                            .fixedSize()
+                            .contentTransition(.numericText())
+                            .padding(.horizontal)
+                        
+                        Spacer()
+                        
+                        Button(role: .destructive) {
+                            isShowingDeleteAlert = true
+                        } label: {
+                            Image(systemName: "trash")
+                                .font(.system(size: 18))
+                                .foregroundStyle(selectedExperienceIDs.isEmpty ? Color.secondary : Color.red)
+                        }
+                        .disabled(selectedExperienceIDs.isEmpty)
+                    }
+                }
+            }
             .toolbar(isEditingMode ? .hidden : .visible, for: .tabBar)
-            
             .alert("Excluir experiências", isPresented: $isShowingDeleteAlert) {
                 Button("Cancelar", role: .cancel) { }
                 Button("Excluir (\(selectedExperienceIDs.count))", role: .destructive) {
@@ -214,7 +211,6 @@ struct MemoriesView: View {
                 NavigationStack {
                     ScrollView {
                         VStack(spacing: 16) {
-                            
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Label("Destino", systemImage: "folder")
@@ -225,9 +221,9 @@ struct MemoriesView: View {
                                     Spacer()
                                     
                                     Picker("", selection: $selectedTargetAlbum) {
-                                        Text("Nenhum").tag("Nenhum")
-                                        ForEach(viewmodel.albums.map { $0.name }, id: \.self) { albumName in
-                                            Text(albumName).tag(albumName)
+                                        Text("Nenhum").tag("Nenhum" as String)
+                                        ForEach(viewmodel.albums, id: \.id) { album in
+                                            Text(album.name).tag(album.name as String)
                                         }
                                     }
                                     .pickerStyle(.menu)
@@ -237,7 +233,6 @@ struct MemoriesView: View {
                             .padding(16)
                             .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                             
-                            // Card de Criar Novo Álbum
                             Button {
                                 isShowingMoveAlbumSheet = false
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
@@ -286,15 +281,13 @@ struct MemoriesView: View {
                 .presentationDragIndicator(.visible)
             }
             .sheet(isPresented: $isShowingAddExperience) {
-                AddExperienceView(
-                    availableAlbums: viewmodel.albums.map { $0.name }
-                ) { newExperience in
+                AddExperienceView { newExperience in
                     viewmodel.addNewExperience(newExperience)
                 }
             }
             .navigationDestination(isPresented: $isShowingDetail) {
                 if let experience = selectedMoments {
-                    ExperienceDetailScreen(
+                    XpDetailScreen(
                         experience: experience,
                         onSave: { updated in
                             viewmodel.updateExperience(updated)
@@ -354,4 +347,9 @@ extension MemoriesView {
             .cornerRadius(isExpanded ? 0 : 14)
             .clipped()
     }
+}
+
+#Preview {
+    MemoriesView()
+        .environment(WallieViewModel())
 }

@@ -5,24 +5,19 @@
 //  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
 //
 
-//
-//  ContentView.swift
-//  Wallie
-//
-
 import SwiftUI
 
 struct ContentView: View {
     @Environment(WallieViewModel.self) var viewmodel
     @State private var selectedTab: Int = 0
- 
+    
     var body: some View {
         @Bindable var bindableViewmodel = viewmodel
         
         TabView(selection: $selectedTab) {
             Tab("Momentos", systemImage: "photo.fill.on.rectangle.fill", value: 0) {
                 NavigationStack {
-                    MomentsViews()
+                    MomentsView()
                 }
                 .tint(nil)
             }
@@ -37,17 +32,11 @@ struct ContentView: View {
                     .tint(nil)
             }
             
-//     PRO FUTURO
-//            Tab("Calendário", systemImage: "calendar") {
-//                CalendarView()
-//                    .tint(nil)
-//            }
-            
             Tab(value: 3, role: .search) {
                 SearchView()
             }
         }
-        .tint(.verdeProjeto)
+        .tint(.colorTabBar)
         .onChange(of: selectedTab) { _, _ in
             DataManager.shared.loadData()
         }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MomentsAddButton: View {
     let action: () -> Void
-
+    
     var body: some View {
         Button(action: action) {
             Label("Adicionar experiência", systemImage: "plus.circle.fill")
@@ -18,7 +18,11 @@ struct MomentsAddButton: View {
                 .padding(8)
         }
         .buttonStyle(.glassProminent)
-        .tint(.verdeProjeto)
+        .tint(.colorAddMoment)
         .padding(.horizontal, 16)
     }
+}
+
+#Preview {
+    MomentsAddButton(action : {})
 }
