@@ -18,8 +18,21 @@ class WallieViewModel {
     var albums: [formAlbum] = []
     var allGallery: [ItemGalery] = []
     
+    var currentTime = Date()
+    
+    var recentMoments: [Experience] {
+        let calendar = Calendar.current
+        guard let expireRecent = calendar.date(byAdding: .second, value: -60, to: currentTime) else {
+            return experiences
+        }
+        return experiences.filter { $0.date >= expireRecent }
+    }
+    
     init() {
         refreshUI()
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+            self?.currentTime = Date()
+        }
     }
     
     func refreshUI() {

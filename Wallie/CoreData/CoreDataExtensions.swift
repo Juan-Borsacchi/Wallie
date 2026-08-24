@@ -64,7 +64,7 @@ extension Xperience {
             images: imgData,
             title: self.title ?? "Sem Título",
             description: self.descriptions ?? "",
-            includeDate: self.timestamp != nil,
+            includeDate: self.includeDate,
             date: self.timestamp ?? Date(),
             album: self.album?.title ?? "Nenhum",
             quality: qualityVal,

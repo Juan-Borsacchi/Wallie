@@ -40,9 +40,8 @@ struct MemoriesTitles: View {
             
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
+        .padding(.horizontal, 16)
     }
-    
 }
 
 struct AlertMemories: View {

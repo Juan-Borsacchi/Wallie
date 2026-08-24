@@ -23,7 +23,7 @@ struct MomentsView: View {
         VStack(spacing: 0) {
             
             MomentsToolBar(
-                hasExperiences: !viewmodel.experiences.isEmpty,
+                hasExperiences: !viewmodel.recentMoments.isEmpty,
                 displayModeIcon: displayModeIcon,
                 onCycleMode: cycleDisplayMode
             )
@@ -39,7 +39,7 @@ struct MomentsView: View {
                 onTapExperience: handleTap
             )
             ZStack{
-                if !viewmodel.experiences.isEmpty {
+                if !viewmodel.recentMoments.isEmpty {
                     MomentsCaption(
                         displayMode: displayMode,
                         focusedExperience: focusedExperience,
@@ -77,7 +77,7 @@ struct MomentsView: View {
             }
         }
         .onAppear {
-            focusedExperience = viewmodel.experiences.first
+            focusedExperience = viewmodel.recentMoments.first
         }
     }
     
@@ -103,7 +103,7 @@ struct MomentsView: View {
     }
     
     private var captionTopSpacing: CGFloat {
-        let isSingleExperience = viewmodel.experiences.count == 1
+        let isSingleExperience = viewmodel.recentMoments.count == 1
         
         switch displayMode {
         case .carousel:
@@ -144,7 +144,7 @@ struct MomentsMainContentView: View {
     
     var body: some View {
         Group {
-            if viewmodel.experiences.isEmpty {
+            if viewmodel.recentMoments.isEmpty {
                 MomentFirstCard()
                     .onTapGesture {
                         onAddExperience()
@@ -153,21 +153,21 @@ struct MomentsMainContentView: View {
                 switch displayMode {
                 case .stack:
                     MomentCardStack(
-                        items: viewmodel.experiences,
+                        items: viewmodel.recentMoments,
                         onFocusChange: { focusedExperience = $0 },
                         onTapFocused: onTapExperience
                     )
                     
                 case .carousel:
                     MomentCarousel(
-                        items: viewmodel.experiences,
+                        items: viewmodel.recentMoments,
                         onFocusChange: { focusedExperience = $0 },
                         onTapFocused: onTapExperience
                     )
                     
                 case .book:
                     BookView(
-                        experiences: viewmodel.experiences,
+                        experiences: viewmodel.recentMoments,
                         onTapExperience: onTapExperience,
                         onVisibleExperiencesChange: { visible in
                             visibleBookExperiences = visible

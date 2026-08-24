@@ -53,7 +53,8 @@ class DataManager {
         
         xperience.title = experienceUI.title
         xperience.descriptions = experienceUI.description
-        xperience.timestamp = experienceUI.includeDate ? experienceUI.date : nil
+        xperience.timestamp = experienceUI.date
+        xperience.includeDate = experienceUI.includeDate
         xperience.sensation = experienceUI.quality?.rawValue
         xperience.feelings = experienceUI.emotion?.rawValue
         

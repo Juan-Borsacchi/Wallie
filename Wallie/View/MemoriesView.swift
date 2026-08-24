@@ -23,7 +23,7 @@ struct MemoriesView: View {
     @State private var selectedTargetAlbum: String = "Nenhum"
     
     var recentExperiences: [Experience] {
-        Array(viewmodel.experiences.sorted(by: { $0.date > $1.date }).prefix(5))
+        Array(viewmodel.recentMoments.sorted(by: { $0.date > $1.date }).prefix(5))
     }
     
     var body: some View {
@@ -31,7 +31,7 @@ struct MemoriesView: View {
             VStack(spacing: 0) {
                 ToolBarViewsTitle(
                     title: "Memórias",
-                    subtitle: "Explore seus momentos favoritos",
+                    subtitle: "",
                     showEditButton: !viewmodel.allGallery.isEmpty,
                     isEditingMode: isEditingMode,
                     onAdd: { isShowingAddExperience = true },
@@ -55,17 +55,12 @@ struct MemoriesView: View {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 20) {
                             
-                            MemoriesTitles(
-                                title: "A curto prazo",
-                                subtitle: "Seus momentos mais recentes"
-                            )
-                            
-                            if recentExperiences.isEmpty {
-                                Text("Nenhuma experiência recente encontrada.")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                                    .padding(.horizontal, 16)
-                            } else {
+                            if !recentExperiences.isEmpty {
+                                MemoriesTitles(
+                                    title: "A curto prazo",
+                                    subtitle: "Seus momentos mais recentes"
+                                )
+                                
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 14) {
                                         ForEach(recentExperiences) { experience in
@@ -117,10 +112,10 @@ struct MemoriesView: View {
                                     }
                                     .padding(.horizontal, 16)
                                 }
+                                
+                                Divider()
+                                    .padding(.horizontal, 16)
                             }
-                            
-                            Divider()
-                                .padding(.horizontal, 16)
                             
                             MemoriesTitles(
                                 title: "Todos momentos",
@@ -166,7 +161,8 @@ struct MemoriesView: View {
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 16)
+                        .animation(.easeInOut, value: recentExperiences.isEmpty)
                     }
                 }
             }
@@ -203,7 +199,6 @@ struct MemoriesView: View {
                 }
             }
             .toolbar(isEditingMode ? .hidden : .visible, for: .tabBar)
-            
             .alert("Excluir experiências", isPresented: $isShowingDeleteAlert) {
                 Button("Cancelar", role: .cancel) { }
                 Button("Excluir (\(selectedExperienceIDs.count))", role: .destructive) {
@@ -216,7 +211,6 @@ struct MemoriesView: View {
                 NavigationStack {
                     ScrollView {
                         VStack(spacing: 16) {
-                            
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Label("Destino", systemImage: "folder")
@@ -226,7 +220,6 @@ struct MemoriesView: View {
                                     
                                     Spacer()
                                     
-                                    // AQUI: O Picker agora observa os álbuns do banco globalmente e faz Cast para String forte.
                                     Picker("", selection: $selectedTargetAlbum) {
                                         Text("Nenhum").tag("Nenhum" as String)
                                         ForEach(viewmodel.albums, id: \.id) { album in
@@ -279,7 +272,7 @@ struct MemoriesView: View {
             }
             .sheet(isPresented: $isShowingCreateAlbumSheet) {
                 CreateAlbumView(existingAlbums: viewmodel.albums) { newAlbum in
-                    viewmodel.addNewAlbum(newAlbum) // Salva no banco de dados!
+                    viewmodel.addNewAlbum(newAlbum)
                     selectedTargetAlbum = newAlbum.name
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
                         isShowingMoveAlbumSheet = true
