@@ -49,7 +49,7 @@ class WallieViewModel {
     }
 
     func deleteExperience(_ experience: Experience) {
-        // Encontra o objeto Xperience correspondente na lista gerenciada pelo DataManager
+
         if let itemToDelete = dataManager.xperiences.first(where: { $0.id == experience.id }) {
             dataManager.deleteExperience(itemToDelete)
             refreshUI()
@@ -67,29 +67,7 @@ class WallieViewModel {
     }
     
     func deleteAlbum(_ album: formAlbum) {
-        // Usa o ModelContext do PersistenceController para buscar e deletar o álbum de forma limpa
-        let context = PersistenceController.shared.modelContainer.mainContext
-        let targetID = album.id
-        let descriptor = FetchDescriptor<Album>(
-            predicate: #Predicate { $0.id == targetID }
-        )
-        
-        if let albumToDelete = try? context.fetch(descriptor).first {
-            // Remove o vínculo das experiências associadas (caso a regra não seja cascade)
-            if let associatedExperiences = albumToDelete.xperiences {
-                for exp in associatedExperiences {
-                    exp.album = nil
-                }
-            }
-            
-            context.delete(albumToDelete)
-            
-            do {
-                try context.save()
-                refreshUI()
-            } catch {
-                print("Erro ao deletar álbum: \(error.localizedDescription)")
-            }
-        }
+        dataManager.deleteAlbum(album)
+        refreshUI()
     }
 }

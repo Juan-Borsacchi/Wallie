@@ -7,16 +7,15 @@ import SwiftUI
 import SwiftData
 
 @Observable
+@MainActor
 class DataManager {
     static let shared = DataManager()
     
     var xperiences: [Xperience] = []
     var albums: [Album] = []
     
-    // Referência ao ModelContext principal (geralmente injetado pelo ModelContainer da App)
     private var modelContext: ModelContext?
     
-    // Configura o contexto (deve ser chamado preferencialmente no início do app, ex: via `.modelContainer`)
     func setContext(_ context: ModelContext) {
         self.modelContext = context
         loadData()
@@ -152,35 +151,6 @@ class DataManager {
         }
     }
     
-    private func getOrCreateAlbum(withName name: String, in context: ModelContext) -> Album {
-        let descriptor = FetchDescriptor<Album>(
-            predicate: #Predicate { $0.title == name }
-        )
-        
-        if let existingAlbum = try? context.fetch(descriptor).first {
-            return existingAlbum
-        }
-        
-        let newAlbum = Album()
-        newAlbum.id = UUID()
-        newAlbum.title = name
-        context.insert(newAlbum)
-        return newAlbum
-    }
-    
-    func deleteExperience(_ xperience: Xperience) {
-        guard let context = modelContext else { return }
-        
-        context.delete(xperience)
-        
-        do {
-            try context.save()
-            loadData()
-        } catch {
-            print("Erro ao deletar experiência: \(error.localizedDescription)")
-        }
-    }
-    
     func updateExperience(id: UUID, newTitle: String, newCover: UIImage?) {
         guard let context = modelContext else { return }
         
@@ -201,6 +171,61 @@ class DataManager {
             }
         } catch {
             print("Erro ao atualizar experiência: \(error.localizedDescription)")
+        }
+    }
+    
+    private func getOrCreateAlbum(withName name: String, in context: ModelContext) -> Album {
+        let descriptor = FetchDescriptor<Album>(
+            predicate: #Predicate { $0.title == name }
+        )
+        
+        if let existingAlbum = try? context.fetch(descriptor).first {
+            return existingAlbum
+        }
+        
+        let newAlbum = Album()
+        newAlbum.id = UUID()
+        newAlbum.title = name
+        context.insert(newAlbum)
+        return newAlbum
+    }
+    
+    func deleteAlbum(_ albumUI: formAlbum) {
+        guard let context = modelContext else { return }
+        
+        let targetID = albumUI.id
+        let descriptor = FetchDescriptor<Album>(
+            predicate: #Predicate { $0.id == targetID }
+        )
+        
+        do {
+            if let albumToDelete = try context.fetch(descriptor).first {
+                // Desvincula as experiências do álbum antes de deletar
+                if let associatedExperiences = albumToDelete.xperiences {
+                    for exp in associatedExperiences {
+                        exp.album = nil
+                    }
+                }
+                
+                context.delete(albumToDelete)
+                try context.save()
+                loadData()
+            }
+        } catch {
+            print("Erro ao deletar álbum: \(error.localizedDescription)")
+        }
+    }
+    
+    func deleteExperience(_ xperience: Xperience) {
+        guard let context = modelContext else { return }
+        
+        context.delete(xperience)
+        
+        do {
+            try context.save()
+            loadData()
+        } catch {
+            print("Erro ao deletar experiência: \(error.localizedDescription)")
         }
     }
 }

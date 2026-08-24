@@ -10,28 +10,37 @@ import SwiftData
 
 @main
 struct WallieApp: App {
-    let persistenceController = PersistenceController.shared
-    
     @State private var viewmodel = WallieViewModel()
     @State private var showSplash = false
     
-    // Captura o modelContext do container de forma limpa aqui na App struct
-    @Environment(\.modelContext) private var modelContext
-    
     var body: some Scene {
         WindowGroup {
-            ZStack {
-                if showSplash {
-                    ContentView()
-                        .environment(viewmodel)
-                        .onAppear {
-                            // Configura o DataManager assim que a ContentView aparece
-                            DataManager.shared.setContext(modelContext)
-                            viewmodel.refreshUI() // Atualiza os dados logo de cara
-                        }
-                } else {
-                    VideoSplashScreen(showSplash: $showSplash)
-                }
+            RootView(viewmodel: viewmodel, showSplash: $showSplash)
+        }
+        .modelContainer(for: [
+            Xperience.self,
+            Album.self
+        ])
+    }
+}
+
+struct RootView: View {
+    let viewmodel: WallieViewModel
+    @Binding var showSplash: Bool
+    
+    @Environment(\.modelContext) private var modelContext
+    
+    var body: some View {
+        ZStack {
+            if showSplash {
+                ContentView()
+                    .environment(viewmodel)
+                    .onAppear {
+                        DataManager.shared.setContext(modelContext)
+                        viewmodel.refreshUI()
+                    }
+            } else {
+                VideoSplashScreen(showSplash: $showSplash)
             }
         }
     }
