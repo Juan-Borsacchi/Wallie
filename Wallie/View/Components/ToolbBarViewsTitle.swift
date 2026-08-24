@@ -21,12 +21,12 @@ struct ToolBarViewsTitle: View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.custom("Gupter-Bold", size: 34))
+                    .font(.custom("Gupter-Bold", size: 41))
                     .foregroundStyle(.primary)
                 
                 if let subtitle {
                     Text(subtitle)
-                        .font(.custom("Manrope-Regular", size: 14))
+                        .font(.custom("Manrope-Regular", size: 15))
                         .foregroundStyle(.secondary)
                 }
             }
@@ -43,19 +43,19 @@ struct ToolBarViewsTitle: View {
                         ZStack {
                             if isEditingMode {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 15, weight: .bold))
+                                    .font(.system(size: 22, weight: .medium))
                                     .foregroundColor(.white)
                                     .transition(.scale.combined(with: .opacity))
                             } else {
                                 Text("Editar")
-                                    .font(.system(size: 15, weight: .medium))
+                                    .font(.callout)
                                     .foregroundColor(.primary)
                                     .padding(.horizontal, 16)
                                     .transition(.scale.combined(with: .opacity))
                             }
                         }
-                        .frame(height: 38)
-                        .frame(minWidth: isEditingMode ? 38 : 0)
+                        .frame(height: 44)
+                        .frame(minWidth: isEditingMode ? 44 : 0)
                         .background {
                             Group {
                                 if isEditingMode {
@@ -95,7 +95,7 @@ struct ToolBarViewsTitle: View {
                 
                 Button(action: onAdd) {
                     Image(systemName: "plus")
-                        .font(.system(size: 22, weight: .regular))
+                        .font(.system(size: 22, weight: .medium))
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
                         .background(.colorAddButton)

@@ -53,7 +53,7 @@ struct MemoriesView: View {
                     Spacer()
                 } else {
                     ScrollView(.vertical, showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: 16) {
                             
                             if !recentExperiences.isEmpty {
                                 MemoriesTitles(

@@ -53,7 +53,7 @@ struct SearchView: View {
                                     NavigationLink(destination: SelectedAlbumView(album: album)) {
                                         HStack {
                                             Image(systemName: "rectangle.stack.fill")
-                                                .foregroundStyle(.blue)
+                                                .foregroundStyle(.azulProjeto)
                                                 .font(.title3)
                                             
                                             VStack(alignment: .leading) {
