@@ -6,25 +6,41 @@
 //
 
 import SwiftUI
-import CoreData
+import SwiftData
 
 @main
 struct WallieApp: App {
-    let persistenceController = PersistenceController.shared
-    
     @State private var viewmodel = WallieViewModel()
     @State private var showSplash = false
     
     var body: some Scene {
         WindowGroup {
-            ZStack {
-                if showSplash {
-                    ContentView()
-                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
-                        .environment(viewmodel)
-                } else {
-                    VideoSplashScreen(showSplash: $showSplash)
-                }
+            RootView(viewmodel: viewmodel, showSplash: $showSplash)
+        }
+        .modelContainer(for: [
+            Xperience.self,
+            Album.self
+        ])
+    }
+}
+
+struct RootView: View {
+    let viewmodel: WallieViewModel
+    @Binding var showSplash: Bool
+    
+    @Environment(\.modelContext) private var modelContext
+    
+    var body: some View {
+        ZStack {
+            if showSplash {
+                ContentView()
+                    .environment(viewmodel)
+                    .onAppear {
+                        DataManager.shared.setContext(modelContext)
+                        viewmodel.refreshUI()
+                    }
+            } else {
+                VideoSplashScreen(showSplash: $showSplash)
             }
         }
     }

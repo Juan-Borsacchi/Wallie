@@ -7,7 +7,6 @@
 
 import SwiftUI
 import Observation
-import CoreData
 
 @Observable
 class WallieViewModel {
@@ -28,17 +27,17 @@ class WallieViewModel {
         return experiences.filter { $0.date >= expireRecent }
     }
     
+    var sortedRecentExperiences: [Experience] {
+            Array(recentMoments.sorted(by: { $0.date > $1.date }).prefix(5))
+        }
+    
     init() {
         refreshUI()
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.currentTime = Date()
         }
     }
-    
-    var sortedRecentExperiences: [Experience] {
-            Array(recentMoments.sorted(by: { $0.date > $1.date }).prefix(5))
-        }
-    
+        
     func refreshUI() {
             dataManager.loadData()
             self.experiences = dataManager.xperiences.map { $0.toUIModel() }
@@ -46,14 +45,14 @@ class WallieViewModel {
             
             self.allGallery = dataManager.xperiences.compactMap { xperience in
                 guard let coverData = xperience.cover,
-                      let id = xperience.id,
                       let decodedImg = UIImage(data: coverData) else { return nil }
                 
+                let id = xperience.id
                 let ratio = decodedImg.size.height / decodedImg.size.width
                 
                 return ItemGalery(
                     id: id.uuidString,
-                    title: xperience.title ?? "",
+                    title: xperience.title,
                     imageData: coverData,
                     experienceID: id,
                     aspectRatio: ratio,
@@ -73,15 +72,12 @@ class WallieViewModel {
     }
 
     func deleteExperience(_ experience: Experience) {
-        let context = PersistenceController.shared.container.viewContext
-        let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", experience.id as CVarArg)
-        
-        if let item = try? context.fetch(fetchRequest).first {
-            dataManager.deleteExperience(item)
-            refreshUI()
+
+            if let itemToDelete = dataManager.xperiences.first(where: { $0.id == experience.id }) {
+                dataManager.deleteExperience(itemToDelete)
+                refreshUI()
+            }
         }
-    }
     
     func addNewAlbum(_ album: formAlbum) {
         dataManager.saveAlbum(album)
@@ -94,24 +90,7 @@ class WallieViewModel {
     }
     
     func deleteAlbum(_ album: formAlbum) {
-        let context = PersistenceController.shared.container.viewContext
-        let request: NSFetchRequest<Album> = Album.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", album.id as CVarArg)
-        
-        if let albumToDelete = try? context.fetch(request).first {
-            if let associatedExperiences = albumToDelete.xperiences as? Set<Xperience> {
-                for exp in associatedExperiences {
-                    exp.album = nil
-                }
-            }
-            context.delete(albumToDelete)
-            
-            do {
-                try context.save()
-                refreshUI()
-            } catch {
-                print(error.localizedDescription)
-            }
+            dataManager.deleteAlbum(album)
+            refreshUI()
         }
-    }
 }
