@@ -13,92 +13,27 @@ struct BookCoverBack: View {
     
     var body: some View {
         GeometryReader { geometry in
+
             ZStack {
-                RoundedRectangle(
-                    cornerRadius: 20,
-                    style: .continuous
-                )
-                .fill(.gray)
                 
-                ForEach(0..<5, id: \.self) { index in
-                    RoundedRectangle(
-                        cornerRadius: 20 - CGFloat(index * 2),
-                        style: .continuous
-                    )
-                    .stroke(
-                        AngularGradient(
-                            colors: [
-                                .gray,
-                                .white,
-                                .gray,
-                                .white,
-                                .gray,
-                                .gray
-                            ],
-                            center: .center,
-                            startAngle: .degrees(gradientRotation),
-                            endAngle: .degrees(gradientRotation + 360)
-                        ),
-                        lineWidth: 1.5
-                    )
-                    .padding(CGFloat(index * 7))
-                }
-                
-                RoundedRectangle(
-                    cornerRadius: 18,
-                    style: .continuous
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 0,
+                    bottomTrailingRadius: 20,
+                    topTrailingRadius: 20
                 )
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.gray,
-                            Color.gray,
-                            Color.gray,
-                            Color.gray,
-                            Color.gray,
-                            Color.gray,
-                            Color.gray,
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(
-                    width: geometry.size.width * 0.72,
-                    height: geometry.size.height * 0.78
-                )
-                
-                Image("OnlyLogo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(
-                        width: 100,
-                        height: 100
-                    )
-                    .opacity(0.5)
-            }
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: 20,
-                    style: .continuous
-                )
-            )
-        }
-        .onAppear {
-            gradientRotation = 0
-            
-            withAnimation(
-                .linear(duration: 6)
-                .repeatForever(autoreverses: false)
-            ) {
-                gradientRotation = 360
+                .fill(.verdeEscuro)
+                .frame(width: 200, height: 280)
+                .offset(x: -10, y: -10)
+
             }
         }
-    }
+        }
+    
 }
 
 #Preview {
     BookCoverBack()
-        .frame(width: 210, height: 280)
+        .frame(width: 220, height: 290)
         .padding()
 }
