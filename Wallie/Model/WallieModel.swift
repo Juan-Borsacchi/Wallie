@@ -133,6 +133,7 @@ enum EmotionTag: String, CaseIterable, Identifiable, Codable, Hashable {
 struct Experience: Identifiable {
     let id: UUID
     var images: [Data]
+    var uiCoverImage: UIImage?
     var title: String
     var description: String
     var includeDate: Bool
@@ -151,6 +152,7 @@ struct Experience: Identifiable {
     init(
         id: UUID = UUID(),
         images: [Data] = [],
+        uiCoverImage: UIImage? = nil,
         title: String = "",
         description: String = "",
         includeDate: Bool = false,
@@ -165,6 +167,7 @@ struct Experience: Identifiable {
     ) {
         self.id = id
         self.images = images
+        self.uiCoverImage = uiCoverImage
         self.title = title
         self.description = description
         self.includeDate = includeDate
@@ -207,18 +210,12 @@ struct ItemGalery: Identifiable, PhotoProtocol {
     var title: String
     var imageData: Data?
     var experienceID: UUID
-    
-    var image: UIImage? {
-        guard let data = imageData else { return nil }
-        return UIImage(data: data)
-    }
+    var aspectRatio: CGFloat = 1.0
+    var uiImage: UIImage?
 }
 
 extension ItemGalery {
     var calculatedHeight: CGFloat {
-        guard let img = image else { return 200 }
-        
-        let aspectRatio = img.size.height / img.size.width
         let screenWidth = UIScreen.main.bounds.width
         
         let columnsCount: CGFloat = 2

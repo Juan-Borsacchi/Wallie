@@ -23,8 +23,8 @@ struct MemoriesView: View {
     @State private var selectedTargetAlbum: String = "Nenhum"
     
     var recentExperiences: [Experience] {
-        Array(viewmodel.recentMoments.sorted(by: { $0.date > $1.date }).prefix(5))
-    }
+            viewmodel.sortedRecentExperiences
+        }
     
     var body: some View {
         NavigationStack {
@@ -68,7 +68,7 @@ struct MemoriesView: View {
                                             
                                             VStack(alignment: .leading, spacing: 8) {
                                                 ZStack(alignment: .bottomTrailing) {
-                                                    if let data = experience.images.first, let uiImage = UIImage(data: data) {
+                                                    if let uiImage = experience.uiCoverImage {
                                                         Image(uiImage: uiImage)
                                                             .resizable()
                                                             .scaledToFill()
@@ -338,7 +338,7 @@ extension MemoriesView {
         Rectangle()
             .foregroundStyle(.clear)
             .overlay {
-                if let image = item.image {
+                if let image = item.uiImage {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: isExpanded ? .fit : .fill)

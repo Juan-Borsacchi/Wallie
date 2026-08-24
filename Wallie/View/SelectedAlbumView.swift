@@ -148,7 +148,7 @@ extension SelectedAlbumView {
         Rectangle()
             .foregroundStyle(.clear)
             .overlay {
-                if let image = item.image {
+                if let image = item.uiImage {
                     Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: isExpanded ? .fit : .fill)
