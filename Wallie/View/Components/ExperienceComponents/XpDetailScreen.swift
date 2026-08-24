@@ -1,5 +1,5 @@
 //
-//  ExperienceDetailScreen.swift
+//  XpDetailScreen.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 17/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ExperienceDetailScreen: View {
+struct XpDetailScreen: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(WallieViewModel.self) private var globalVM
     @State private var viewModel: ExperienceDetailViewModel
@@ -37,7 +37,7 @@ struct ExperienceDetailScreen: View {
             
             VStack {
                 Spacer()
-                GlassCardView(title: viewModel.experience.title) {
+                XpGlassCard(title: viewModel.experience.title) {
                     cardContent
                 }
             }
@@ -179,10 +179,10 @@ struct ExperienceDetailScreen: View {
     private var moodSection: some View {
         HStack(spacing: 12) {
             if let quality = viewModel.experience.quality {
-                MoodTagView(title: "Como foi?", imageName: quality.imageName, label: quality.label)
+                XpMoodTag(title: "Como foi?", imageName: quality.imageName, label: quality.label)
             }
             if let emotion = viewModel.experience.emotion {
-                MoodTagView(title: "Como se sentiu?", imageName: emotion.imageName, label: emotion.label)
+                XpMoodTag(title: "Como se sentiu?", imageName: emotion.imageName, label: emotion.label)
             }
         }
     }
@@ -241,7 +241,7 @@ private struct DetailProgressContainer: View {
     var body: some View {
         if viewModel.allPhotos.count > 1 {
             VStack {
-                StoryProgressBar(
+                XpStoryProgressBar(
                     count: viewModel.allPhotos.count,
                     selectedIndex: viewModel.selectedImageIndex,
                     progress: viewModel.progress
@@ -257,7 +257,7 @@ private struct DetailProgressContainer: View {
 
 #Preview {
     NavigationStack {
-        ExperienceDetailScreen(experience: .mock) { _ in }
+        XpDetailScreen(experience: .mock) { _ in }
             .environment(WallieViewModel())
     }
 }

@@ -1,5 +1,5 @@
 //
-//  CameraPicker.swift
+//  PickerCamera.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 16/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CameraPickerView: UIViewControllerRepresentable {
+struct PickerCamera: UIViewControllerRepresentable {
     @Binding var selectedImage: UIImage?
     @Environment(\.presentationMode) var presentationMode
     
@@ -25,8 +25,8 @@ struct CameraPickerView: UIViewControllerRepresentable {
     }
     
     class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
-        let parent: CameraPickerView
-        init(_ parent: CameraPickerView) { self.parent = parent }
+        let parent: PickerCamera
+        init(_ parent: PickerCamera) { self.parent = parent }
         
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let image = info[.originalImage] as? UIImage {

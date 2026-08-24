@@ -1,5 +1,5 @@
 //
-//  ToolBarCreateAlbum.swift
+//  AlbumSheetToolBar.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 15/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ToolBarCreateSheetAlbum: ToolbarContent {
+struct AlbumSheetToolBar: ToolbarContent {
     var cancelAction: () -> Void
     var confirmAction: () -> Void
     

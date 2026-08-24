@@ -1,5 +1,5 @@
 //
-//  MoodTagView.swift
+//  XpMoodTag.swift
 //  Wallie
 //
 //  Created by Juan Gabriel Borsacchi Marques on 20/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MoodTagView: View {
+struct XpMoodTag: View {
     let title: String
     let imageName: String
     let label: String
@@ -40,5 +40,5 @@ struct MoodTagView: View {
 }
 
 #Preview {
-    MoodTagView(title: "1", imageName: "2", label: "3")
+    XpMoodTag(title: "Text", imageName: "plus", label: "text")
 }

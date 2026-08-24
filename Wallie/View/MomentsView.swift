@@ -118,7 +118,7 @@ struct MomentsView: View {
     @ViewBuilder
     private var detailDestinationView: some View {
         if let experience = viewmodel.experiences.first(where: { $0.id == selectedExperienceID }) {
-            ExperienceDetailScreen(
+            XpDetailScreen(
                 experience: experience,
                 onSave: { updated in
                     viewmodel.updateExperience(updated)

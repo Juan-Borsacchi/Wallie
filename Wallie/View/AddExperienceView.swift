@@ -31,7 +31,7 @@ struct AddExperienceView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: 16) {
-                        ExperienceCoverHeaderView(
+                        XpCoverHeader(
                             coverImage: $viewModel.coverImage,
                             onSelectPhoto: { viewModel.showCoverPhotoPicker = true },
                             onTakePhoto: { viewModel.activeSheet = .coverCamera }
@@ -43,7 +43,7 @@ struct AddExperienceView: View {
                         Divider()
                             .padding(.horizontal, 16)
                         
-                        DynamicItemsSection(itens: $viewModel.itensExtras)
+                        XpItemsSection(itens: $viewModel.itensExtras)
                         
                         Spacer(minLength: 110)
                     }
@@ -74,11 +74,11 @@ struct AddExperienceView: View {
             .sheet(item: $viewModel.activeSheet) { sheetType in
                 switch sheetType {
                 case .coverCamera:
-                    CameraPickerView(selectedImage: $viewModel.capturedCoverImage)
+                    PickerCamera(selectedImage: $viewModel.capturedCoverImage)
                         .ignoresSafeArea()
                     
                 case .extraCamera:
-                    CameraPickerView(selectedImage: $viewModel.capturedCameraImage)
+                    PickerCamera(selectedImage: $viewModel.capturedCameraImage)
                         .ignoresSafeArea()
                     
                 case .createAlbum:

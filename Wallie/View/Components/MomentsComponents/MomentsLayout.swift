@@ -1,5 +1,5 @@
 //
-//  MomentsLayoutViews.swift
+//  MomentsLayout.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 17/08/26.

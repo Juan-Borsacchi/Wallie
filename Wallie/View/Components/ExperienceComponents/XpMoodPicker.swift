@@ -1,5 +1,5 @@
 //
-//  MoodPickerRow.swift
+//  XpMoodPicker.swift
 //  Wallie
 //
 //  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MoodPickerRow: View {
+struct XpMoodPicker: View {
     @Binding var selectedQuality: QualityRating?
     @Binding var selectedEmotion: EmotionTag?
     
@@ -112,7 +112,7 @@ struct MoodPickerRow: View {
         @State private var emotion: EmotionTag? = nil
         
         var body: some View {
-            MoodPickerRow(selectedQuality: $quality, selectedEmotion: $emotion)
+            XpMoodPicker(selectedQuality: $quality, selectedEmotion: $emotion)
                 .padding()
                 .background(Color(.systemGroupedBackground))
         }

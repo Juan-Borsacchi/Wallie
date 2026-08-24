@@ -1,5 +1,5 @@
 //
-//  MansoryGridView.swift
+//  MansoryGrid.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 18/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MasonryGridView<Data: RandomAccessCollection, GridItem: View, Detail: View, Overlay: View>: View where Data.Element: PhotoProtocol & Identifiable {
+struct MasonryGrid<Data: RandomAccessCollection, GridItem: View, Detail: View, Overlay: View>: View where Data.Element: PhotoProtocol & Identifiable {
     
     var spacing: CGFloat = 12
     var columnsCount: Int = 2

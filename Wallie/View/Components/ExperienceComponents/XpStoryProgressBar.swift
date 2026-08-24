@@ -1,5 +1,5 @@
 //
-//  StoryProgressBar.swift
+//  XpStoryProgressBar.swift
 //  Wallie
 //
 //  Created by Juan Gabriel Borsacchi Marques on 20/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct StoryProgressBar: View {
+struct XpStoryProgressBar: View {
     let count: Int
     let selectedIndex: Int
     let progress: Double
@@ -33,4 +33,8 @@ struct StoryProgressBar: View {
         if index == selectedIndex { return totalWidth * CGFloat(progress) }
         return 0
     }
+}
+
+#Preview {
+    XpStoryProgressBar(count: 3, selectedIndex: 1, progress: 0.5)
 }

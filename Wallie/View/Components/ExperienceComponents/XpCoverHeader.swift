@@ -1,5 +1,5 @@
 //
-//  ExperienceCoverHeaderView.swift
+//  XpCoverHeader.swift
 //  Wallie
 //
 //  Created by Juan Gabriel Borsacchi Marques on 20/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ExperienceCoverHeaderView: View {
+struct XpCoverHeader: View {
     @Binding var coverImage: UIImage?
     let onSelectPhoto: () -> Void
     let onTakePhoto: () -> Void
@@ -17,7 +17,7 @@ struct ExperienceCoverHeaderView: View {
             
             VStack(alignment: .leading, spacing: 12) {
                 
-                Label("Capa da Experiência", systemImage: "photo.on.rectangle")
+                Label("Capa da Experiência", systemImage: "")
                     .font(.callout)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
@@ -92,4 +92,14 @@ struct ExperienceCoverHeaderView: View {
         }
         .padding(.horizontal, 16)
     }
+}
+
+#Preview {
+    @Previewable @State var sampleImage: UIImage? = nil
+    
+    XpCoverHeader(
+        coverImage: $sampleImage,
+        onSelectPhoto: { print("Selecionar foto") },
+        onTakePhoto: { print("Tirar foto") }
+    )
 }

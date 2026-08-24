@@ -1,5 +1,5 @@
 //
-//  SheetAlbum.swift
+//  AlbumCreateForm.swift
 //  Wallie
 //
 //  Created by Vitor Silva Souza on 16/08/26.
@@ -81,4 +81,18 @@ struct AlbumCreateForm: View {
         }
         .background(Color(.secondarySystemBackground))
     }
+}
+
+#Preview {
+    @Previewable @State var name = "Viagem para a Serra"
+    @Previewable @State var date = Date()
+    @Previewable @State var includeDate = true
+    @Previewable @State var category = "Viagem"
+    
+    AlbumCreateForm(
+        albumName: $name,
+        albumDate: $date,
+        includeDate: $includeDate,
+        selectedCategory: $category
+    )
 }

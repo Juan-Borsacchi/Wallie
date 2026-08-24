@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SelectedAlbumViews: View {
+struct SelectedAlbumView: View {
     let album: formAlbum
     
     @Environment(\.dismiss) private var dismiss
@@ -48,7 +48,7 @@ struct SelectedAlbumViews: View {
                 }
                 .padding(.bottom, 16)
                 
-                MasonryGridView(
+                MasonryGrid(
                     columnsCount: 2,
                     data: albumGallery,
                     heightProvider: { $0.calculatedHeight }
@@ -125,7 +125,7 @@ struct SelectedAlbumViews: View {
         }
         .navigationDestination(isPresented: $isShowingDetail) {
             if let experience = selectedMoments {
-                ExperienceDetailScreen(
+                XpDetailScreen(
                     experience: experience,
                     onSave: { updated in
                         viewmodel.updateExperience(updated)
@@ -140,7 +140,7 @@ struct SelectedAlbumViews: View {
     }
 }
 
-extension SelectedAlbumViews {
+extension SelectedAlbumView {
     @ViewBuilder
     func ImageView(_ item: ItemGalery, isExpanded: Bool = false) -> some View {
         Rectangle()

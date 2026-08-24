@@ -115,7 +115,7 @@ struct AlbunsView: View {
                 Text("Tem certeza que deseja apagar os \(selectedAlbumIDs.count) álbuns selecionados? As experiências associadas permanecerão salvas em suas memórias.")
             }
             .navigationDestination(for: formAlbum.self) { album in
-                SelectedAlbumViews(album: album)
+                SelectedAlbumView(album: album)
             }
             .sheet(isPresented: $displaySheet) {
                 CreateAlbumView(existingAlbums: viewmodel.albums, onSave: { newAlbum in

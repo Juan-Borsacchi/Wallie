@@ -127,7 +127,7 @@ struct MemoriesView: View {
                                 subtitle: "Explore os momentos criados por você"
                             )
                             
-                            MasonryGridView(
+                            MasonryGrid(
                                 columnsCount: 2,
                                 data: viewmodel.allGallery,
                                 heightProvider: { $0.calculatedHeight }
@@ -294,7 +294,7 @@ struct MemoriesView: View {
             }
             .navigationDestination(isPresented: $isShowingDetail) {
                 if let experience = selectedMoments {
-                    ExperienceDetailScreen(
+                    XpDetailScreen(
                         experience: experience,
                         onSave: { updated in
                             viewmodel.updateExperience(updated)

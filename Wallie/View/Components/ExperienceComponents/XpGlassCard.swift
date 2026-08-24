@@ -1,5 +1,5 @@
 //
-//  GlassCardView.swift
+//  XpGlassCard.swift
 //  Wallie
 //
 //  Created by Juan Gabriel Borsacchi Marques on 20/08/26.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct GlassCardView<Content: View>: View {
+struct XpGlassCard<Content: View>: View {
     let title: String
     @ViewBuilder let content: Content
     
@@ -49,7 +49,7 @@ struct GlassCardView<Content: View>: View {
         Color.indigo
             .ignoresSafeArea()
         
-        GlassCardView(title: "text") {
+        XpGlassCard(title: "text") {
             Text("text")
                 .foregroundStyle(.white)
                 .padding()

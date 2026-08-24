@@ -50,7 +50,7 @@ struct SearchView: View {
                         if !filterAlbums.isEmpty {
                             Section("Álbuns") {
                                 ForEach(filterAlbums) { album in
-                                    NavigationLink(destination: SelectedAlbumViews(album: album)) {
+                                    NavigationLink(destination: SelectedAlbumView(album: album)) {
                                         HStack {
                                             Image(systemName: "rectangle.stack.fill")
                                                 .foregroundStyle(.blue)
@@ -74,7 +74,7 @@ struct SearchView: View {
                         if !filterExperience.isEmpty {
                             Section("Experiências") {
                                 ForEach(filterExperience) { experience in
-                                    NavigationLink(destination: ExperienceDetailScreen(
+                                    NavigationLink(destination: XpDetailScreen(
                                         experience: experience,
                                         onSave: { updated in
                                             viewmodel.updateExperience(updated)

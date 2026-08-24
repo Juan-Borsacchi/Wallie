@@ -9,7 +9,7 @@ import SwiftUI
 import AVFoundation
 import PhotosUI
 
-struct AddItemRowView: View {
+struct XpAddItemRow: View {
     @Binding var item: AddItem
     var onRemove: () -> Void
     
@@ -66,7 +66,7 @@ struct AddItemRowView: View {
     private var componente: some View {
         switch item.type {
         case .mood:
-            MoodPickerRow(selectedQuality: qualityBinding, selectedEmotion: emotionBinding)
+            XpMoodPicker(selectedQuality: qualityBinding, selectedEmotion: emotionBinding)
             
         case .photo:
             let images = imagesBinding.wrappedValue
@@ -472,4 +472,11 @@ struct AudioPlayerCardView: View {
         audioPlayer?.stop()
         isPlaying = false
     }
+}
+
+#Preview {
+    @Previewable @State var item = AddItem(type: .mood)
+    
+    XpAddItemRow(item: $item) {}
+        .padding()
 }

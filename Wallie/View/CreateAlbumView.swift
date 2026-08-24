@@ -31,7 +31,7 @@ struct CreateAlbumView: View {
             )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolBarCreateSheetAlbum(
+                AlbumSheetToolBar(
                     cancelAction: {
                         dismiss()
                     },

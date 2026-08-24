@@ -1,5 +1,5 @@
 //
-//  DynamicItemsSection.swift
+//  XpItemsSection.swift
 //  Wallie
 //
 //  Created by Juan Gabriel Borsacchi Marques on 17/08/26.
@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-struct DynamicItemsSection: View {
+struct XpItemsSection: View {
     @Binding var itens: [AddItem]
     
     var body: some View {
         if !itens.isEmpty {
             VStack(alignment: .leading, spacing: 16) {
                 ForEach($itens) { $item in
-                    AddItemRowView(item: $item) {
+                    XpAddItemRow(item: $item) {
                         remover(item)
                     }
                     
@@ -32,4 +32,13 @@ struct DynamicItemsSection: View {
             itens.removeAll { $0.id == item.id }
         }
     }
+}
+
+#Preview {
+    @Previewable @State var itens = [
+        AddItem(type: .mood),
+        AddItem(type: .photo)
+    ]
+    
+    XpItemsSection(itens: $itens)
 }
