@@ -27,7 +27,6 @@ class Xperience {
     @Attribute(.externalStorage)
     var audio: Data? = nil
     
-    // Relação opcional com o Álbum
     var album: Album? = nil
     
     init(

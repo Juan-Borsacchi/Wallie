@@ -43,7 +43,7 @@ extension Xperience {
             images: imgData,
             title: self.title,
             description: self.descriptions,
-            includeDate: true, // No SwiftData timestamp costuma ser obrigatório ou tratado diretamente
+            includeDate: true,
             date: self.timestamp,
             album: self.album?.title ?? "Nenhum",
             quality: qualityVal,
