@@ -18,8 +18,11 @@ extension Xperience {
         if let feel = feelings { emotionVal = EmotionTag(rawValue: feel) }
         
         var imgData: [Data] = []
+        var coverImg: UIImage? = nil
+
         if let coverData = cover {
             imgData.append(coverData)
+            coverImg = UIImage(data: coverData)
         }
         
         var items: [AddItem] = []
@@ -62,6 +65,7 @@ extension Xperience {
         return Experience(
             id: self.id ?? UUID(),
             images: imgData,
+            uiCoverImage: coverImg,
             title: self.title ?? "Sem Título",
             description: self.descriptions ?? "",
             includeDate: self.includeDate,
