@@ -23,6 +23,7 @@ final class ExperienceDetailViewModel {
     var selectedTab = 0
     
     private var audioPlayer: AVPlayer?
+    private var playerItemObserver: NSObjectProtocol?
     var isPlayingAudio = false
     var playingAudioURL: URL?
     
@@ -99,22 +100,52 @@ final class ExperienceDetailViewModel {
     }
     
     func toggleAudioPlay(url: URL) {
-        if isPlayingAudio && playingAudioURL == url {
-            stopAudio()
-        } else {
-            playingAudioURL = url
-            audioPlayer = AVPlayer(url: url)
-            audioPlayer?.play()
-            isPlayingAudio = true
+            if isPlayingAudio && playingAudioURL == url {
+                stopAudio()
+            } else {
+                stopAudio() // Para qualquer áudio anterior antes de iniciar um novo
+                
+                playingAudioURL = url
+                let item = AVPlayerItem(url: url)
+                audioPlayer = AVPlayer(playerItem: item)
+                
+                // Observa quando o áudio chega ao fim
+                playerItemObserver = NotificationCenter.default.addObserver(
+                    forName: .AVPlayerItemDidPlayToEndTime,
+                    object: item,
+                    queue: .main
+                ) { [weak self] _ in
+                    self?.handleAudioDidFinish()
+                }
+                
+                audioPlayer?.play()
+                isPlayingAudio = true
+            }
+        }
+        
+        private func handleAudioDidFinish() {
+            audioPlayer?.seek(to: .zero) // Reseta o player para o início
+            isPlayingAudio = false
+            playingAudioURL = nil
+            removePlayerObserver()
+        }
+        
+        func stopAudio() {
+            audioPlayer?.pause()
+            audioPlayer = nil
+            isPlayingAudio = false
+            playingAudioURL = nil
+            removePlayerObserver()
+        }
+        
+        private func removePlayerObserver() {
+            if let observer = playerItemObserver {
+                NotificationCenter.default.removeObserver(observer)
+                playerItemObserver = nil
+            }
+        }
+        
+        func deleteExperience() {
+            onDelete?(experience)
         }
     }
-    
-    func stopAudio() {
-        audioPlayer?.pause()
-        isPlayingAudio = false
-    }
-    
-    func deleteExperience() {
-        onDelete?(experience)
-    }
-}
