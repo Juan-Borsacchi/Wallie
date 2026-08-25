@@ -133,12 +133,16 @@ enum EmotionTag: String, CaseIterable, Identifiable, Codable, Hashable {
 struct Experience: Identifiable {
     let id: UUID
     var images: [Data]
-    var uiCoverImage: UIImage?
     var title: String
     var description: String
     var includeDate: Bool
     var date: Date
     var album: String
+    
+    var uiCoverImage: UIImage? {
+            guard let coverData = images.first else { return nil }
+            return UIImage(data: coverData)
+        }
     
     var quality: QualityRating?
     var emotion: EmotionTag?
@@ -167,7 +171,6 @@ struct Experience: Identifiable {
     ) {
         self.id = id
         self.images = images
-        self.uiCoverImage = uiCoverImage
         self.title = title
         self.description = description
         self.includeDate = includeDate

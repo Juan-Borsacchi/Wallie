@@ -5,9 +5,8 @@
 //  Created by Juan Gabriel Borsacchi Marques on 14/08/26.
 //
 
-import CoreData
-import UIKit
 import SwiftUI
+import SwiftData
 import Observation
 
 @Observable
@@ -17,38 +16,49 @@ class DataManager {
     var xperiences: [Xperience] = []
     var albums: [Album] = []
     
+    private var modelContext: ModelContext?
+    
+    private init() {}
+    
+    func setContext(_ context: ModelContext) {
+            self.modelContext = context
+            loadData()
+        }
+    
     func loadData() {
-        let context = PersistenceController.shared.container.viewContext
-        
-        let fetchXperiences: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-        fetchXperiences.sortDescriptors = [NSSortDescriptor(keyPath: \Xperience.timestamp, ascending: false)]
-        
-        let fetchAlbums: NSFetchRequest<Album> = Album.fetchRequest()
-        fetchAlbums.sortDescriptors = [NSSortDescriptor(keyPath: \Album.title, ascending: true)]
+        guard let context = modelContext else { return }
         
         do {
-            let fetchedXperiences = try context.fetch(fetchXperiences)
-            let fetchedAlbums = try context.fetch(fetchAlbums)
+
+            let experienceDescriptor = FetchDescriptor<Xperience>(
+                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+            )
+            let albumDescriptor = FetchDescriptor<Album>(
+                sortBy: [SortDescriptor(\.title, order: .forward)]
+            )
             
-            self.xperiences = Array(fetchedXperiences)
-            self.albums = Array(fetchedAlbums)
+            self.xperiences = try context.fetch(experienceDescriptor)
+            self.albums = try context.fetch(albumDescriptor)
         } catch {
-            print(error.localizedDescription)
+            print("Erro ao carregar dados: \(error.localizedDescription)")
         }
     }
     
     func saveExperience(_ experienceUI: Experience) {
-        let context = PersistenceController.shared.container.viewContext
+        guard let context = modelContext else { return }
         
-        let fetchRequest: NSFetchRequest<Xperience> = Xperience.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "id == %@", experienceUI.id as CVarArg)
+        let targetId = experienceUI.id
+        let descriptor = FetchDescriptor<Xperience>(
+            predicate: #Predicate { $0.id == targetId }
+        )
         
         let xperience: Xperience
-        if let existing = try? context.fetch(fetchRequest).first {
+        if let existing = try? context.fetch(descriptor).first {
             xperience = existing
         } else {
-            xperience = Xperience(context: context)
+            xperience = Xperience()
             xperience.id = experienceUI.id
+            context.insert(xperience)
         }
         
         xperience.title = experienceUI.title
@@ -62,15 +72,21 @@ class DataManager {
             xperience.cover = coverData
         }
         
+        // Reseta antes de popular
+        xperience.audio = nil
+        xperience.photos = nil
+        
         var allExtraImagesData: [Data] = []
-        var allAudioData: [Data] = []
         
         for item in experienceUI.extraItems {
             switch item.content {
             case .audio(let url):
-                if let audioData = try? Data(contentsOf: url) {
-                    allAudioData.append(audioData)
-                    try? FileManager.default.removeItem(at: url)
+                do {
+
+                    let audioData = try Data(contentsOf: url)
+                    xperience.audio = audioData
+                } catch {
+                    print("Não foi possível carregar os dados do áudio na URL: \(url) - Erro: \(error.localizedDescription)")
                 }
             case .images(let datas):
                 allExtraImagesData.append(contentsOf: datas)
@@ -85,88 +101,92 @@ class DataManager {
             xperience.photos = nil
         }
         
-        if !allAudioData.isEmpty {
-            xperience.audio = try? NSKeyedArchiver.archivedData(withRootObject: allAudioData, requiringSecureCoding: true)
-        } else {
-            xperience.audio = nil
-        }
-        
         if experienceUI.album != "Nenhum" {
             xperience.album = getOrCreateAlbum(withName: experienceUI.album, in: context)
         } else {
             xperience.album = nil
         }
         
-        do {
-            try context.save()
-            context.refreshAllObjects()
-            loadData()
-        } catch {
-            print(error.localizedDescription)
-        }
+        saveContext(context)
     }
     
     func saveAlbum(_ albumUI: formAlbum) {
-        let context = PersistenceController.shared.container.viewContext
+        guard let context = modelContext else { return }
         
-        let request: NSFetchRequest<Album> = Album.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", albumUI.id as CVarArg)
+        let targetId = albumUI.id
+        let descriptor = FetchDescriptor<Album>(
+            predicate: #Predicate { $0.id == targetId }
+        )
         
-        let album: Album
-        if let existingAlbum = try? context.fetch(request).first {
-            let oldName = existingAlbum.title
-            
+        if let existingAlbum = try? context.fetch(descriptor).first {
             existingAlbum.title = albumUI.name
             existingAlbum.category = albumUI.category
-            existingAlbum.date = albumUI.date
-            
-            if let oldName = oldName, oldName != albumUI.name,
-               let associatedExperiences = existingAlbum.xperiences as? Set<Xperience> {
-                for exp in associatedExperiences {
-                    exp.album = existingAlbum
-                }
-            }
+            existingAlbum.date = albumUI.date ?? Date()
         } else {
-            album = Album(context: context)
+            let album = Album()
             album.id = albumUI.id
             album.title = albumUI.name
             album.category = albumUI.category
-            album.date = albumUI.date
+            album.date = albumUI.date ?? Date()
+            context.insert(album)
         }
         
-        do {
-            try context.save()
-            context.refreshAllObjects()
-            loadData()
-        } catch {
-            print(error.localizedDescription)
-        }
+        saveContext(context)
     }
     
-    private func getOrCreateAlbum(withName name: String, in context: NSManagedObjectContext) -> Album {
-        let request: NSFetchRequest<Album> = Album.fetchRequest()
-        request.predicate = NSPredicate(format: "title == %@", name)
+    private func getOrCreateAlbum(withName name: String, in context: ModelContext) -> Album {
+        let descriptor = FetchDescriptor<Album>(
+            predicate: #Predicate { $0.title == name }
+        )
         
-        if let existingAlbum = try? context.fetch(request).first {
+        if let existingAlbum = try? context.fetch(descriptor).first {
             return existingAlbum
         }
         
-        let newAlbum = Album(context: context)
+        let newAlbum = Album()
         newAlbum.id = UUID()
         newAlbum.title = name
+        context.insert(newAlbum)
         return newAlbum
     }
     
     func deleteExperience(_ xperience: Xperience) {
-        let context = PersistenceController.shared.container.viewContext
+        guard let context = modelContext else { return }
         context.delete(xperience)
-        
+        saveContext(context)
+    }
+    
+    func deleteAlbum(_ albumUI: formAlbum) {
+            guard let context = modelContext else { return }
+            
+            let targetID = albumUI.id
+            let descriptor = FetchDescriptor<Album>(
+                predicate: #Predicate { $0.id == targetID }
+            )
+            
+            do {
+                if let albumToDelete = try context.fetch(descriptor).first {
+                    if let associatedExperiences = albumToDelete.xperiences {
+                        for exp in associatedExperiences {
+                            exp.album = nil
+                        }
+                    }
+                    
+                    context.delete(albumToDelete)
+                    try context.save()
+                    loadData()
+                }
+            } catch {
+                print("Erro ao deletar álbum: \(error.localizedDescription)")
+            }
+        }
+    
+    private func saveContext(_ context: ModelContext) {
         do {
             try context.save()
             loadData()
         } catch {
-            print(error.localizedDescription)
+            print("Erro ao salvar contexto: \(error.localizedDescription)")
         }
     }
-    
 }
