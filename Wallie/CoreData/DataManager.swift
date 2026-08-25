@@ -58,7 +58,7 @@ class DataManager {
         } else {
             xperience = Xperience()
             xperience.id = experienceUI.id
-            context.insert(xperience) // Insere novo objeto no contexto
+            context.insert(xperience)
         }
         
         xperience.title = experienceUI.title
@@ -72,18 +72,21 @@ class DataManager {
             xperience.cover = coverData
         }
         
+        // Reseta antes de popular
         xperience.audio = nil
         xperience.photos = nil
         
         var allExtraImagesData: [Data] = []
-        var allAudioData: [Data] = []
         
         for item in experienceUI.extraItems {
             switch item.content {
             case .audio(let url):
-                if let audioData = try? Data(contentsOf: url) {
-                    allAudioData.append(audioData)
-                    try? FileManager.default.removeItem(at: url)
+                do {
+
+                    let audioData = try Data(contentsOf: url)
+                    xperience.audio = audioData
+                } catch {
+                    print("Não foi possível carregar os dados do áudio na URL: \(url) - Erro: \(error.localizedDescription)")
                 }
             case .images(let datas):
                 allExtraImagesData.append(contentsOf: datas)
@@ -92,17 +95,10 @@ class DataManager {
             }
         }
         
-        // O SwiftData lida nativamente com Codable/Data, mas se preferir manter NSKeyedArchiver, ok:
         if !allExtraImagesData.isEmpty {
             xperience.photos = try? NSKeyedArchiver.archivedData(withRootObject: allExtraImagesData, requiringSecureCoding: true)
         } else {
             xperience.photos = nil
-        }
-        
-        if !allAudioData.isEmpty {
-            xperience.audio = try? NSKeyedArchiver.archivedData(withRootObject: allAudioData, requiringSecureCoding: true)
-        } else {
-            xperience.audio = nil
         }
         
         if experienceUI.album != "Nenhum" {
@@ -170,7 +166,6 @@ class DataManager {
             
             do {
                 if let albumToDelete = try context.fetch(descriptor).first {
-                    // Desvincula as experiências do álbum antes de deletar
                     if let associatedExperiences = albumToDelete.xperiences {
                         for exp in associatedExperiences {
                             exp.album = nil

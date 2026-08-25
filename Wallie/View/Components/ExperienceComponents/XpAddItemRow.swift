@@ -169,37 +169,37 @@ struct XpAddItemRow: View {
     }
     
     private var imagesBinding: Binding<[UIImage]> {
-            Binding(
-                get: {
-                    if case .images(let valoresData) = item.content {
-                        return valoresData.compactMap { UIImage(data: $0) }
-                    }
-                    return []
-                },
-                set: { novasImagens in
-                    let datas = novasImagens.compactMap { $0.jpegData(compressionQuality: 0.8) }
-                    item.content = datas.isEmpty ? nil : .images(datas)
+        Binding(
+            get: {
+                if case .images(let valoresData) = item.content {
+                    return valoresData.compactMap { UIImage(data: $0) }
                 }
-            )
-        }
+                return []
+            },
+            set: { novasImagens in
+                let datas = novasImagens.compactMap { $0.jpegData(compressionQuality: 0.8) }
+                item.content = datas.isEmpty ? nil : .images(datas)
+            }
+        )
+    }
     
     private var singleImageBinding: Binding<UIImage?> {
-            Binding(
-                get: {
-                    if case .images(let valoresData) = item.content, let firstData = valoresData.first {
-                        return UIImage(data: firstData)
-                    }
-                    return nil
-                },
-                set: { novoValor in
-                    if let image = novoValor, let data = image.jpegData(compressionQuality: 0.8) {
-                        item.content = .images([data])
-                    } else {
-                        item.content = nil
-                    }
+        Binding(
+            get: {
+                if case .images(let valoresData) = item.content, let firstData = valoresData.first {
+                    return UIImage(data: firstData)
                 }
-            )
-        }
+                return nil
+            },
+            set: { novoValor in
+                if let image = novoValor, let data = image.jpegData(compressionQuality: 0.8) {
+                    item.content = .images([data])
+                } else {
+                    item.content = nil
+                }
+            }
+        )
+    }
     
     private var audioBinding: Binding<URL?> {
         Binding(
@@ -208,7 +208,11 @@ struct XpAddItemRow: View {
                 return nil
             },
             set: { novoValor in
-                item.content = novoValor.map { .audio($0) }
+                if let url = novoValor {
+                    item.content = .audio(url)
+                } else {
+                    item.content = nil
+                }
             }
         )
     }
@@ -338,7 +342,9 @@ struct AudioRecorderSheetView: View {
     private func toggleRecording() {
         if isRecording {
             stopRecordingProcess()
-            dismiss()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                dismiss()
+            }
         } else {
             startRecordingProcess()
         }
@@ -350,7 +356,10 @@ struct AudioRecorderSheetView: View {
             try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
             try session.setActive(true)
             
-            let url = FileManager.default.temporaryDirectory.appendingPathComponent("recording_\(Date().timeIntervalSince1970).m4a")
+            let fileManager = FileManager.default
+            let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let permanentURL = documentsDirectory.appendingPathComponent("audio_\(UUID().uuidString).m4a")
+            
             let settings: [String: Any] = [
                 AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
                 AVSampleRateKey: 44100.0,
@@ -358,12 +367,11 @@ struct AudioRecorderSheetView: View {
                 AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
             ]
             
-            
-            audioRecorder = try AVAudioRecorder(url: url, settings: settings)
+            audioRecorder = try AVAudioRecorder(url: permanentURL, settings: settings)
             audioRecorder?.isMeteringEnabled = true
             audioRecorder?.record()
             
-            audioURL = url
+            audioURL = permanentURL
             elapsedTime = 0
             withAnimation { isRecording = true }
             
@@ -388,9 +396,16 @@ struct AudioRecorderSheetView: View {
     
     private func stopRecordingProcess() {
         audioRecorder?.stop()
+        audioRecorder = nil
         timer?.invalidate()
         timer = nil
         isRecording = false
+        
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        } catch {
+            print("Erro ao desativar sessão de áudio: \(error)")
+        }
     }
     
     private func formattedTime(_ time: TimeInterval) -> String {
