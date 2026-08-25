@@ -1,4 +1,3 @@
-//
 //  BookCard.swift
 //  Wallie
 //
@@ -30,10 +29,16 @@ struct BookView: View {
 
     let pageWidth: CGFloat = 180
     let pageHeight: CGFloat = 260
-    let coverSizeIncrease: CGFloat = 10
+    // Aumento de LARGURA aplicado só na capa/contracapa (não precisa bater com o fundo).
+    let coverWidthIncrease: CGFloat = 10
     let bookBackgroundHorizontalPadding: CGFloat = 15
     let bookBackgroundVerticalPadding: CGFloat = 15
     let dragDistance: CGFloat = 250
+
+    // Aumento de ALTURA da capa/contracapa: igual ao padding vertical do
+    // retângulo de fundo, assim a altura da capa bate exatamente com a
+    // altura do retângulo (mesmo durante o giro).
+    private var coverHeightIncrease: CGFloat { bookBackgroundVerticalPadding }
 
     var body: some View {
         ZStack {
@@ -76,7 +81,8 @@ struct BookView: View {
                         experiences: experiences,
                         backCoverLeftIndex: backCoverLeftIndex,
                         size: CGSize(width: pageWidth, height: pageHeight),
-                        coverSizeIncrease: coverSizeIncrease,
+                        coverWidthIncrease: coverWidthIncrease,
+                        coverHeightIncrease: coverHeightIncrease,
                         onTap: onTapExperience
                     )
 
@@ -86,7 +92,8 @@ struct BookView: View {
                         experiences: experiences,
                         backCoverLeftIndex: backCoverLeftIndex,
                         size: CGSize(width: pageWidth, height: pageHeight),
-                        coverSizeIncrease: coverSizeIncrease,
+                        coverWidthIncrease: coverWidthIncrease,
+                        coverHeightIncrease: coverHeightIncrease,
                         onTap: onTapExperience
                     )
                 }
@@ -103,7 +110,8 @@ struct BookView: View {
                         angle: rotation,
                         direction: direction,
                         size: CGSize(width: pageWidth, height: pageHeight),
-                        coverSizeIncrease: coverSizeIncrease
+                        coverWidthIncrease: coverWidthIncrease,
+                        coverHeightIncrease: coverHeightIncrease
                     )
                     .offset(x: direction == .forward ? (pageWidth / 2 + 2.5) : -(pageWidth / 2 + 2.5))
                 }
@@ -147,7 +155,8 @@ private struct BookStaticPage: View {
     let experiences: [Experience]
     let backCoverLeftIndex: Int
     let size: CGSize
-    let coverSizeIncrease: CGFloat
+    let coverWidthIncrease: CGFloat
+    let coverHeightIncrease: CGFloat
     let onTap: ((Experience) -> Void)?
 
     var body: some View {
@@ -170,8 +179,8 @@ private struct BookStaticPage: View {
     private var frameSize: CGSize {
         let isCover = isOuterCoverIndex(index, backCoverLeftIndex: backCoverLeftIndex)
         return CGSize(
-            width: size.width + (isCover ? coverSizeIncrease : 0),
-            height: size.height + (isCover ? coverSizeIncrease : 0)
+            width: size.width + (isCover ? coverWidthIncrease : 0),
+            height: size.height + (isCover ? coverHeightIncrease : 0)
         )
     }
 }
@@ -186,13 +195,13 @@ private struct BookPageContent: View {
     var body: some View {
         Group {
             if index == -2 {
-                BookCover()
+                BookCover(side: side)
             } else if index == -1 {
                 BookCoverBack()
             } else if index == backCoverLeftIndex {
                 BookCoverBack()
             } else if index == backCoverLeftIndex + 1 {
-                BookCover()
+                BookCover(side: side)
             } else if experiences.indices.contains(index) {
                 MomentsCard(experience: experiences[index])
                     .contentShape(Rectangle())
@@ -239,7 +248,8 @@ private struct BookTurningPage: View {
     let angle: Double
     let direction: BookTurnDirection
     let size: CGSize
-    let coverSizeIncrease: CGFloat
+    let coverWidthIncrease: CGFloat
+    let coverHeightIncrease: CGFloat
 
     var body: some View {
         ZStack {
@@ -292,8 +302,8 @@ private struct BookTurningPage: View {
         let isCover = frontIsCover || backIsCover
         
         return CGSize(
-            width: size.width + (isCover ? coverSizeIncrease : 0),
-            height: size.height + (isCover ? coverSizeIncrease : 0)
+            width: size.width + (isCover ? coverWidthIncrease : 0),
+            height: size.height + (isCover ? coverHeightIncrease : 0)
         )
     }
 }
@@ -319,6 +329,12 @@ extension BookView {
     }
 
     private func startTurn(direction: BookTurnDirection, translation: CGFloat) {
+        // Se este giro vai fechar a capa ou a contracapa,
+        // esconde o retângulo AGORA, antes da capa começar a se mover.
+        if willCloseBook(direction: direction) {
+            showBookBackground = false
+        }
+
         turnDirection = direction
         isTurning = true
         let progress = min(max(translation / dragDistance, 0), 1)
@@ -374,7 +390,26 @@ extension BookView {
             turnDirection = nil
             isTurning = false
             rotation = 0
+
+            // O fechamento foi cancelado (o livro continua aberto),
+            // então o retângulo volta a aparecer.
+            withAnimation(.easeOut(duration: 0.2)) {
+                showBookBackground = isBookOpen
+            }
         }
+    }
+
+    // Verifica se, ao completar este giro, a página resultante
+    // será a capa (-3) ou a contracapa (backCoverLeftIndex + 1).
+    private func willCloseBook(direction: BookTurnDirection) -> Bool {
+        let targetPage: Int
+        switch direction {
+        case .forward:
+            targetPage = currentPage + 2
+        case .backward:
+            targetPage = currentPage - 2
+        }
+        return targetPage == -3 || targetPage == backCoverLeftIndex + 1
     }
 }
 

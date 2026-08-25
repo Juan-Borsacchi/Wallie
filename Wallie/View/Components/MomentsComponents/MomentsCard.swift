@@ -1,4 +1,3 @@
-//
 //  MomentsCard.swift
 //  Wallie
 //
@@ -32,6 +31,7 @@ struct MomentsCard: View {
                         )
                         .clipped()
                     
+                    
                 } else {
                     Image(systemName: "photo")
                         .font(.largeTitle)
@@ -47,7 +47,7 @@ struct MomentsCard: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .strokeBorder(.white.opacity(0.25), lineWidth: 1)
+                    .strokeBorder(.white.opacity(0.8), lineWidth: 1)
             )
         }
     }
