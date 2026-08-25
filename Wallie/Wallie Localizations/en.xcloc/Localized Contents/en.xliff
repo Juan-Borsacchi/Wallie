@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 http://docs.oasis-open.org/xliff/v1.2/os/xliff-core-1.2-strict.xsd">
+  <file original="Wallie/ViewModel/InfoPlist.xcstrings" source-language="pt-BR" target-language="en" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.6" build-num="17F113"/>
+    </header>
+    <body>
+      <trans-unit id="CFBundleName" xml:space="preserve">
+        <source>Wallie</source>
+        <target>Wallie</target>
+        <note>Bundle name</note>
+      </trans-unit>
+      <trans-unit id="NSCameraUsageDescription" xml:space="preserve">
+        <source/>
+        <target>Permission to access the camera</target>
+        <note>Privacy - Camera Usage Description</note>
+      </trans-unit>
+      <trans-unit id="NSMicrophoneUsageDescription" xml:space="preserve">
+        <source/>
+        <target>Permission to access the microphone</target>
+        <note>Privacy - Microphone Usage Description</note>
+      </trans-unit>
+      <trans-unit id="NSPhotoLibraryUsageDescription" xml:space="preserve">
+        <source>Permissão para acessar a galeria de fotos</source>
+        <target>Permission to access the photo library</target>
+        <note>Privacy - Photo Library Usage Description</note>
+      </trans-unit>
+    </body>
+  </file>
+  <file original="Wallie/ViewModel/Localizable.xcstrings" source-language="pt-BR" target-language="en" datatype="plaintext">
+    <header>
+      <tool tool-id="com.apple.dt.xcode" tool-name="Xcode" tool-version="26.6" build-num="17F113"/>
+    </header>
+    <body>
+      <trans-unit id="%lld Selecionados" xml:space="preserve">
+        <source>%lld Selecionados</source>
+        <target>%lld Selected</target>
+      </trans-unit>
+      <trans-unit id="+%lld" xml:space="preserve">
+        <source>+%lld</source>
+        <target>+%lld</target>
+      </trans-unit>
+      <trans-unit id="Abrir Galeria" xml:space="preserve">
+        <source>Abrir Galeria</source>
+        <target>Open Gallery</target>
+      </trans-unit>
+      <trans-unit id="Acessar Galeria" xml:space="preserve">
+        <source>Acessar Galeria</source>
+        <target>Access Gallery</target>
+      </trans-unit>
+      <trans-unit id="Adicionar experiência" xml:space="preserve">
+        <source>Adicionar experiência</source>
+        <target>Add experience</target>
+      </trans-unit>
+      <trans-unit id="Adicione sua primeira experiência" xml:space="preserve">
+        <source>Adicione sua primeira experiência</source>
+        <target>Add your first experience</target>
+      </trans-unit>
+      <trans-unit id="Adicione uma nova experiência para começar a explorar suas memórias." xml:space="preserve">
+        <source>Adicione uma nova experiência para começar a explorar suas memórias.</source>
+        <target>Add a new experience to start exploring your memories.</target>
+      </trans-unit>
+      <trans-unit id="Álbum existente" xml:space="preserve">
+        <source>Álbum existente</source>
+        <target>Existing album</target>
+      </trans-unit>
+      <trans-unit id="Álbuns" xml:space="preserve">
+        <source>Álbuns</source>
+        <target>Albums</target>
+      </trans-unit>
+      <trans-unit id="Campo obrigatório." xml:space="preserve">
+        <source>Campo obrigatório.</source>
+        <target>Required field.</target>
+      </trans-unit>
+      <trans-unit id="Cancelar" xml:space="preserve">
+        <source>Cancelar</source>
+        <target>Cancel</target>
+      </trans-unit>
+      <trans-unit id="Capa da Experiência" xml:space="preserve">
+        <source>Capa da Experiência</source>
+        <target>Experience Cover</target>
+      </trans-unit>
+      <trans-unit id="Capture e veja suas experiências" xml:space="preserve">
+        <source>Capture e veja suas experiências</source>
+        <target>Capture and view your experiences</target>
+      </trans-unit>
+      <trans-unit id="Categoria" xml:space="preserve">
+        <source>Categoria</source>
+        <target>Category</target>
+      </trans-unit>
+      <trans-unit id="Câmera indisponível" xml:space="preserve">
+        <source>Câmera indisponível</source>
+        <target>Camera unavailable</target>
+      </trans-unit>
+      <trans-unit id="Como foi?" xml:space="preserve">
+        <source>Como foi?</source>
+        <target>How was it?</target>
+      </trans-unit>
+      <trans-unit id="Como se sentiu?" xml:space="preserve">
+        <source>Como se sentiu?</source>
+        <target>How did you feel?</target>
+      </trans-unit>
+      <trans-unit id="Criar Album" xml:space="preserve">
+        <source>Criar Album</source>
+        <target>Create Album</target>
+      </trans-unit>
+      <trans-unit id="Criar novo álbum..." xml:space="preserve">
+        <source>Criar novo álbum...</source>
+        <target>Create new album...</target>
+      </trans-unit>
+      <trans-unit id="Data" xml:space="preserve">
+        <source>Data</source>
+        <target>Date</target>
+      </trans-unit>
+      <trans-unit id="Descrição" xml:space="preserve">
+        <source>Descrição</source>
+        <target>Description</target>
+      </trans-unit>
+      <trans-unit id="Deslize para os lados para virar as páginas." xml:space="preserve">
+        <source>Deslize para os lados para virar as páginas.</source>
+        <target>Swipe left or right to turn the pages.</target>
+      </trans-unit>
+      <trans-unit id="Destino" xml:space="preserve">
+        <source>Destino</source>
+        <target>Destination</target>
+      </trans-unit>
+      <trans-unit id="Dê um título para o álbum..." xml:space="preserve">
+        <source>Dê um título para o álbum...</source>
+        <target>Give the album a title...</target>
+      </trans-unit>
+      <trans-unit id="Dê um título para sua experiência..." xml:space="preserve">
+        <source>Dê um título para sua experiência...</source>
+        <target>Give your experience a title...</target>
+      </trans-unit>
+      <trans-unit id="Editar" xml:space="preserve">
+        <source>Editar</source>
+        <target>Edit</target>
+      </trans-unit>
+      <trans-unit id="Editar Álbum" xml:space="preserve">
+        <source>Editar Álbum</source>
+        <target>Edit Album</target>
+      </trans-unit>
+      <trans-unit id="Editar experiência" xml:space="preserve">
+        <source>Editar experiência</source>
+        <target>Edit experience</target>
+      </trans-unit>
+      <trans-unit id="Escolher Fotos" xml:space="preserve">
+        <source>Escolher Fotos</source>
+        <target>Choose Photos</target>
+      </trans-unit>
+      <trans-unit id="Escreva uma descrição..." xml:space="preserve">
+        <source>Escreva uma descrição...</source>
+        <target>Write a description...</target>
+      </trans-unit>
+      <trans-unit id="Excluir" xml:space="preserve">
+        <source>Excluir</source>
+        <target>Delete</target>
+      </trans-unit>
+      <trans-unit id="Excluir (%lld)" xml:space="preserve">
+        <source>Excluir (%lld)</source>
+        <target>Delete (%lld)</target>
+      </trans-unit>
+      <trans-unit id="Excluir Álbum" xml:space="preserve">
+        <source>Excluir Álbum</source>
+        <target>Delete Album</target>
+      </trans-unit>
+      <trans-unit id="Excluir Álbuns" xml:space="preserve">
+        <source>Excluir Álbuns</source>
+        <target>Delete Albums</target>
+      </trans-unit>
+      <trans-unit id="Excluir Experiência" xml:space="preserve">
+        <source>Excluir Experiência</source>
+        <target>Delete Experience</target>
+      </trans-unit>
+      <trans-unit id="Excluir experiências" xml:space="preserve">
+        <source>Excluir experiências</source>
+        <target>Delete experiences</target>
+      </trans-unit>
+      <trans-unit id="Experiências" xml:space="preserve">
+        <source>Experiências</source>
+        <target>Experiences</target>
+      </trans-unit>
+      <trans-unit id="Gravação de Áudio" xml:space="preserve">
+        <source>Gravação de Áudio</source>
+        <target>Audio Recording</target>
+      </trans-unit>
+      <trans-unit id="Gravar Áudio" xml:space="preserve">
+        <source>Gravar Áudio</source>
+        <target>Record Audio</target>
+      </trans-unit>
+      <trans-unit id="Iniciar Gravação de Áudio" xml:space="preserve">
+        <source>Iniciar Gravação de Áudio</source>
+        <target>Start Audio Recording</target>
+      </trans-unit>
+      <trans-unit id="Já existe um álbum com este nome. Por favor, escolha outro título." xml:space="preserve">
+        <source>Já existe um álbum com este nome. Por favor, escolha outro título.</source>
+        <target>An album with this name already exists. Please choose another title.</target>
+      </trans-unit>
+      <trans-unit id="Memórias" xml:space="preserve">
+        <source>Memórias</source>
+        <target>Memories</target>
+      </trans-unit>
+      <trans-unit id="Momentos" xml:space="preserve">
+        <source>Momentos</source>
+        <target>Moments</target>
+      </trans-unit>
+      <trans-unit id="Mover" xml:space="preserve">
+        <source>Mover</source>
+        <target>Move</target>
+      </trans-unit>
+      <trans-unit id="Mover para Álbum" xml:space="preserve">
+        <source>Mover para Álbum</source>
+        <target>Move to Album</target>
+      </trans-unit>
+      <trans-unit id="Mover para álbum" xml:space="preserve">
+        <source>Mover para álbum</source>
+        <target>Move to album</target>
+      </trans-unit>
+      <trans-unit id="Nenhum" xml:space="preserve">
+        <source>Nenhum</source>
+        <target>None</target>
+      </trans-unit>
+      <trans-unit id="Nome do álbum..." xml:space="preserve">
+        <source>Nome do álbum...</source>
+        <target>Album name...</target>
+      </trans-unit>
+      <trans-unit id="OK" xml:space="preserve">
+        <source>OK</source>
+        <target>OK</target>
+      </trans-unit>
+      <trans-unit id="Pesquisar" xml:space="preserve">
+        <source>Pesquisar</source>
+        <target>Search</target>
+      </trans-unit>
+      <trans-unit id="Reproduzindo..." xml:space="preserve">
+        <source>Reproduzindo...</source>
+        <target>Playing...</target>
+      </trans-unit>
+      <trans-unit id="Salvar" xml:space="preserve">
+        <source>Salvar</source>
+        <target>Save</target>
+      </trans-unit>
+      <trans-unit id="Selecione Itens" xml:space="preserve">
+        <source>Selecione Itens</source>
+        <target>Select Items</target>
+      </trans-unit>
+      <trans-unit id="Selecione a data" xml:space="preserve">
+        <source>Selecione a data</source>
+        <target>Select the date</target>
+      </trans-unit>
+      <trans-unit id="Selecione suas Fotos" xml:space="preserve">
+        <source>Selecione suas Fotos</source>
+        <target>Select your Photos</target>
+      </trans-unit>
+      <trans-unit id="Tem certeza que deseja apagar os %lld álbuns selecionados? As experiências associadas permanecerão salvas em suas memórias." xml:space="preserve">
+        <source>Tem certeza que deseja apagar os %lld álbuns selecionados? As experiências associadas permanecerão salvas em suas memórias.</source>
+        <target>Are you sure you want to delete the %lld selected albums? The associated experiences will remain saved in your memories.</target>
+      </trans-unit>
+      <trans-unit id="Tem certeza que deseja apagar os %lld itens selecionados?" xml:space="preserve">
+        <source>Tem certeza que deseja apagar os %lld itens selecionados?</source>
+        <target>Are you sure you want to delete the %lld selected items?</target>
+      </trans-unit>
+      <trans-unit id="Tem certeza que deseja excluir esta experiência? Esta ação não pode ser desfeita." xml:space="preserve">
+        <source>Tem certeza que deseja excluir esta experiência? Esta ação não pode ser desfeita.</source>
+        <target>Are you sure you want to delete this experience? This action cannot be undone.</target>
+      </trans-unit>
+      <trans-unit id="Tem certeza que deseja excluir o álbum '%@'?" xml:space="preserve">
+        <source>Tem certeza que deseja excluir o álbum '%@'?</source>
+        <target>Are you sure you want to delete the album '%@'?</target>
+      </trans-unit>
+      <trans-unit id="Teste" xml:space="preserve">
+        <source>Teste</source>
+        <target>Test</target>
+      </trans-unit>
+      <trans-unit id="Tirar foto" xml:space="preserve">
+        <source>Tirar foto</source>
+        <target>Take photo</target>
+      </trans-unit>
+      <trans-unit id="Tirar outra" xml:space="preserve">
+        <source>Tirar outra</source>
+        <target>Take another</target>
+      </trans-unit>
+      <trans-unit id="Título" xml:space="preserve">
+        <source>Título</source>
+        <target>Title</target>
+      </trans-unit>
+      <trans-unit id="Toque na barra abaixo e busque por momentos, álbuns ou categorias." xml:space="preserve">
+        <source>Toque na barra abaixo e busque por momentos, álbuns ou categorias.</source>
+        <target>Tap the bar below and search for moments, albums, or categories.</target>
+      </trans-unit>
+      <trans-unit id="Toque para ouvir" xml:space="preserve">
+        <source>Toque para ouvir</source>
+        <target>Tap to listen</target>
+      </trans-unit>
+      <trans-unit id="Toque para pesquisar" xml:space="preserve">
+        <source>Toque para pesquisar</source>
+        <target>Tap to search</target>
+      </trans-unit>
+      <trans-unit id="Trocar foto" xml:space="preserve">
+        <source>Trocar foto</source>
+        <target>Change photo</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
