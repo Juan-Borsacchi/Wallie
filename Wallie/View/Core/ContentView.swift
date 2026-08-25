@@ -35,6 +35,7 @@ struct ContentView: View {
             
             Tab(value: 3, role: .search) {
                 SearchView()
+                    .tint(nil)
             }
         }
         .tint(colorScheme == .dark ? .verdeProjeto : .verdeEscuro)
