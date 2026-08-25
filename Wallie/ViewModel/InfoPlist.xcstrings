@@ -1,10 +1,28 @@
 {
   "sourceLanguage" : "pt-BR",
   "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Swift Data"
+          }
+        }
+      }
+    },
     "CFBundleName" : {
       "comment" : "Bundle name",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wallie"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "new",
@@ -17,6 +35,12 @@
       "comment" : "Privacy - Camera Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission to access the camera"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "new",
@@ -29,6 +53,12 @@
       "comment" : "Privacy - Microphone Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission to access the microphone"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "new",
@@ -41,6 +71,12 @@
       "comment" : "Privacy - Photo Library Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission to access the photo library"
+          }
+        },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "new",
