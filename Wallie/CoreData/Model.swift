@@ -10,7 +10,7 @@ import SwiftData
 
 @Model
 class Xperience {
-    var id: UUID = UUID()
+    @Attribute(.unique) var id: UUID
     var title: String = ""
     var descriptions: String = ""
     var timestamp: Date = Date()
@@ -18,8 +18,11 @@ class Xperience {
     var sensation: String? = nil
     var feelings: String? = nil
     
-    @Attribute(.externalStorage) // Ideal para dados binários maiores como imagens
+    @Attribute(.externalStorage)
     var cover: Data? = nil
+    
+    @Attribute(.externalStorage)
+    var coverThumbnail: Data? = nil
     
     @Attribute(.externalStorage)
     var photos: Data? = nil
@@ -58,12 +61,12 @@ class Xperience {
 
 @Model
 class Album {
-    var id: UUID
+    @Attribute(.unique) var id: UUID
     var title: String
     var category: String?
     var date: Date = Date()
     
-    @Relationship(deleteRule: .cascade, inverse: \Xperience.album)
+    @Relationship(deleteRule: .nullify, inverse: \Xperience.album)
     var xperiences: [Xperience]? = []
     
     init(

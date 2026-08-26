@@ -31,7 +31,7 @@ struct XpDetailScreen: View {
         
         ZStack(alignment: .bottom) {
             backgroundPhotos
-                .ignoresSafeArea()
+                .ignoresSafeArea(.all)
             
             DetailProgressContainer(viewModel: viewModel)
             
@@ -105,27 +105,42 @@ struct XpDetailScreen: View {
     }
     
     private var backgroundPhotos: some View {
-        GeometryReader { proxy in
+        Group {
             if !viewModel.allPhotos.isEmpty {
-                TabView(selection: $viewModel.selectedImageIndex) {
-                    ForEach(Array(viewModel.allPhotos.enumerated()), id: \.offset) { index, photo in
-                        Image(uiImage: photo.image)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: proxy.size.width, height: proxy.size.height)
-                            .clipped()
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                viewModel.config.selectedItem = photo
-                                viewModel.config.sourceLocation = proxy.frame(in: .global)
-                                withoutAnimation { viewModel.config.showFullScreenCover = true }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(spacing: 0) {
+                        ForEach(Array(viewModel.allPhotos.enumerated()), id: \.offset) { index, photo in
+                            GeometryReader { proxy in
+                                Image(uiImage: photo.image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: proxy.size.width, height: proxy.size.height)
+                                    .clipped()
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        viewModel.config.selectedItem = photo
+                                        viewModel.config.sourceLocation = proxy.frame(in: .global)
+                                        withoutAnimation { viewModel.config.showFullScreenCover = true }
+                                    }
                             }
-                            .tag(index)
+                            
+                            .containerRelativeFrame([.horizontal, .vertical])
+                            .id(index)
+                        }
                     }
+                    .scrollTargetLayout()
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
+                .scrollTargetBehavior(.paging)
+                
+                .scrollPosition(id: Binding<Int?>(
+                    get: { viewModel.selectedImageIndex },
+                    set: { if let newValue = $0 { viewModel.selectedImageIndex = newValue } }
+                ))
+                .ignoresSafeArea()
+                
             } else {
                 Color(.systemGray4)
+                    .ignoresSafeArea()
             }
         }
     }

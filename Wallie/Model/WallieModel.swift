@@ -231,3 +231,22 @@ extension ItemGalery {
         return dynamicColumnWidth * aspectRatio
     }
 }
+
+extension UIImage {
+    func generateThumbnail(maxDimension: CGFloat = 300) -> Data? {
+        let aspectRatio = self.size.width / self.size.height
+        let newSize: CGSize
+        
+        if self.size.width > self.size.height {
+            newSize = CGSize(width: maxDimension, height: maxDimension / aspectRatio)
+        } else {
+            newSize = CGSize(width: maxDimension * aspectRatio, height: maxDimension)
+        }
+        
+        guard let thumbnail = self.preparingThumbnail(of: newSize) else {
+            return self.jpegData(compressionQuality: 0.5)
+        }
+        
+        return thumbnail.jpegData(compressionQuality: 0.8)
+    }
+}
