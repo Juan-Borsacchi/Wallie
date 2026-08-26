@@ -48,7 +48,7 @@ struct ToolBarViewsTitle: View {
                                     .transition(.scale.combined(with: .opacity))
                             } else {
                                 Text("Editar")
-                                    .font(.callout)
+                                    .font(.custom("Manrope-Bold", size: 15))
                                     .foregroundColor(.primary)
                                     .padding(.horizontal, 16)
                                     .transition(.scale.combined(with: .opacity))

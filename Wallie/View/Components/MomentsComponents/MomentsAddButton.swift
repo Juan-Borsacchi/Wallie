@@ -13,6 +13,7 @@ struct MomentsAddButton: View {
     var body: some View {
         Button(action: action) {
             Label("Adicionar experiência", systemImage: "plus.circle.fill")
+                .font(.custom("Manrope-Bold", size: 16))
                 .font(.headline)
                 .foregroundStyle(.white)
                 .padding(8)

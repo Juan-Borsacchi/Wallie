@@ -20,26 +20,22 @@ struct BookView: View {
     var experiences: [Experience]
     var onTapExperience: ((Experience) -> Void)?
     var onVisibleExperiencesChange: (([Experience?]) -> Void)?
-
+    
     @State private var currentPage: Int = -3
     @State private var rotation: Double = 0
     @State private var isTurning = false
     @State private var turnDirection: BookTurnDirection?
     @State private var showBookBackground = false
-
+    
     let pageWidth: CGFloat = 180
     let pageHeight: CGFloat = 260
-    // Aumento de LARGURA aplicado só na capa/contracapa (não precisa bater com o fundo).
     let coverWidthIncrease: CGFloat = 10
     let bookBackgroundHorizontalPadding: CGFloat = 15
     let bookBackgroundVerticalPadding: CGFloat = 15
     let dragDistance: CGFloat = 250
-
-    // Aumento de ALTURA da capa/contracapa: igual ao padding vertical do
-    // retângulo de fundo, assim a altura da capa bate exatamente com a
-    // altura do retângulo (mesmo durante o giro).
+    
     private var coverHeightIncrease: CGFloat { bookBackgroundVerticalPadding }
-
+    
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
@@ -49,18 +45,19 @@ struct BookView: View {
                     height: pageHeight + bookBackgroundVerticalPadding
                 )
                 .opacity(showBookBackground ? 1 : 0)
-
+            
             VStack {
                 Text("Deslize para os lados para virar as páginas.")
+                    .font(.custom("Manrope-Regular", size: 17))
                     .frame(width: 120)
                     .offset(y: -20)
                     .foregroundStyle(.black)
                     .multilineTextAlignment(.center)
-
+                
                 Image(systemName: "book")
                     .font(.largeTitle)
                     .foregroundStyle(.black)
-
+                
                 Image(systemName: "hand.point.up.left.fill")
                     .font(.largeTitle)
                     .foregroundStyle(.black)
@@ -68,11 +65,11 @@ struct BookView: View {
                     .phaseAnimator([-18.0, 36.0]) { content, xOffset in
                         content.offset(x: xOffset)
                     } animation: { _ in
-                        .easeInOut(duration: 0.8)
+                            .easeInOut(duration: 0.8)
                     }
             }
             .padding(.leading, -160)
-
+            
             ZStack {
                 HStack(spacing: 0) {
                     BookStaticPage(
@@ -85,7 +82,7 @@ struct BookView: View {
                         coverHeightIncrease: coverHeightIncrease,
                         onTap: onTapExperience
                     )
-
+                    
                     BookStaticPage(
                         index: baseRightIndex,
                         side: .right,
@@ -97,7 +94,7 @@ struct BookView: View {
                         onTap: onTapExperience
                     )
                 }
-
+                
                 if isTurning,
                    let direction = turnDirection,
                    let frontIndex = turningFrontIndex {
@@ -158,7 +155,7 @@ private struct BookStaticPage: View {
     let coverWidthIncrease: CGFloat
     let coverHeightIncrease: CGFloat
     let onTap: ((Experience) -> Void)?
-
+    
     var body: some View {
         Group {
             if let index {
@@ -175,7 +172,7 @@ private struct BookStaticPage: View {
         }
         .frame(width: frameSize.width, height: frameSize.height)
     }
-
+    
     private var frameSize: CGSize {
         let isCover = isOuterCoverIndex(index, backCoverLeftIndex: backCoverLeftIndex)
         return CGSize(
@@ -191,7 +188,7 @@ private struct BookPageContent: View {
     let experiences: [Experience]
     let backCoverLeftIndex: Int
     let onTap: ((Experience) -> Void)?
-
+    
     var body: some View {
         Group {
             if index == -2 {
@@ -211,15 +208,14 @@ private struct BookPageContent: View {
             } else if index == experiences.count {
                 Image("PaginaVazia")
                     .resizable()
-                    .scaledToFill()
-                    .scaleEffect(y: 1.05)
+                    .scaledToFit()
             } else {
                 Color.clear
             }
         }
         .clipShape(outerCornerShape)
     }
-
+    
     private var outerCornerShape: UnevenRoundedRectangle {
         switch side {
         case .left:
@@ -250,7 +246,7 @@ private struct BookTurningPage: View {
     let size: CGSize
     let coverWidthIncrease: CGFloat
     let coverHeightIncrease: CGFloat
-
+    
     var body: some View {
         ZStack {
             BookPageContent(
@@ -262,7 +258,7 @@ private struct BookTurningPage: View {
             )
             .frame(width: frameSize.width, height: frameSize.height)
             .opacity(angle < 90 ? 1 : 0)
-
+            
             if let backIndex {
                 BookPageContent(
                     index: backIndex,
@@ -287,15 +283,15 @@ private struct BookTurningPage: View {
             perspective: 0.65
         )
     }
-
+    
     private var frontSide: BookPageSide {
         direction == .forward ? .right : .left
     }
-
+    
     private var backSide: BookPageSide {
         direction == .forward ? .left : .right
     }
-
+    
     private var frameSize: CGSize {
         let frontIsCover = isOuterCoverIndex(frontIndex, backCoverLeftIndex: backCoverLeftIndex)
         let backIsCover = isOuterCoverIndex(backIndex, backCoverLeftIndex: backCoverLeftIndex)
@@ -314,10 +310,10 @@ extension BookView {
             .onChanged(handleDragChange)
             .onEnded(handleDragEnd)
     }
-
+    
     private func handleDragChange(_ value: DragGesture.Value) {
         guard !isTurning else { return }
-
+        
         let translation = value.translation.width
         if translation < -10 {
             guard canGoForward else { return }
@@ -327,51 +323,50 @@ extension BookView {
             startTurn(direction: .backward, translation: translation)
         }
     }
-
+    
     private func startTurn(direction: BookTurnDirection, translation: CGFloat) {
-        // Se este giro vai fechar a capa ou a contracapa,
-        // esconde o retângulo AGORA, antes da capa começar a se mover.
+        
         if willCloseBook(direction: direction) {
             showBookBackground = false
         }
-
+        
         turnDirection = direction
         isTurning = true
         let progress = min(max(translation / dragDistance, 0), 1)
         rotation = progress * 180
     }
-
+    
     private func handleDragEnd(_ value: DragGesture.Value) {
         guard isTurning, let direction = turnDirection else { return }
-
+        
         let translation = abs(value.translation.width)
         let progress = min(max(translation / dragDistance, 0), 1)
-
+        
         if progress > 0.5 {
             finishTurn(direction: direction)
         } else {
             cancelTurn()
         }
     }
-
+    
     private func finishTurn(direction: BookTurnDirection) {
         withAnimation(.easeInOut(duration: 0.45)) {
             rotation = 180
         }
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
             let targetPage: Int
-
+            
             switch direction {
             case .forward:
                 targetPage = currentPage + 2
             case .backward:
                 targetPage = currentPage - 2
             }
-
+            
             var transaction = Transaction()
             transaction.disablesAnimations = true
-
+            
             withTransaction(transaction) {
                 currentPage = targetPage
                 turnDirection = nil
@@ -380,27 +375,23 @@ extension BookView {
             }
         }
     }
-
+    
     private func cancelTurn() {
         withAnimation(.easeInOut(duration: 0.30)) {
             rotation = 0
         }
-
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
             turnDirection = nil
             isTurning = false
             rotation = 0
-
-            // O fechamento foi cancelado (o livro continua aberto),
-            // então o retângulo volta a aparecer.
+            
             withAnimation(.easeOut(duration: 0.2)) {
                 showBookBackground = isBookOpen
             }
         }
     }
-
-    // Verifica se, ao completar este giro, a página resultante
-    // será a capa (-3) ou a contracapa (backCoverLeftIndex + 1).
+    
     private func willCloseBook(direction: BookTurnDirection) -> Bool {
         let targetPage: Int
         switch direction {
@@ -418,27 +409,27 @@ extension BookView {
         if experiences.isEmpty { return 0 }
         return ((experiences.count + 1) / 2) * 2
     }
-
+    
     private var isCover: Bool {
         currentPage == -3
     }
-
+    
     private var isBackCover: Bool {
         currentPage == backCoverLeftIndex + 1
     }
-
+    
     var isBookOpen: Bool {
         !isCover && !isBackCover
     }
-
+    
     private var canGoForward: Bool {
         currentPage < backCoverLeftIndex
     }
-
+    
     private var canGoBack: Bool {
         currentPage > -2
     }
-
+    
     private func updateVisibleExperiences() {
         if isCover || isBackCover {
             onVisibleExperiencesChange?([nil, nil])
@@ -449,7 +440,7 @@ extension BookView {
             onVisibleExperiencesChange?([leftExp, rightExp])
         }
     }
-
+    
     private func handleExperiencesCountChange() {
         if currentPage > backCoverLeftIndex {
             currentPage = backCoverLeftIndex
@@ -462,7 +453,7 @@ extension BookView {
     var baseLeftIndex: Int? {
         if !isTurning { return currentPage }
         guard let direction = turnDirection else { return currentPage }
-
+        
         switch direction {
         case .forward:
             return currentPage
@@ -470,11 +461,11 @@ extension BookView {
             return currentPage - 2
         }
     }
-
+    
     var baseRightIndex: Int? {
         if !isTurning { return currentPage + 1 }
         guard let direction = turnDirection else { return currentPage + 1 }
-
+        
         switch direction {
         case .forward:
             return currentPage + 3
@@ -482,10 +473,10 @@ extension BookView {
             return currentPage + 1
         }
     }
-
+    
     var turningFrontIndex: Int? {
         guard let direction = turnDirection else { return nil }
-
+        
         switch direction {
         case .forward:
             return currentPage + 1
@@ -493,10 +484,10 @@ extension BookView {
             return currentPage
         }
     }
-
+    
     var turningBackIndex: Int? {
         guard let direction = turnDirection else { return nil }
-
+        
         switch direction {
         case .forward:
             return currentPage + 2
@@ -514,13 +505,13 @@ private struct BookPreviewWrapper: View {
     @State private var experiences: [Experience] = [
         .mock, .mock, .mock, .mock, .mock
     ]
-
+    
     var body: some View {
         ZStack {
             Color.gray
                 .opacity(0.15)
                 .ignoresSafeArea()
-
+            
             BookView(experiences: experiences)
         }
     }

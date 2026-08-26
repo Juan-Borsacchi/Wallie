@@ -23,8 +23,8 @@ struct MemoriesView: View {
     @State private var selectedTargetAlbum: String = "Nenhum"
     
     var recentExperiences: [Experience] {
-            viewmodel.sortedRecentExperiences
-        }
+        viewmodel.sortedRecentExperiences
+    }
     
     var body: some View {
         NavigationStack {

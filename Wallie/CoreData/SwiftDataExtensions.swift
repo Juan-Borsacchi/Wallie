@@ -34,9 +34,9 @@ extension Xperience {
         }
         
         if let photosBytes = self.photos,
-                   let decodedDataArray = try? NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSArray.self, NSData.self], from: photosBytes) as? [Data] {
-                    items.append(AddItem(type: .photo, content: .images(decodedDataArray)))
-                }
+           let decodedDataArray = try? NSKeyedUnarchiver.unarchivedObject(ofClasses: [NSArray.self, NSData.self], from: photosBytes) as? [Data] {
+            items.append(AddItem(type: .photo, content: .images(decodedDataArray)))
+        }
         
         return Experience(
             id: self.id,
