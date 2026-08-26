@@ -66,10 +66,10 @@ struct SearchView: View {
                                             
                                             VStack(alignment: .leading) {
                                                 Text(album.name)
-                                                    .font(.headline)
+                                                    .font(.custom("Manrope-Bold", size: 17))
                                                 if let cat = album.category {
                                                     Text(cat)
-                                                        .font(.caption)
+                                                        .font(.custom("Manrope-Regular", size: 15))
                                                         .foregroundStyle(.secondary)
                                                 }
                                             }
@@ -108,9 +108,9 @@ struct SearchView: View {
                                             
                                             VStack(alignment: .leading, spacing: 4) {
                                                 Text(experience.title.isEmpty ? "Sem título" : experience.title)
-                                                    .font(.headline)
+                                                    .font(.custom("Manrope-Bold", size: 17))
                                                 Text(experience.date.formatted(date: .abbreviated, time: .omitted))
-                                                    .font(.caption)
+                                                    .font(.custom("Manrope-Regular", size: 15))
                                                     .foregroundStyle(.secondary)
                                             }
                                         }
