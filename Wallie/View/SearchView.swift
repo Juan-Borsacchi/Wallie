@@ -11,6 +11,13 @@ struct SearchView: View {
     @Environment(WallieViewModel.self) var viewmodel
     @State private var query = ""
     
+    init() {
+        let appearance = UINavigationBarAppearance()
+        appearance.largeTitleTextAttributes = [.font: UIFont(name: "Gupter-Bold", size: 41) ?? UIFont.systemFont(ofSize: 41, weight: .bold)]
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+    }
+    
     var filterExperience: [Experience] {
         if query.isEmpty {
             return []
@@ -42,7 +49,8 @@ struct SearchView: View {
                     ContentUnavailableView(
                         "",
                         systemImage: "",
-                        description: Text("Toque na barra abaixo e busque por momentos, álbuns ou categorias."))
+                        description: Text("Toque na barra abaixo e busque por momentos, álbuns ou categorias.")
+                            .font(.custom("Manrope-Regular", size: 16)))
                 } else if filterExperience.isEmpty && filterAlbums.isEmpty {
                     ContentUnavailableView.search(text: query)
                 } else {

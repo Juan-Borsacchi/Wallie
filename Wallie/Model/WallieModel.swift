@@ -140,9 +140,9 @@ struct Experience: Identifiable {
     var album: String
     
     var uiCoverImage: UIImage? {
-            guard let coverData = images.first else { return nil }
-            return UIImage(data: coverData)
-        }
+        guard let coverData = images.first else { return nil }
+        return UIImage(data: coverData)
+    }
     
     var quality: QualityRating?
     var emotion: EmotionTag?

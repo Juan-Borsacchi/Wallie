@@ -7,12 +7,12 @@
 import SwiftUI
 
 struct BookCoverBack: View {
-
+    
     @State private var gradientRotation: Double = 0
-
+    
     var body: some View {
         GeometryReader { geometry in
-
+            
             UnevenRoundedRectangle(
                 topLeadingRadius: 0,
                 bottomLeadingRadius: 0,
@@ -24,7 +24,7 @@ struct BookCoverBack: View {
             
         }
     }
-
+    
 }
 
 #Preview {
