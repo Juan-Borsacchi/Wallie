@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 import Observation
 
+@MainActor
 @Observable
 class DataManager {
     static let shared = DataManager()
@@ -68,11 +69,11 @@ class DataManager {
         xperience.sensation = experienceUI.quality?.rawValue
         xperience.feelings = experienceUI.emotion?.rawValue
         
-        if let coverData = experienceUI.images.first {
+        if let coverData = experienceUI.images.first, let uiImage = UIImage(data: coverData) {
             xperience.cover = coverData
+            xperience.coverThumbnail = uiImage.generateThumbnail()
         }
         
-        // Reseta antes de popular
         xperience.audio = nil
         xperience.photos = nil
         
@@ -166,12 +167,6 @@ class DataManager {
             
             do {
                 if let albumToDelete = try context.fetch(descriptor).first {
-                    if let associatedExperiences = albumToDelete.xperiences {
-                        for exp in associatedExperiences {
-                            exp.album = nil
-                        }
-                    }
-                    
                     context.delete(albumToDelete)
                     try context.save()
                     loadData()

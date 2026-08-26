@@ -8,6 +8,7 @@
 import SwiftUI
 import Observation
 
+@MainActor
 @Observable
 class WallieViewModel {
     var displaySheet: Bool = false
@@ -34,7 +35,9 @@ class WallieViewModel {
     init() {
         refreshUI()
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.currentTime = Date()
+            Task { @MainActor in
+                self?.currentTime = Date()
+            }
         }
     }
         
@@ -44,6 +47,8 @@ class WallieViewModel {
             self.albums = dataManager.albums.map { $0.toUIModel() }
             
             self.allGallery = dataManager.xperiences.compactMap { xperience in
+               
+                let targetData = xperience.coverThumbnail ?? xperience.cover
                 guard let coverData = xperience.cover,
                       let decodedImg = UIImage(data: coverData) else { return nil }
                 
