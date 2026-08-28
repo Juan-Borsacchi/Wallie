@@ -45,6 +45,7 @@ extension Xperience {
             description: self.descriptions,
             includeDate: true,
             date: self.timestamp,
+            createdXp: self.createdXp,
             album: self.album?.title ?? "Nenhum",
             quality: qualityVal,
             emotion: emotionVal,
@@ -58,7 +59,7 @@ extension Album {
         return formAlbum(
             id: self.id,
             name: self.title,
-            date: nil,
+            date: self.date,
             category: self.category
         )
     }

@@ -25,7 +25,7 @@ class WallieViewModel {
         guard let expireRecent = calendar.date(byAdding: .day, value: -7, to: currentTime) else {
             return experiences
         }
-        return experiences.filter { $0.date >= expireRecent }
+        return experiences.filter { $0.createdXp >= expireRecent }
     }
     
     var sortedRecentExperiences: [Experience] {

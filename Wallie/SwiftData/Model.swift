@@ -15,6 +15,7 @@ class Xperience {
     var descriptions: String = ""
     var timestamp: Date = Date()
     var includeDate: Bool = true
+    var createdXp: Date = Date()
     var sensation: String? = nil
     var feelings: String? = nil
     
@@ -38,6 +39,7 @@ class Xperience {
         descriptions: String = "",
         timestamp: Date = Date(),
         includeDate: Bool = true,
+        createdXp: Date = Date(),
         sensation: String? = nil,
         feelings: String? = nil,
         cover: Data? = nil,
@@ -50,6 +52,7 @@ class Xperience {
         self.descriptions = descriptions
         self.timestamp = timestamp
         self.includeDate = includeDate
+        self.createdXp = createdXp
         self.sensation = sensation
         self.feelings = feelings
         self.cover = cover

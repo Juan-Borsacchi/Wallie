@@ -136,6 +136,7 @@ struct Experience: Identifiable {
     var title: String
     var description: String
     var includeDate: Bool
+    var createdXp: Date
     var date: Date
     var album: String
     
@@ -161,6 +162,7 @@ struct Experience: Identifiable {
         description: String = "",
         includeDate: Bool = false,
         date: Date = Date(),
+        createdXp: Date = Date(),
         album: String = "Nenhum",
         quality: QualityRating? = nil,
         emotion: EmotionTag? = nil,
@@ -175,6 +177,7 @@ struct Experience: Identifiable {
         self.description = description
         self.includeDate = includeDate
         self.date = date
+        self.createdXp = createdXp
         self.album = album
         self.quality = quality
         self.emotion = emotion
